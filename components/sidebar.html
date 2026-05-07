@@ -66,26 +66,50 @@
 
       <!-- Section: TRACK 2 - LINUX -->
       <div class="nav-section mt-4">
-        <div class="nav-section-title flex-between px-4 py-2 text-[10px] font-mono text-accent-cyan uppercase tracking-widest cursor-pointer opacity-60">
+        <div class="nav-section-title flex-between px-4 py-2 text-[10px] font-mono text-accent-cyan uppercase tracking-widest cursor-pointer">
           <span>02: LINUX TRACK</span>
           <i class="fas fa-chevron-down transition-transform"></i>
         </div>
-        <div class="nav-section-links opacity-50">
-          <a href="linux-basics.html" class="nav-link" data-id="linux-basics"><i class="fab fa-linux w-5"></i> Linux Basics</a>
-          <a href="linux-commands.html" class="nav-link" data-id="linux-commands"><i class="fas fa-code w-5"></i> Commands</a>
-          <a href="linux-shell.html" class="nav-link" data-id="linux-shell"><i class="fas fa-file-code w-5"></i> Shell Scripting</a>
+        <div class="nav-section-links">
+          <a href="linux-basics.html" class="nav-link" data-id="linux-basics"><i class="fab fa-linux w-5"></i> A: Linux Basics (L1)</a>
+          <a href="linux-commands.html" class="nav-link" data-id="linux-commands"><i class="fas fa-code w-5"></i> B: Core Commands (L2)</a>
+          <a href="linux-systems.html" class="nav-link" data-id="linux-systems"><i class="fas fa-microchip w-5"></i> C: Systems Engineering (L3)</a>
+          <a href="linux-shell.html" class="nav-link" data-id="linux-shell"><i class="fas fa-file-code w-5"></i> D: Shell Scripting (L4)</a>
+          <a href="linux-devops.html" class="nav-link" data-id="linux-devops"><i class="fas fa-cloud w-5"></i> E: DevOps & Cloud (L5)</a>
         </div>
       </div>
+
     </nav>
   </div>
 
   <div class="sidebar-footer p-4 border-t border-border-subtle bg-bg-surface mt-auto">
     <div class="progress-stats flex-between mb-2 text-xs text-text-secondary font-mono">
       <span>Curriculum Progress</span>
-      <span id="sidebar-progress-text">0/12</span>
+      <span id="sidebar-progress-text">0/11</span>
     </div>
     <div class="w-full bg-bg-primary h-2 rounded-full overflow-hidden border border-border-subtle">
       <div id="sidebar-progress-fill" class="bg-accent-green h-full w-0 transition-all duration-500 ease-out"></div>
     </div>
   </div>
+
+  <script type="module">
+    import { Bus } from '../assets/js/event-bus.js';
+    import { StateManager } from '../assets/js/state.js';
+
+    function updateProgress() {
+      const state = StateManager.load();
+      const completed = state.completedConcepts.length;
+      // We'll approximate 'completed' as 'visited' for now or add a real completion system
+      const visited = document.querySelectorAll('.nav-link.visited').length; 
+      
+      const text = document.getElementById('sidebar-progress-text');
+      const fill = document.getElementById('sidebar-progress-fill');
+      
+      if (text) text.textContent = `${completed}/11`;
+      if (fill) fill.style.width = `${(completed / 11) * 100}%`;
+    }
+
+    window.addEventListener('concept_completed', updateProgress);
+  </script>
 </aside>
+

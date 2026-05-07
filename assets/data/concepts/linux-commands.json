@@ -1,73 +1,44 @@
 {
   "meta": {
-    "module": "Linux Commands: The Practical Laboratory",
-    "schemaVersion": "1.1",
+    "module": "Core Commands: Level 2 Mastery",
+    "schemaVersion": "1.2",
     "lastUpdated": "2026-05-07"
   },
   "concepts": [
     {
-      "id": "piping-redirection",
-      "title": "Level 2: The Art of Piping & Redirection",
+      "id": "file-manipulation-inodes",
+      "title": "File Manipulation: The Inode Reality",
       "category": "Operational",
-      "difficulty": "Intermediate",
-      "tags": ["pipe", "stdin", "stdout", "stderr"],
+      "difficulty": "Beginner",
+      "tags": ["cp", "mv", "rm", "inode", "metadata"],
       "content": {
-        "why_exists": "Small tools doing one thing well. Piping is how you combine these tools into complex, powerful pipelines.",
-        "problem": "You have a log file with 1 million lines. You only want to see the lines containing 'ERROR', and you want to save that result to a new file. Do you open it in a text editor? No.",
-        "beginner_explanation": "Redirection ('>') sends output to a file instead of the screen. Piping ('|') sends the output of one command as the input to another.",
-        "visual_story": "Think of commands as LEGO blocks. The '|' is the connector. You can build a bridge (pipeline) of any length.",
-        "step_by_step": [
-          "Run 'ls' - see it on screen.",
-          "Run 'ls > my_files.txt' - nothing on screen, it's in the file.",
-          "Run 'cat my_files.txt | grep .json' - only show the JSON files."
-        ],
-        "common_mistakes": "Using '>' when you meant '>>'. '>' overwrites the file, '>>' appends to it. Be careful, or you'll lose data!",
-        "debugging_thinking": "If your pipeline is empty, check each stage. Run 'cmd1', then 'cmd1 | cmd2', then 'cmd1 | cmd2 | cmd3'. Find where the data stops flowing.",
-        "real_workflow": "Sysadmins use 'tail -f logfile | grep --line-buffered ERROR' to watch a live system for failures in real-time.",
-        "kernel_internals": "The '|' operator tells the shell to call 'pipe()', creating a buffer in kernel memory. The shell then 'fork()'s two processes and uses 'dup2()' to map the first's stdout and the second's stdin to that buffer.",
+        "why_exists": "Data persistence and organization. You need to move, copy, and delete data as your project evolves.",
+        "problem": "If you copy a 1GB file, why does it take a long time? If you move that same file on the same disk, why is it instant? Understanding the difference is key to system performance.",
+        "beginner_explanation": "Copying ('cp') creates a completely new file with the same data. Moving ('mv') just changes the 'name tag' pointing to the data, unless you move it to a different disk.",
+        "analogy": "Copying is like printing a second copy of a document. Moving is like taking the original document and putting it in a different folder—the paper itself doesn't change, just its location.",
+        "kernel_story": "Every file is an 'Inode'. When you 'mv' a file on the same partition, the kernel just updates the directory entry to point to the same Inode number. No data is moved!",
+        "execution_flow": "1. mv source target. 2. Kernel verifies source exists. 3. Kernel creates link in target directory. 4. Kernel removes link in source directory.",
+        "visual_model": "Two directory folders pointing to the same 'Data Block' (Inode) after a move operation.",
+        "formal_definition": "Fundamental operations for managing filesystem objects, categorized by their interaction with Inode pointers and physical data blocks.",
+        "command_anatomy": "cp -r source_dir target_dir -> [Command] [Recursive Flag] [Source] [Target].",
+        "kernel_internals": "The 'unlink()' syscall is what actually 'deletes' a file by reducing its link count. If the count reaches zero, the kernel marks the data blocks as free.",
+        "data_flow": "Userspace -> rename() syscall -> VFS -> Filesystem Driver -> Disk Controller.",
+        "performance_implications": "Moving across mount points (different disks) forces a slow copy+delete operation. Always check if you are crossing filesystem boundaries.",
+        "security_implications": "Removing a file ('rm') doesn't actually erase the data; it just removes the pointer. Forensic tools can recover 'deleted' data unless it is overwritten.",
+        "common_mistakes": "Running 'rm -rf /' as root. This is the most famous mistake in Linux history and will destroy your entire OS.",
+        "real_world_workflows": "Using 'rsync' instead of 'cp' for large data transfers to handle network interruptions and only copy changed parts.",
+        "professional_usage": "Sysadmins use 'alias rm=\"rm -i\"' to force a confirmation prompt before every deletion to prevent accidents.",
         "mini_labs": [
-          { "task": "Count how many files are in /etc.", "command": "ls /etc | wc -l" }
-        ]
-      },
-      "commands": [
-        { "command": "grep 'pattern' file", "explanation": "Global Regular Expression Print. Filters lines based on a search string." },
-        { "command": "ls | tee output.txt", "explanation": "The 'T-junction'. Shows output on screen AND saves it to a file simultaneously." },
-        { "command": "cat file1 file2 > combined.txt", "explanation": "Concatenates two files and redirects the combined stream to a third file." }
-      ]
-    },
-    {
-      "id": "process-control",
-      "title": "Level 3: Mastering Process Control & Signals",
-      "category": "Systems",
-      "difficulty": "Advanced",
-      "tags": ["ps", "kill", "signals", "jobs"],
-      "content": {
-        "why_exists": "A Linux system is alive with hundreds of processes. You must be the conductor of this orchestra.",
-        "problem": "An application is frozen and consuming 100% CPU. You can't close it normally. How do you force it to stop without rebooting the whole machine?",
-        "beginner_explanation": "Every program you run is a 'Process' with a unique ID (PID). You can see them with 'ps' and stop them with 'kill'.",
-        "visual_story": "A process is like a worker in a factory. Sometimes a worker gets stuck and blocks the conveyor belt. The 'kill' command is like the manager telling the worker: 'Stop everything and leave.'",
-        "step_by_step": [
-          "Run a long task: 'sleep 1000 &'. The '&' puts it in the background.",
-          "Find its PID: 'ps'.",
-          "Stop it: 'kill PID'.",
-          "Check again: it's gone."
+          { "task": "Create a directory, move a file into it, and then delete the whole thing.", "command": "mkdir backup; touch notes.txt; mv notes.txt backup/; rm -rf backup" }
         ],
-        "common_mistakes": "Thinking 'kill' always means 'delete'. Kill sends a *signal*. SIGTERM (15) asks nicely to stop; SIGKILL (9) forces it immediately.",
-        "debugging_thinking": "Process not dying with 'kill'? It might be a 'Zombie' or stuck in an 'Uninterruptible Sleep' waiting for disk I/O.",
-        "real_workflow": "DevOps engineers use 'pkill -u user' to quickly clear out all processes belonging to a user who is causing system lag.",
-        "kernel_internals": "The 'kill()' syscall doesn't kill; it sends a signal. The kernel pauses the target process, pushes a signal onto its stack, and forces it to execute a signal handler.",
-        "performance_note": "Too many background processes can cause 'context switching' overhead, slowing down the CPU as it tries to keep everyone happy.",
-        "mini_tasks": [
-          "Run 'sleep 500' in the background.",
-          "Use 'jobs' to see it.",
-          "Bring it to the foreground with 'fg'."
-        ]
-      },
-      "commands": [
-        { "command": "ps aux", "explanation": "Shows EVERY process on the system with detailed CPU and Memory usage." },
-        { "command": "top", "explanation": "Real-time process monitor. Shows who is currently 'eating' the most resources." },
-        { "command": "kill -9 PID", "explanation": "Sends SIGKILL. The kernel terminates the process immediately. No cleanup allowed." }
-      ]
+        "troubleshooting": "If 'rm' fails, check if the file is 'immutable' using 'lsattr'. Even root can't delete an immutable file!",
+        "interview_questions": [
+          "What is the difference between a hard link and a soft link?",
+          "How does the kernel handle a file that is deleted while still being used by a process?"
+        ],
+        "mini_recap": "Moving is about pointers; copying is about data. Understanding Inodes makes you a faster and safer engineer.",
+        "next_topic": "Now that we can move files, let's learn how to look inside them without opening a heavy editor: Text Processing."
+      }
     }
   ]
 }

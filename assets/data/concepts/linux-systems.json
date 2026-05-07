@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "module": "Systems Engineering: Level 3 Mastery",
+    "schemaVersion": "1.2",
+    "lastUpdated": "2026-05-07"
+  },
+  "concepts": [
+    {
+      "id": "linux-permissions-deep",
+      "title": "Permissions: Inodes, Octals & The Security Matrix",
+      "category": "Systems",
+      "difficulty": "Intermediate",
+      "tags": ["chmod", "chown", "inode", "rwx"],
+      "content": {
+        "why_exists": "Multi-user security. In a shared environment, you must prevent users from reading each other's mail or deleting system binaries.",
+        "problem": "How do you distinguish between 'The Owner', 'The Development Team', and 'The World' when accessing a sensitive database config?",
+        "beginner_explanation": "Every file has three sets of 'rwx' bits: one for the user who owns it, one for their group, and one for everyone else.",
+        "analogy": "Think of a shared office. You have your personal drawer (User), the team has a shared project cabinet (Group), and there's a water cooler in the hallway (Others).",
+        "kernel_story": "When you try to open a file, the kernel doesn't look at the 'filename'. It looks at the Inode. The Inode stores a 16-bit mode field that contains the permissions.",
+        "execution_flow": "1. Syscall open() is called. 2. Kernel verifies Process UID/GID against Inode Mode. 3. If match found and bit is 1, access granted.",
+        "visual_model": "A 3x3 matrix showing Read, Write, and Execute permissions for User, Group, and Others.",
+        "formal_definition": "The mechanism by which the Linux kernel enforces access control on filesystem objects based on user and group identity.",
+        "command_anatomy": "chmod 755 script.sh -> [Command] [Mode: rwxr-xr-x] [Target].",
+        "kernel_internals": "The permissions are bitwise-ORed values: Read (4), Write (2), Execute (1). 7 (4+2+1) means full access.",
+        "data_flow": "User Request -> VFS -> Inode Permission Check -> File Descriptor Allocation.",
+        "performance_implications": "Permission checks are extremely fast because they involve simple bitwise logic on data already loaded into the kernel's Inode Cache.",
+        "security_implications": "SUID bits (Special permissions) can allow a regular user to run a program as root, which is powerful but dangerous if the program is exploitable.",
+        "common_mistakes": "Running 'chmod 777' because you're frustrated. This allows anyone to destroy your data.",
+        "real_world_workflows": "Web servers (like Nginx) are usually in a special group 'www-data' so they can read website files without having root access to the whole system.",
+        "professional_usage": "DevOps engineers use 'umask' to set default permissions for all new files created by a deployment script.",
+        "mini_labs": [
+          { "task": "Create a file and make it readable only by you.", "command": "touch private.txt; chmod 600 private.txt; ls -l private.txt" }
+        ],
+        "troubleshooting": "Check 'ls -l'. If you see a 'd' at the start, it's a directory. If you see a '-', it's a file.",
+        "interview_questions": [
+          "What does 'chmod 755' mean in binary?",
+          "Explain the purpose of the 'Sticky Bit' on the /tmp directory."
+        ],
+        "mini_recap": "Permissions are the armor of the Linux filesystem. Without them, there is no security.",
+        "next_topic": "Now that we can lock our files, let's look at the programs that use them: Processes."
+      }
+    },
+    {
+      "id": "process-lifecycle",
+      "title": "Process Lifecycle: Forks, Execs & Zombie Hordes",
+      "category": "Systems",
+      "difficulty": "Intermediate",
+      "tags": ["fork", "exec", "wait", "zombie"],
+      "content": {
+        "why_exists": "To manage multiple tasks simultaneously. Every program you run is a 'process' competing for CPU time.",
+        "problem": "A computer only has a few CPU cores, but you want to run 200 programs. How does the kernel manage their life and death?",
+        "beginner_explanation": "Every process has a Parent and a PID (Process ID). Processes are born through 'Forking' (cloning) and die through 'Exiting'.",
+        "analogy": "A process is like a recipe being cooked in a kitchen. The recipe is the 'Program' (static code), and the act of cooking it is the 'Process' (dynamic execution).",
+        "kernel_story": "The kernel keeps a 'Process Table'. When you run 'ls', the shell clones itself (fork) and then replaces its brain with the 'ls' code (exec).",
+        "execution_flow": "1. fork() creates a child. 2. exec() loads new code. 3. process runs. 4. exit() sends status to parent.",
+        "visual_model": "A 'Process Tree' with 'init' (PID 1) at the root, branching out into all other programs.",
+        "formal_definition": "An instance of a computer program that is being executed by one or many threads.",
+        "command_anatomy": "kill -9 1234 -> [Command] [Signal: SIGKILL] [PID].",
+        "kernel_internals": "The 'task_struct' in the kernel contains the process's memory map, file descriptors, and CPU state (registers).",
+        "data_flow": "Exec Call -> Loader -> Memory Allocation -> Stack/Heap Setup -> CPU Instruction Pointer Jump.",
+        "performance_implications": "Context switching (swapping between processes) takes time. Too many processes cause 'thrashing', where the CPU spends more time switching than working.",
+        "security_implications": "Process isolation (namespaces) ensures that one process cannot see or modify the memory of another process.",
+        "common_mistakes": "Killing a parent process and leaving 'orphan' children, or creating too many processes (Fork Bomb).",
+        "real_world_workflows": "Using 'htop' to find a 'rogue' process that is leaking memory and slowing down a production server.",
+        "professional_usage": "SREs use 'nice' and 'renice' to give background backups lower priority so they don't lag the user's web applications.",
+        "mini_labs": [
+          { "task": "Check the process tree of your current shell.", "command": "ps -f" }
+        ],
+        "troubleshooting": "A 'Zombie' process (stat 'Z') is a dead process whose parent hasn't acknowledged its death yet. You can't 'kill' a zombie—it's already dead!",
+        "interview_questions": [
+          "What happens during a fork() system call?",
+          "How do you find which process is using a specific port?"
+        ],
+        "mini_recap": "Processes are the living entities of Linux. Understanding their lifecycle is key to system performance tuning.",
+        "next_topic": "Now that we understand how processes live, let's learn how to monitor the resources they consume."
+      }
+    }
+  ]
+}
