@@ -11,25 +11,65 @@ class AppCore {
   }
 
   async init() {
+    if (window.OSAcademyInitiated) return;
+    window.OSAcademyInitiated = true;
+    
     performance.mark('app_init_start');
     
-    // 1. Core Systems
+    // 1. Load Global Layout Components
+    await this.loadLayout();
+
+    // 2. Core Systems
     ErrorHandler.init();
     StateManager.initTheme();
 
-    // 2. Base UI & Navigation
+    // 3. Base UI & Navigation
     UIController.init();
     NavigationController.init();
     AnimationController.init();
 
-    // 3. Advanced Engine Orchestration (Dynamic Imports based on page needs)
+    // 4. Advanced Engine Orchestration
     await this.orchestrateDynamicImports();
 
-    // 4. Handle Deep Linking if present (#concept-id)
+    // 5. Handle Deep Linking
     this.handleDeepLinking();
 
+    Bus.emit('layout_ready');
     performance.measure('app_init_duration', 'app_init_start');
     console.log(`[Core] Boot complete in ${performance.getEntriesByName('app_init_duration')[0].duration.toFixed(2)}ms`);
+  }
+
+  async loadLayout() {
+    const sidebarMount = document.getElementById('sidebar-mount');
+    const topbarMount = document.getElementById('topbar-mount');
+    const cmdPaletteMount = document.getElementById('command-palette-mount');
+
+    if (!sidebarMount && !topbarMount) return; // Not a page requiring layout
+
+    try {
+      // Use absolute-relative paths to ensure consistency across subpages
+      const [sidebarRes, topbarRes, cmdPaletteRes] = await Promise.all([
+        fetch('components/sidebar.html'),
+        fetch('components/topbar.html'),
+        fetch('components/command-palette.html')
+      ]);
+
+      if (!sidebarRes.ok || !topbarRes.ok) throw new Error('Layout component fetch failed');
+
+      const sidebarHtml = await sidebarRes.text();
+      const topbarHtml = await topbarRes.text();
+      const cmdPaletteHtml = cmdPaletteRes.ok ? await cmdPaletteRes.text() : '';
+
+      if (sidebarMount) sidebarMount.innerHTML = sidebarHtml;
+      if (topbarMount) topbarMount.innerHTML = topbarHtml;
+      if (cmdPaletteMount) cmdPaletteMount.innerHTML = cmdPaletteHtml;
+      
+      console.log('[Core] Layout components injected successfully.');
+    } catch (err) {
+      console.error('[Core] Layout injection failed:', err);
+      // Fallback for critical UI if injection fails
+      if (sidebarMount) sidebarMount.innerHTML = '<div class="p-4 text-xs text-text-muted">Navigation unavailable</div>';
+    }
   }
 
   /**

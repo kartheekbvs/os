@@ -33,38 +33,27 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 
   <script type="module">
-    async function loadLayout() {
-      const [sidebarRes, topbarRes, cmdPaletteRes] = await Promise.all([
-        fetch('components/sidebar.html'),
-        fetch('components/topbar.html'),
-        fetch('components/command-palette.html')
-      ]);
-      
-      document.getElementById('sidebar-mount').innerHTML = await sidebarRes.text();
-      document.getElementById('topbar-mount').innerHTML = await topbarRes.text();
-      document.getElementById('command-palette-mount').innerHTML = await cmdPaletteRes.text();
-
-      const bc = document.getElementById('breadcrumb-current');
-      if (bc) bc.textContent = 'OS Storage';
-      
-      const activeLink = document.querySelector('.nav-link[data-id="os-storage"]');
-      if (activeLink) activeLink.classList.add('active');
-    }
-
     import { ContentRenderer } from './assets/js/content-renderer.js';
     import { ToastManager } from './assets/js/toast-manager.js';
     import { KeyboardShortcuts } from './assets/js/keyboard-shortcuts.js';
     import { CommandPalette } from './assets/js/command-palette.js';
+    import { Bus } from './assets/js/event-bus.js';
     import './assets/js/core.js';
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      await loadLayout();
-      
-      ToastManager.init();
-      KeyboardShortcuts.init();
-      CommandPalette.init();
-
+    document.addEventListener('DOMContentLoaded', () => {
       new ContentRenderer('#content-mount', 'assets/data/concepts/os-storage.json');
+      
+      Bus.on('layout_ready', () => {
+        ToastManager.init();
+        KeyboardShortcuts.init();
+        CommandPalette.init();
+
+        const bc = document.getElementById('breadcrumb-current');
+        if (bc) bc.textContent = 'Track 1 / Storage Systems';
+        
+        const activeLink = document.querySelector('.nav-link[data-id="os-storage"]');
+        if (activeLink) activeLink.classList.add('active');
+      });
     });
   </script>
 </body>

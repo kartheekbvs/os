@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "module": "Memory Management",
+    "track": "Operating Systems Core",
+    "concept_template_mode": "adaptive"
+  },
+  "concepts": [
+    {
+      "id": "mem-intro",
+      "title": "Module 4.1: The Memory Hierarchy - Why We Paging",
+      "difficulty": "Medium",
+      "tags": ["Physical Memory", "Hierarchy", "Latency"],
+      "content": {
+        "why_exists": "Processors are fast, but memory is slow. To bridge the gap, OS and Hardware create a hierarchy of storage, from registers to disk. Memory management is the art of making the process feel it has unlimited, fast, and private memory.",
+        "real_world_problem": "How can 100 processes share 8GB of RAM without overwriting each other or crashing the system?",
+        "daily_life_analogy": "A library (Disk) vs. a study desk (RAM) vs. your hands (Registers). You can't fit all books on the desk, so you swap them as needed.",
+        "hardware_story": "The CPU doesn't talk to the RAM directly for every instruction. It uses the MMU (Memory Management Unit) to translate addresses on the fly.",
+        "definition": "The OS subsystem responsible for tracking memory usage, allocating space to processes, and managing the mapping between virtual and physical addresses.",
+        "internals": "Relocation registers, Base and Limit registers were the ancestors of modern Paging.",
+        "performance_tradeoffs": "More cache levels reduce latency but increase hardware complexity and cost.",
+        "interactive_simulator": {
+          "type": "Memory Hierarchy Observatory",
+          "config": { "levels": ["L1", "L2", "RAM", "SWAP"] }
+        }
+      }
+    },
+    {
+      "id": "mem-virtual",
+      "title": "Module 4.2: Virtual Memory - The Great Illusion",
+      "difficulty": "Hard",
+      "tags": ["Abstraction", "Address Space", "MMU"],
+      "content": {
+        "why_exists": "Virtual Memory decouples the address a program uses from the actual physical location in RAM. This allows for isolation, security, and the ability to run programs larger than physical memory.",
+        "real_world_problem": "A process has a bug and writes to address 0x0000. Without Virtual Memory, this could overwrite the kernel's interrupt table.",
+        "daily_life_analogy": "Your house has an address (123 Main St), but the post office uses a routing code. You don't need to know where the sorting facility is to get mail.",
+        "hardware_story": "The MMU intercepts every memory access. If the translation is not in the TLB, it performs a Page Table Walk.",
+        "definition": "A memory management technique that provides an 'idealized' abstraction of the storage resources that are actually available on a given machine.",
+        "internals": "The process sees a contiguous address space (0 to MAX), while the physical pages are scattered across RAM.",
+        "visual_machine_model": "Process A [0x1000] -> MMU -> RAM [0x5000]. Process B [0x1000] -> MMU -> RAM [0x9000].",
+        "interactive_simulator": {
+          "type": "Address Translation Tracer",
+          "config": { "mode": "segmentation-vs-paging" }
+        }
+      }
+    },
+    {
+      "id": "mem-paging",
+      "title": "Module 4.3: Paging - Dividing the World",
+      "difficulty": "Hard",
+      "tags": ["Pages", "Frames", "Fragmentation"],
+      "content": {
+        "why_exists": "To solve external fragmentation, we divide physical memory into fixed-size 'Frames' and logical memory into 'Pages'. Any page can fit into any frame.",
+        "real_world_problem": "Old systems used 'Contiguous Allocation', which left holes in memory too small for new processes. Paging eliminates this entirely.",
+        "daily_life_analogy": "A loose-leaf notebook. You can put any page in any slot, and the index (Page Table) tells you where to find Section 1.",
+        "formula": "Physical Address = Frame Number \\times Page Size + Offset",
+        "internals": "Page Tables are stored in RAM. The CR3 register (on x86) points to the current process's page table.",
+        "worked_example": "Page Size: 4KB. Virtual Address: 0x1005. VPN = 1, Offset = 5. If VPN 1 maps to Frame 7, Physical Address = 7 * 4096 + 5 = 0x7005.",
+        "interactive_simulator": {
+          "type": "Paging Simulator",
+          "config": { "pageSize": 4096, "ramSize": 65536 }
+        }
+      }
+    },
+    {
+      "id": "mem-tlb",
+      "title": "Module 4.4: TLB - The Speed Demon",
+      "difficulty": "Hard",
+      "tags": ["Cache", "MMU", "Context Switch"],
+      "content": {
+        "why_exists": "Looking up the page table in RAM for every instruction would slow down the CPU by 50%. The TLB caches these translations in hardware.",
+        "real_world_problem": "Context switches are expensive because they often require flushing the TLB (or using ASIDs).",
+        "daily_life_analogy": "A speed-dial list on your phone. You don't look at the phone book (Page Table) every time you call a friend.",
+        "hardware_story": "The TLB is an Associative Cache. It compares the VPN against all entries in parallel (one clock cycle).",
+        "definition": "Translation Lookaside Buffer: A high-speed hardware cache used to reduce the time taken to access a user memory location.",
+        "performance_tradeoffs": "Large TLBs are fast but consume significant power and chip area.",
+        "interactive_simulator": {
+          "type": "TLB Cache Performance",
+          "config": { "tlbSize": 16, "locality": "high" }
+        }
+      }
+    }
+  ]
+}

@@ -224,22 +224,13 @@
   </main>
 
   <script type="module">
-    async function loadLayout() {
-      const [sidebarRes, topbarRes] = await Promise.all([
-        fetch('components/sidebar.html'),
-        fetch('components/topbar.html')
-      ]);
-      
-      document.getElementById('sidebar-mount').innerHTML = await sidebarRes.text();
-      document.getElementById('topbar-mount').innerHTML = await topbarRes.text();
+    import './assets/js/core.js';
+    import { Bus } from './assets/js/event-bus.js';
 
+    Bus.on('layout_ready', () => {
       const bc = document.getElementById('breadcrumb-current');
       if (bc) bc.textContent = 'Learning Tracks';
-    }
-
-    import './assets/js/core.js';
-
-    document.addEventListener('DOMContentLoaded', loadLayout);
+    });
   </script>
 </body>
 </html>

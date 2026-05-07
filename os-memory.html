@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bash Shell Scripting | Linux OS Academy</title>
+  <title>Memory Management | Operating Systems Academy</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +41,7 @@
     import './assets/js/core.js';
 
     document.addEventListener('DOMContentLoaded', () => {
-      new ContentRenderer('#content-mount', 'assets/data/concepts/linux-shell.json');
+      new ContentRenderer('#content-mount', 'assets/data/concepts/os-memory.json');
       
       Bus.on('layout_ready', () => {
         ToastManager.init();
@@ -49,9 +49,9 @@
         CommandPalette.init();
 
         const bc = document.getElementById('breadcrumb-current');
-        if (bc) bc.textContent = 'Track 2 / Shell Scripting';
+        if (bc) bc.textContent = 'Track 1 / Memory Management';
         
-        const activeLink = document.querySelector('.nav-link[data-id="linux-shell"]');
+        const activeLink = document.querySelector('.nav-link[data-id="os-memory"]');
         if (activeLink) activeLink.classList.add('active');
       });
     });

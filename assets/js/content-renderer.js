@@ -16,9 +16,14 @@ export class ContentRenderer {
     this.animations = [];
     
     this.init();
+    console.log(`[ContentRenderer] Initialized for ${jsonUrl} into ${mountId}`);
   }
 
   async init() {
+    if (!this.mountNode) {
+      console.error(`[ContentRenderer] Mount point not found. Aborting initialization.`);
+      return;
+    }
     try {
       // 1. Fetch Template
       const tplRes = await fetch('components/concept-template.html');
@@ -113,9 +118,16 @@ export class ContentRenderer {
   }
 
   renderConcepts(data) {
+    if (!data || !data.concepts) {
+      console.warn('[ContentRenderer] No concepts found in payload');
+      return;
+    }
+
     const concepts = data.concepts;
     this.mountNode.innerHTML = ''; // Clear loaders
     const fragment = document.createDocumentFragment();
+    
+    console.log(`[ContentRenderer] Rendering ${concepts.length} concepts...`);
 
     concepts.forEach(concept => {
       const el = document.createElement('div');
