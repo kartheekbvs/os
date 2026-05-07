@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Dashboard (Index) Specific Styles
+   ========================================================================== */
+
+.hero-gradient {
+  background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent 40%),
+              radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.05), transparent 40%);
+}
+
+.track-section {
+  margin-bottom: var(--space-16);
+}
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-6);
+}
+
+.track-header {
+  border-bottom: 2px solid var(--track-color);
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-10);
+}
+
+.track-primary { 
+  --track-color: var(--accent-purple); 
+  background: rgba(168, 85, 247, 0.02);
+  padding: var(--space-8);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.track-secondary { 
+  --track-color: var(--accent-cyan);
+  opacity: 0.85;
+}
+
+.track-secondary:hover { 
+  opacity: 1; 
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.badge-track {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

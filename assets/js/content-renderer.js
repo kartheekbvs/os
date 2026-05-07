@@ -16,6 +16,18 @@ export class ContentRenderer {
     this.animations = [];
     
     this.init();
+    
+    Bus.on('scroll_to_concept', (id) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Adjust for topbar height
+          window.scrollBy(0, -80);
+        }
+      }, 500); // Wait for hydration
+    });
+
     console.log(`[ContentRenderer] Initialized for ${jsonUrl} into ${mountId}`);
   }
 
@@ -24,7 +36,10 @@ export class ContentRenderer {
       console.error(`[ContentRenderer] Mount point not found. Aborting initialization.`);
       return;
     }
+    
     try {
+      performance.mark('content_load_start');
+      
       // 1. Fetch Template
       const tplRes = await fetch('components/concept-template.html');
       if (!tplRes.ok) throw new Error('Failed to load concept template');
@@ -32,7 +47,7 @@ export class ContentRenderer {
 
       // 2. Fetch Data
       const dataRes = await fetch(this.jsonUrl);
-      if (!dataRes.ok) throw new Error('Failed to load content payload');
+      if (!dataRes.ok) throw new Error(`Failed to load content payload from ${this.jsonUrl}`);
       const payload = await dataRes.json();
       this.data = payload;
 
@@ -43,11 +58,37 @@ export class ContentRenderer {
       this.setupTOC();
       this.setupScrollTracking();
       this.renderMath();
+      
       Bus.emit('page_loaded', { module: payload.meta.module });
+      Bus.emit('content_hydrated');
+      
+      performance.measure('content_load_duration', 'content_load_start');
+      console.log(`[ContentRenderer] Rendered ${payload.meta.module} in ${performance.getEntriesByName('content_load_duration')[0].duration.toFixed(2)}ms`);
 
     } catch (err) {
+      console.error('[ContentRenderer Error]', err);
       ErrorHandler.handleFetchError(`ContentRenderer (${this.jsonUrl})`, err);
-      this.mountNode.innerHTML = `<div class="p-4 bg-accent-red text-white rounded">Failed to load content: ${err.message}</div>`;
+      this.mountNode.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+          <div class="w-16 h-16 bg-accent-red/10 text-accent-red rounded-full flex-center mb-6">
+            <i class="fas fa-exclamation-triangle text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold mb-2">Systems Failure: Content Unreachable</h2>
+          <p class="text-text-secondary max-w-md mb-8">The system was unable to synchronize with the curriculum data lake at ${this.jsonUrl}. Check your connection or verify the asset path.</p>
+          <button class="btn btn-primary" onclick="location.reload()">
+            <i class="fas fa-redo mr-2"></i> REBOOT_PIPELINE
+          </button>
+        </div>
+      `;
+    } finally {
+      // Small delay to prevent layout flash during final reflow
+      setTimeout(() => {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+          loader.classList.add('opacity-0');
+          setTimeout(() => loader.classList.add('hidden'), 300);
+        }
+      }, 100);
     }
   }
 
@@ -68,6 +109,7 @@ export class ContentRenderer {
     const tocList = document.getElementById('module-toc');
     if (!tocContainer || !tocList || !this.data.concepts) return;
 
+    tocContainer.classList.remove('hidden');
     tocList.innerHTML = '';
     this.data.concepts.forEach(concept => {
       const li = document.createElement('li');
@@ -277,10 +319,10 @@ export class ContentRenderer {
         mountTarget.id = `sim-${concept.id}`;
         mountTarget.innerHTML = ''; // Clear fallback HTML
         
-        // Schedule SimulatorEngine initialization
-        setTimeout(() => {
-          this.animations.push(new SimulatorEngine(mountTarget, content.interactive_simulator, concept.id));
-        }, 0);
+        // Initialize SimulatorEngine immediately and bind it to the article for control lookup
+        const engine = new SimulatorEngine(mountTarget, content.interactive_simulator, concept.id);
+        article._sim = engine;
+        this.animations.push(engine);
       }
 
       if (content.threat_model) {

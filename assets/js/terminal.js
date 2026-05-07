@@ -577,9 +577,21 @@ export class TerminalEngine {
   renderOutput(text, isHtml = true, isError = false) {
     if (text === null || text === undefined || text === '') return;
     const div = document.createElement('div');
-    div.className = `terminal-output ${isError ? 'text-accent-red font-bold' : ''}`;
-    if (isHtml) div.innerHTML = text;
+    div.className = `terminal-output ${isError ? 'text-accent-red font-bold' : ''} leading-relaxed mb-1`;
+    
+    // Replace newlines with <br> if not using pre-wrap
+    const formattedText = isHtml ? text.replace(/\n/g, '<br>') : text;
+    
+    if (isHtml) div.innerHTML = formattedText;
     else div.textContent = text;
+    
     this.outputContainer.appendChild(div);
+    this.scrollToBottom();
+  }
+
+  scrollToBottom() {
+    requestAnimationFrame(() => {
+      this.bodyElement.scrollTop = this.bodyElement.scrollHeight;
+    });
   }
 }

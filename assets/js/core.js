@@ -28,6 +28,10 @@ class AppCore {
     NavigationController.init();
     AnimationController.init();
 
+    // Sync active state based on filename
+    const pageId = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+    NavigationController.updateActiveState(pageId);
+
     // 4. Advanced Engine Orchestration
     await this.orchestrateDynamicImports();
 

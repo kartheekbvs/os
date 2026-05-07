@@ -65,6 +65,7 @@ export class SVGEngine {
       case 'deadlock_graph':
       case 'raid':
       case 'disk_scheduling':
+      case 'flow-viz':
         this.renderPlaceholder();
         break;
       default:

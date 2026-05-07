@@ -271,3 +271,48 @@
   width: 100%;
   border-radius: var(--border-radius-lg);
 }
+/* ==========================================================================
+   Command Palette & Search UI
+   ========================================================================== */
+
+#command-palette-overlay {
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
+  transition: opacity 0.2s ease-out;
+}
+
+#command-palette-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+}
+
+#command-palette-input {
+  caret-color: var(--accent-cyan);
+}
+
+#command-palette-results [data-search-path] {
+  padding: var(--space-3);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+#command-palette-results [data-search-path]:hover {
+  background: var(--bg-surface-elevated);
+  transform: translateX(4px);
+}
+
+#command-palette-results .search-meta {
+  font-size: 8px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+#command-palette-results .search-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}

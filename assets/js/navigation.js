@@ -1,4 +1,5 @@
 import { qs, qsa, debounce } from './utils.js';
+import { Bus } from './event-bus.js';
 
 export const NavigationController = {
   init() {
@@ -13,10 +14,23 @@ export const NavigationController = {
   initSidebarToggle() {
     const toggleBtn = qs('#mobile-menu-btn');
     const sidebar = qs('.sidebar');
+    const overlay = qs('#sidebar-overlay');
     
+    const toggle = (forceClose = false) => {
+      const isOpen = forceClose ? false : !sidebar.classList.contains('is-open');
+      sidebar.classList.toggle('is-open', isOpen);
+      if (overlay) overlay.classList.toggle('hidden', !isOpen);
+    };
+
     if (toggleBtn && sidebar) {
-      toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('is-open');
+      toggleBtn.addEventListener('click', () => toggle());
+      if (overlay) overlay.addEventListener('click', () => toggle(true));
+
+      // Close sidebar when clicking links on mobile
+      document.body.addEventListener('click', (e) => {
+        if (e.target.closest('.nav-link') && window.innerWidth < 1024) {
+          toggle(true);
+        }
       });
     }
   },
@@ -28,32 +42,41 @@ export const NavigationController = {
     const searchInput = qs('#sidebar-search');
     if (!searchInput) return;
 
-    const filterLinks = debounce((e) => {
+    searchInput.addEventListener('input', debounce((e) => {
       const term = e.target.value.toLowerCase();
+      const sections = qsa('.nav-section');
       const links = qsa('.nav-link');
       
-      links.forEach(link => {
-        const text = link.textContent.toLowerCase();
-        // Simple client-side text filtering for the sidebar tree
-        if (text.includes(term)) {
-          link.style.display = 'flex';
-          // Ensure parent section is open
-          const section = link.closest('.nav-section');
-          if (section) section.classList.remove('collapsed');
-        } else {
-          link.style.display = 'none';
-        }
-      });
-    }, 200);
+      if (!term) {
+        // Reset all
+        links.forEach(l => l.style.display = 'flex');
+        sections.forEach(s => s.style.display = 'block');
+        return;
+      }
 
-    searchInput.addEventListener('input', filterLinks);
+      sections.forEach(section => {
+        const sectionLinks = qsa('.nav-link', section);
+        let hasMatch = false;
+
+        sectionLinks.forEach(link => {
+          const text = link.textContent.toLowerCase();
+          const matches = text.includes(term);
+          link.style.display = matches ? 'flex' : 'none';
+          if (matches) hasMatch = true;
+        });
+
+        section.style.display = hasMatch ? 'block' : 'none';
+        if (hasMatch) section.classList.remove('collapsed');
+      });
+    }, 150));
   },
 
   /**
    * Collapsible Navigation Sections
    */
   initCollapsibles() {
-    document.addEventListener('click', (e) => {
+    // Delegation for dynamic sidebar
+    document.body.addEventListener('click', (e) => {
       const header = e.target.closest('.nav-section-title');
       if (header) {
         const section = header.closest('.nav-section');
@@ -62,5 +85,25 @@ export const NavigationController = {
         }
       }
     });
+  },
+
+  /**
+   * Sync Sidebar Active State
+   */
+  updateActiveState(pageId) {
+    qsa('.nav-link').forEach(l => l.classList.remove('active'));
+    const activeLink = qs(`.nav-link[data-id="${pageId}"]`);
+    if (activeLink) {
+      activeLink.classList.add('active');
+      const section = activeLink.closest('.nav-section');
+      if (section) section.classList.remove('collapsed');
+      
+      // Update Breadcrumb if on a track page
+      const bc = qs('#breadcrumb-current');
+      if (bc) {
+        const trackName = section ? section.querySelector('.nav-section-title span').textContent : 'Track';
+        bc.textContent = `${trackName} / ${activeLink.querySelector('.nav-link-text')?.textContent || activeLink.textContent}`;
+      }
+    }
   }
 };

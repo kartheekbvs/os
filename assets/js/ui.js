@@ -1,4 +1,5 @@
 import { qs, qsa, debounce } from './utils.js';
+import { Bus } from './event-bus.js';
 
 export const UIController = {
   /**
@@ -8,6 +9,39 @@ export const UIController = {
     this.initScrollProgress();
     this.initCopyButtons();
     this.initPlacementReveals();
+    this.initThemeToggle();
+    this.initGlobalShortcuts();
+  },
+
+  /**
+   * Keyboard Shortcuts (Ctrl+K, ESC)
+   */
+  initGlobalShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      // Ctrl+K Search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        Bus.emit('toggle_command_palette');
+      }
+      // ESC Close
+      if (e.key === 'Escape') {
+        Bus.emit('close_overlays');
+      }
+    });
+  },
+
+  /**
+   * Theme Toggle Logic
+   */
+  initThemeToggle() {
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('#theme-toggle');
+      if (btn) {
+        import('./state.js').then(({ StateManager }) => {
+          StateManager.toggleTheme();
+        });
+      }
+    });
   },
 
   /**

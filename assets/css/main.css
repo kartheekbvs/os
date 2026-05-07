@@ -10,6 +10,8 @@
 @import url('terminal.css');
 @import url('code.css');
 @import url('animations.css');
+@import url('utilities.css');
+@import url('dashboard.css');
 @import url('print.css');
 
 /* Main CSS serves as the aggregator for Phase 2 validation */

@@ -10,61 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="assets/css/main.css">
-  <style>
-    .hero-gradient {
-      background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent 40%),
-                  radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.05), transparent 40%);
-    }
-    .track-section {
-      margin-bottom: 5rem;
-    }
-    .track-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.5rem;
-    }
-    .module-card {
-      position: relative;
-      border-left: 4px solid var(--track-color, var(--accent-cyan));
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .module-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px -8px rgba(0,0,0,0.5);
-    }
-    .track-header {
-      border-bottom: 2px solid var(--track-color);
-      padding-bottom: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-    .track-primary { 
-      --track-color: var(--accent-purple); 
-      background: rgba(168, 85, 247, 0.02);
-      padding: 2rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(168, 85, 247, 0.1);
-    }
-    .track-secondary { 
-      --track-color: var(--accent-cyan);
-      opacity: 0.85;
-    }
-    .track-secondary:hover { opacity: 1; }
-    
-    .hero-title {
-      font-size: clamp(2.5rem, 6vw, 5rem);
-      line-height: 1;
-      letter-spacing: -0.02em;
-    }
-    .badge-track {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 99px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-  </style>
+
 </head>
 <body class="app-container hero-gradient">
 
@@ -107,7 +55,8 @@
             </div>
           </header>
 
-          <div class="track-grid">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Track 1: Foundations -->
             <a href="os-foundations.html" class="module-card card group">
               <div class="flex-between mb-4">
                 <h4 class="text-xs font-mono text-text-muted">SECTION A</h4>
@@ -121,6 +70,7 @@
               </div>
             </a>
 
+            <!-- Track 2: Processes -->
             <a href="os-processes.html" class="module-card card group">
               <div class="flex-between mb-4">
                 <h4 class="text-xs font-mono text-text-muted">SECTION B</h4>
@@ -134,6 +84,7 @@
               </div>
             </a>
 
+            <!-- Track 3: Sync -->
             <a href="os-synchronization.html" class="module-card card group">
               <div class="flex-between mb-4">
                 <h4 class="text-xs font-mono text-text-muted">SECTION C</h4>
@@ -147,6 +98,7 @@
               </div>
             </a>
 
+            <!-- Track 4: Memory -->
             <a href="os-memory.html" class="module-card card group">
               <div class="flex-between mb-4">
                 <h4 class="text-xs font-mono text-text-muted">SECTION D</h4>
@@ -160,6 +112,7 @@
               </div>
             </a>
 
+            <!-- Track 5: Storage -->
             <a href="os-storage.html" class="module-card card group">
               <div class="flex-between mb-4">
                 <h4 class="text-xs font-mono text-text-muted">SECTION E</h4>
@@ -173,6 +126,7 @@
               </div>
             </a>
 
+            <!-- Track 6: Security -->
             <a href="os-security.html" class="module-card card group">
               <div class="flex-between mb-4">
                 <h4 class="text-xs font-mono text-text-muted">SECTION F</h4>
@@ -188,9 +142,9 @@
           </div>
         </section>
 
-        <!-- TRACK 2: LINUX IMPLEMENTATION (SECONDARY) -->
+        <!-- TRACK 2: LINUX IMPLEMENTATION -->
         <section class="track-section track-secondary">
-          <header class="track-header flex-between items-end">
+          <header class="track-header flex-between items-end mb-8">
             <div>
               <div class="badge-track bg-accent-cyan/20 text-accent-cyan mb-2 inline-block">Practical Layer</div>
               <h2 class="text-3xl font-display font-bold text-accent-cyan">TRACK 2: LINUX IMPLEMENTATION</h2>
@@ -201,22 +155,43 @@
             </div>
           </header>
 
-          <div class="track-grid">
-            <div class="module-card card group opacity-70">
-              <h3 class="text-lg font-bold mb-2">Linux Basics</h3>
-              <p class="text-xs text-text-muted mb-4">Architecture, Shell Basics, and FHS.</p>
-              <span class="text-[10px] font-mono text-accent-cyan">LOCKED: PREREQ REQUIRED</span>
-            </div>
-            <div class="module-card card group opacity-70">
-              <h3 class="text-lg font-bold mb-2">Commands & Pipelines</h3>
-              <p class="text-xs text-text-muted mb-4">I/O Redirection, Streams, and Filters.</p>
-              <span class="text-[10px] font-mono text-accent-cyan">LOCKED: PREREQ REQUIRED</span>
-            </div>
-            <div class="module-card card group opacity-70">
-              <h3 class="text-lg font-bold mb-2">Shell Scripting</h3>
-              <p class="text-xs text-text-muted mb-4">Automation, Logic, and POSIX Compliance.</p>
-              <span class="text-[10px] font-mono text-accent-cyan">LOCKED: PREREQ REQUIRED</span>
-            </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <a href="linux-basics.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">LINUX_01</h4>
+                <i class="fab fa-linux text-accent-cyan opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-2 group-hover:text-accent-cyan transition-colors">Linux Basics</h3>
+              <p class="text-sm text-text-secondary mb-4">Architecture, Shell Basics, and FHS.</p>
+              <div class="flex items-center gap-2 text-[10px] font-bold text-accent-cyan uppercase tracking-widest">
+                <span>Start Lab</span>
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </a>
+            <a href="linux-commands.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">LINUX_02</h4>
+                <i class="fas fa-code text-accent-cyan opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-2 group-hover:text-accent-cyan transition-colors">Commands & Pipelines</h3>
+              <p class="text-sm text-text-secondary mb-4">I/O Redirection, Streams, and Filters.</p>
+              <div class="flex items-center gap-2 text-[10px] font-bold text-accent-cyan uppercase tracking-widest">
+                <span>Start Lab</span>
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </a>
+            <a href="linux-shell.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">LINUX_03</h4>
+                <i class="fas fa-file-code text-accent-cyan opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-2 group-hover:text-accent-cyan transition-colors">Shell Scripting</h3>
+              <p class="text-sm text-text-secondary mb-4">Automation, Logic, and POSIX Compliance.</p>
+              <div class="flex items-center gap-2 text-[10px] font-bold text-accent-cyan uppercase tracking-widest">
+                <span>Start Lab</span>
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </a>
           </div>
         </section>
       </div>

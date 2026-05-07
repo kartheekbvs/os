@@ -305,12 +305,18 @@ class BaseSimulator {
   }
 
   update(newState) {
-    try {
-      this.state = { ...this.state, ...newState };
-      this.render();
-    } catch (e) {
-      console.error("Simulator Render Failure:", e);
-      this.canvas.innerHTML = `<div class="p-8 text-accent-red font-mono text-xs border border-accent-red rounded">! RENDER_EXCEPTION: ${e.message}</div>`;
+    this.state = { ...this.state, ...newState };
+    if (!this.frameRequested) {
+      this.frameRequested = true;
+      requestAnimationFrame(() => {
+        this.frameRequested = false;
+        try {
+          this.render();
+        } catch (e) {
+          console.error("Simulator Render Failure:", e);
+          this.canvas.innerHTML = `<div class="p-8 text-accent-red font-mono text-xs border border-accent-red rounded">! RENDER_EXCEPTION: ${e.message}</div>`;
+        }
+      });
     }
   }
 
@@ -1190,11 +1196,9 @@ class InterruptSimulator extends BaseSimulator {
   }
 
   step() {
-    const next = ((this.state.step || 0) + 1) % 5;
-    this.update({ step: next });
-    this.log(`Interrupt Flow: ${next + 1}/5`);
-    const next = (this.state.step || 0) + 1;
-    this.update({ step: next > 4 ? 0 : next });
+    const nextStep = ((this.state.step || 0) + 1) % 5;
+    this.update({ step: nextStep });
+    this.log(`Interrupt Flow: ${nextStep + 1}/5`);
   }
   getLogs(step) {
     const logs = ["POST_CHECK_OK", "BIOS_ENUM_PCI", "GRUB_STAGE_1_LOAD", "VMLINUZ_DECOMPRESS", "INIT_SYSTEMD_READY"];
@@ -1202,26 +1206,6 @@ class InterruptSimulator extends BaseSimulator {
   }
 }
 
-class PrivilegeSimulator extends BaseSimulator {
-  render() {
-    const ring = this.state.ring || 3;
-    this.canvas.innerHTML = `
-      <div class="p-6 flex-center gap-8">
-        {[0, 1, 2, 3].map(r => `
-          <div class="w-16 h-16 rounded-full border-4 ${r === ring ? 'border-accent-red' : 'border-border-strong'} flex-center flex-col">
-            <span class="text-xs font-bold">Ring</span>
-            <span class="text-xl font-black">${r}</span>
-          </div>
-        `).join('')}
-        <button class="btn btn-sm btn-outline" onclick="this.closest('.concept-block')._sim.trap()">TRAP_TO_KERNEL</button>
-      </div>
-    `;
-  }
-  trap() {
-    this.update({ ring: 0 });
-    setTimeout(() => this.update({ ring: 3 }), 2000);
-  }
-}
 
 class SyscallSimulator extends BaseSimulator {
   render() {
@@ -1363,54 +1347,6 @@ class StoragePhysicsSimulator extends BaseSimulator {
   }
 }
 
-class RaceConditionSimulator extends BaseSimulator {
-  constructor(canvas, config, conceptId) {
-    super(canvas, config, conceptId);
-    this.state = { ...this.state, sharedVar: 0, thread1: 0, thread2: 0, status: 'IDLE', metrics: { races_detected: 0, inconsistency_delta: 0 } };
-  }
-  render() {
-    const { sharedVar, thread1, thread2, status, metrics } = this.state;
-    this.canvas.innerHTML = `
-      <div class="simulator-container p-6 font-mono">
-        ${SimulatorPrimitives.renderTelemetry(metrics)}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="flex flex-col gap-4">
-            <div class="p-6 bg-black/60 border-2 border-border-strong rounded-2xl relative overflow-hidden">
-               <div class="text-[10px] text-accent-cyan uppercase mb-4 font-bold">Shared Memory Zone</div>
-               <div class="w-full h-24 flex-center flex-col bg-bg-surface border-4 ${status === 'RACING' ? 'border-accent-red animate-shake' : 'border-accent-cyan'} rounded-3xl">
-                  <div class="text-4xl font-bold text-white">${sharedVar}</div>
-                  <div class="text-[8px] opacity-40 mt-1">PTR: 0xDEADBEEF</div>
-               </div>
-            </div>
-          </div>
-          <div class="space-y-4">
-             <div class="p-4 bg-bg-surface-elevated border border-border-strong rounded-xl">
-                <div class="text-[9px] font-bold uppercase mb-4">Concurrency Control</div>
-                <button class="btn btn-sm btn-primary w-full py-4 mb-4" onclick="this.closest('.concept-block')._sim.runRace()">
-                  <i class="fas fa-bolt mr-2"></i> TRIGGER_NON_ATOMIC_RACE
-                </button>
-                <div class="text-[8px] text-text-muted leading-relaxed">
-                  * Simultaneous increments without mutex protection will cause "Lost Updates" where the final value is less than 2000.
-                </div>
-             </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-  async runRace() {
-    this.update({ status: 'RACING', sharedVar: 0 });
-    this.log("Thread 1 & 2: Entering Critical Section concurrently.");
-    for(let i=0; i<1000; i++) {
-      let temp = this.state.sharedVar;
-      if (Math.random() > 0.5) await new Promise(r => setTimeout(r, 0)); 
-      this.state.sharedVar = temp + 1;
-      if (i % 100 === 0) this.render();
-    }
-    this.update({ status: 'IDLE', metrics: { races_detected: 1, inconsistency_delta: 2000 - this.state.sharedVar } });
-    this.log(`Race Complete. Final Value: ${this.state.sharedVar} (Expected 2000).`, 'error');
-  }
-}
 
 class SemaphoreSimulator extends BaseSimulator {
   constructor(canvas, config, conceptId) {
@@ -1522,84 +1458,69 @@ class DiningPhilosophersSimulator extends BaseSimulator {
   }
 }
 
-class DeadlockRAGSimulator extends BaseSimulator {
-  constructor(canvas, config, conceptId) {
-    super(canvas, config, conceptId);
-    this.state = { ...this.state, nodes: [], edges: [], metrics: { cycle_detected: 'FALSE' } };
-  }
-  render() {
-    const { metrics } = this.state;
-    this.canvas.innerHTML = `
-      <div class="simulator-container p-6 font-mono">
-        ${SimulatorPrimitives.renderTelemetry(metrics)}
-        <div class="bg-black/60 border-2 border-border-strong rounded-3xl p-8 h-[300px] flex-center flex-col">
-           <i class="fas fa-project-diagram text-5xl mb-4 opacity-20"></i>
-           <div class="text-xs uppercase tracking-widest font-bold">RAG Interactive Graph Zone</div>
-           <button class="btn btn-xs btn-outline mt-4" onclick="this.closest('.concept-block')._sim.resetRAG()">RESET_GRAPH</button>
-        </div>
-      </div>
-    `;
-  }
-  resetRAG() { this.update({ nodes: [], edges: [], metrics: { cycle_detected: 'FALSE' } }); }
-}
 
-class BankerSimulator extends BaseSimulator {
-  constructor(canvas, config, conceptId) {
-    super(canvas, config, conceptId);
-    this.state = {
-      ...this.state,
-      processes: [
-        { id: 'P0', alloc: [0,1,0], max: [7,5,3], need: [7,4,3] },
-        { id: 'P1', alloc: [2,0,0], max: [3,2,2], need: [1,2,2] }
-      ],
-      available: [3,3,2],
-      metrics: { system_safety: 'SAFE', available_resources: '3 3 2' }
-    };
-  }
-  render() {
-    const { processes, metrics } = this.state;
-    this.canvas.innerHTML = `
-      <div class="simulator-container p-6 font-mono">
-        ${SimulatorPrimitives.renderTelemetry(metrics)}
-        <div class="overflow-x-auto bg-black/40 border border-border-strong rounded-xl p-4">
-          <table class="w-full text-[10px] text-left">
-            <thead><tr class="text-text-muted border-b border-border-strong"><th class="p-2">PID</th><th class="p-2">ALLOC</th><th class="p-2">MAX</th><th class="p-2">NEED</th></tr></thead>
-            <tbody>${processes.map(p => `<tr class="border-b border-border-strong/30"><td class="p-2 text-accent-cyan font-bold">${p.id}</td><td class="p-2">${p.alloc.join(' ')}</td><td class="p-2">${p.max.join(' ')}</td><td class="p-2 text-accent-red">${p.need.join(' ')}</td></tr>`).join('')}</tbody>
-          </table>
-        </div>
-        <button class="btn btn-sm btn-primary mt-6 w-full py-4" onclick="this.closest('.concept-block')._sim.runSafetyAudit()">EXECUTE_SAFETY_AUDIT</button>
-      </div>
-    `;
-  }
-  runSafetyAudit() { this.log("Banker: Safety Algorithm initiated."); this.update({ metrics: { ...this.state.metrics, system_safety: 'SAFE' } }); }
-}
+
+
 
 export class SimulatorEngine {
   constructor(container, config, conceptId) {
     this.container = container;
     this.config = config;
     this.conceptId = conceptId;
+    this.impl = null;
     
     const block = this.container.closest('.concept-block');
     if (block) block._sim = this;
     
     this.init();
+
+    // Use a Proxy to delegate any method calls and property access to the implementation (impl)
+    return new Proxy(this, {
+      get: (target, prop) => {
+        if (prop in target) return target[prop];
+        if (target.impl && prop in target.impl) {
+          const val = target.impl[prop];
+          return typeof val === 'function' ? val.bind(target.impl) : val;
+        }
+        return undefined;
+      },
+      set: (target, prop, value) => {
+        if (prop in target) {
+          target[prop] = value;
+          return true;
+        }
+        if (target.impl) {
+          target.impl[prop] = value;
+          return true;
+        }
+        return false;
+      }
+    });
   }
 
   init() {
     const type = this.config.type;
+    console.log(`[SimulatorEngine] Mounting ${type} for ${this.conceptId}`);
+    
     switch(type) {
       case 'Process State':
+      case 'State Machine Animator':
+      case 'Triggering the Machine':
         this.impl = new ProcessStateSimulator(this.container, this.config, this.conceptId);
         break;
       case 'Address Translation':
       case 'Paging':
       case 'Memory Laboratory':
       case 'Memory Observatory':
+      case 'Memory Hierarchy Observatory':
+      case 'Address Translation Tracer':
+      case 'TLB Cache Performance':
         this.impl = new MemoryObservatory(this.container, this.config, this.conceptId);
         break;
       case 'Storage Physics Observatory':
       case 'Persistence Laboratory':
+      case 'Disk Platter Physics':
+      case 'Storage Observatory':
         this.impl = new StoragePhysicsSimulator(this.container, this.config, this.conceptId);
         break;
       case 'Context Switch':
@@ -1621,10 +1542,6 @@ export class SimulatorEngine {
       case 'System Call Pipeline':
       case 'Syscall Request Flow':
         this.impl = new SyscallSimulator(this.container, this.config, this.conceptId);
-        break;
-      case 'State Machine Animator':
-      case 'Triggering the Machine':
-        this.impl = new ProcessStateSimulator(this.container, this.config, this.conceptId);
         break;
       case 'Scheduling Simulator':
       case 'Dispatcher Latency Visualizer':
@@ -1652,25 +1569,20 @@ export class SimulatorEngine {
         this.impl = new BankerSimulator(this.container, this.config, this.conceptId);
         break;
       default:
+        console.warn(`[SimulatorEngine] Unknown type: ${type}`);
         this.container.innerHTML = `<div class="coming-soon-card flex flex-col items-center justify-center h-48 border-2 border-dashed border-border-strong rounded-xl text-text-muted bg-black/20">
           <i class="fas fa-microchip text-3xl mb-4 opacity-20"></i>
           <span class="text-xs uppercase tracking-widest font-bold">Simulator [${type}] in development</span>
         </div>`;
         return;
     }
-    this.impl.render();
+    
+    if (this.impl) {
+      this.impl.render();
+    }
   }
 
-  step(thread) { if(this.impl.step) this.impl.step(thread); }
-  reset() { if(this.impl.reset) this.impl.reset(); }
-  wait(pid) { if(this.impl.wait) this.impl.wait(pid); }
-  signal() { if(this.impl.signal) this.impl.signal(); }
-  togglePlay() { if(this.impl.togglePlay) this.impl.togglePlay(); }
-  togglePhil(i) { if(this.impl.togglePhil) this.impl.togglePhil(i); }
-  addEdge(f, t, ty) { if(this.impl.addEdge) this.impl.addEdge(f, t, ty); }
-  resetRAG() { if(this.impl.resetRAG) this.impl.resetRAG(); }
-  simulateRequest() { if(this.impl.simulateRequest) this.impl.simulateRequest(); }
   update(state) {
-    this.impl.update(state);
+    if (this.impl) this.impl.update(state);
   }
 }
