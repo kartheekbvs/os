@@ -1,79 +1,104 @@
 {
   "meta": {
-    "module": "Linux Foundations: Level 1 Mastery",
-    "schemaVersion": "1.2",
+    "module": "Linux Fundamentals: The Engineering Mindset",
+    "schemaVersion": "1.1",
     "lastUpdated": "2026-05-07"
   },
   "concepts": [
     {
-      "id": "linux-philosophy",
-      "title": "The UNIX Philosophy: Everything is a File",
+      "id": "terminal-anatomy",
+      "title": "Level 1: Terminal Anatomy & The Shell Prompt",
       "category": "Fundamentals",
       "difficulty": "Beginner",
-      "tags": ["vfs", "posix", "stdin", "stdout", "stderr"],
+      "tags": ["tty", "shell", "prompt", "bash"],
       "content": {
-        "why_exists": "Simplicity and consistency. By treating everything as a file, Unix developers ensured that tools could communicate regardless of whether they were talking to a keyboard, a disk, or a network.",
-        "problem": "In older systems, every piece of hardware required a unique, complex API. If you wanted to print, you had to write 'Print' code. If you wanted to save a file, you wrote 'Save' code. This was inefficient.",
-        "beginner_explanation": "In Linux, everything is just a stream of bytes. Whether you're reading a text file, the movement of your mouse, or data from a website, the process is the same: Open, Read/Write, Close.",
-        "analogy": "Imagine a wall of generic electrical outlets. It doesn't matter if you plug in a lamp, a toaster, or a TV; the interface (the outlet) is the same. The device handles the specifics.",
-        "kernel_story": "The Kernel uses a layer called the Virtual File System (VFS). When you type 'cat /dev/input/mouse0', the kernel doesn't see a 'mouse'; it sees an inode that happens to be linked to a mouse driver.",
-        "execution_flow": "1. App calls write() on FD 1. 2. Kernel looks up FD 1 in Process Table. 3. VFS directs bytes to the TTY driver. 4. TTY driver renders text on screen.",
-        "visual_model": "A centralized 'Switchboard' (VFS) connecting App Sockets to Hardware Plugs.",
-        "formal_definition": "A foundational design principle where disparate system resources are exposed to user-space applications through the file descriptor abstraction.",
-        "command_anatomy": "write(fd, buffer, count) -> The syscall that powers almost all Linux output.",
-        "kernel_internals": "The Task Descriptor contains a 'files_struct' pointer, which leads to the File Descriptor Table. Each index points to a 'struct file' entry in the system-wide open file table.",
-        "data_flow": "App -> System Call Interface -> VFS -> Inode -> Device Driver -> Hardware.",
-        "performance_implications": "Zero-copy mechanisms and buffer caches ensure that 'everything is a file' doesn't slow down high-speed hardware access.",
-        "security_implications": "Because devices are files, permissions on /dev nodes are critical. If /dev/sda is readable, any user can clone your entire hard drive.",
-        "common_mistakes": "Trying to 'run' a device file like a program, or confusing a directory (a file containing names) with its contents.",
-        "real_world_workflows": "Piping output from a web server directly into a compression tool, then into a remote backup server using one line of bash.",
-        "professional_usage": "SREs use this to debug hardware by 'catting' data directly from /proc or /sys pseudo-filesystems.",
-        "mini_labs": [
-          { "task": "Check who you are by reading the 'whoami' output redirected to a file.", "command": "whoami > identity.txt; cat identity.txt" }
+        "why_exists": "Before you can control a system, you must understand the bridge between you and the operating system. The terminal is your cockpit.",
+        "problem": "You sit in front of a computer and want to talk to the kernel, but you don't have a mouse or a GUI. How do you issue commands and see results?",
+        "beginner_explanation": "The terminal (or TTY) is just a window that displays text. The 'Shell' (like Bash) is the program running inside that window that reads your typing, translates it for the Kernel, and shows you the result.",
+        "visual_story": "Think of the shell as a translator. You speak 'User', the kernel speaks 'Machine Code'. The Shell translates your command 'ls' into 'System Call: list files'.",
+        "step_by_step": [
+          "Open your terminal emulator.",
+          "Identify the prompt: usually 'user@hostname:path$'.",
+          "Type your first command 'whoami' and press Enter.",
+          "Observe the output (your username)."
         ],
-        "troubleshooting": "If a command says 'Too many open files', you've hit the ulimit for your process's file descriptor table.",
-        "interview_questions": [
-          "Explain the phrase 'Everything is a file' in the context of /dev/null.",
-          "What is a File Descriptor?"
-        ],
-        "mini_recap": "The file abstraction is the glue that holds the Linux ecosystem together, allowing diverse tools to work in harmony.",
-        "next_topic": "Now that we know everything is a file, let's look at the window where we manage these files: The Terminal."
-      }
+        "common_mistakes": "Confusing the 'Terminal' (the window) with the 'Shell' (the logic engine). Also, typing commands in the wrong case—Linux is case-sensitive!",
+        "debugging_thinking": "If you type a command and see 'command not found', your first check should be: 'Did I spell it right?' and 'Is it in my PATH?'",
+        "real_workflow": "Sysadmins often spend 99% of their time in a terminal because it is faster, automatable, and works over slow network connections (SSH).",
+        "kernel_internals": "The terminal interacts with the kernel through the PTY (Pseudo-terminal) subsystem. When you press Enter, the TTY driver sends an interrupt to the kernel, which then wakes up the shell process to read the buffer.",
+        "mini_tasks": [
+          "Find your current username using 'whoami'.",
+          "Find the name of your computer using 'uname -n'."
+        ]
+      },
+      "commands": [
+        { "command": "whoami", "explanation": "Asks the shell: 'Who is the effective user logged into this session?'" },
+        { "command": "uname -a", "explanation": "Prints detailed information about the kernel version and system architecture." },
+        { "command": "echo $SHELL", "explanation": "Asks the environment: 'Which shell program am I currently running?'" }
+      ]
     },
     {
-      "id": "terminal-anatomy",
-      "title": "Terminal Anatomy: TTY vs Shell vs Console",
-      "category": "Fundamentals",
+      "id": "filesystem-traversal",
+      "title": "Level 1: Navigating the VFS Labyrinth",
+      "category": "Operational",
       "difficulty": "Beginner",
-      "tags": ["tty", "shell", "bash", "pts"],
+      "tags": ["cd", "pwd", "ls", "fhs"],
       "content": {
-        "why_exists": "To provide a human-readable interface to the machine's command-line logic.",
-        "problem": "Computers process electrical signals. Humans process words. We need a 'bridge' that translates our keyboard strikes into system calls and machine results back into text.",
-        "beginner_explanation": "The 'Terminal' is the window. The 'Shell' is the brain inside the window. The 'TTY' is the old-school name for the connection between them.",
-        "analogy": "The Terminal is like a TV screen. The Shell is like the movie playing on it. You can change the movie (Bash, Zsh, Fish) while keeping the same TV.",
-        "kernel_story": "In the 1970s, terminals were physical typewriters (Teletypes). Today, we use 'Pseudo-terminals' (PTS). The kernel still thinks it's talking to a hardware typewriter!",
-        "execution_flow": "1. Keypress detected by OS. 2. Terminal emulator sends byte to PTS master. 3. Shell reads from PTS slave. 4. Shell executes logic.",
-        "visual_model": "User -> Terminal Emulator -> PTY Driver -> Shell Process -> Kernel.",
-        "formal_definition": "A text-based user interface (TUI) providing access to a command-line interpreter (the Shell) through a character-based input/output stream.",
-        "command_anatomy": "ls -la -> [Command] [Short Flags] [Target (implicit current dir)].",
-        "kernel_internals": "The TTY line discipline handles line editing (like backspace) and signal generation (like Ctrl+C sending SIGINT) before the shell ever see the text.",
-        "data_flow": "Keyboard -> Device Driver -> TTY Driver -> Shell Buffer -> Stdout -> Terminal Renderer.",
-        "performance_implications": "Modern terminals use GPU acceleration to render text thousands of times faster than old hardware units.",
-        "security_implications": "Terminal multiplexers (like screen/tmux) can leave sessions open if not properly detached, allowing anyone with access to the same TTY to take over.",
-        "common_mistakes": "Confusing the terminal emulator (like iTerm2 or GNOME Terminal) with the language (Bash).",
-        "real_world_workflows": "Using SSH to open a terminal on a server in another country to manage a database.",
-        "professional_usage": "Cloud Engineers use 'headless' terminals (no GUI) to manage massive clusters via scripts.",
+        "why_exists": "A computer is a collection of data. Navigation is how you locate and access that data efficiently.",
+        "problem": "You need to find a configuration file in '/etc', but you are currently in your home directory. How do you move across the system without a file explorer?",
+        "beginner_explanation": "Linux uses a single unified tree. Everything starts at '/' (the root). You 'move' around this tree using 'cd' (change directory).",
+        "visual_story": "Imagine a giant tree with branches. '/' is the trunk. '/home' is a major branch. '/home/user' is a smaller branch. You are like a squirrel jumping from branch to branch.",
+        "step_by_step": [
+          "Type 'pwd' to see exactly where you are sitting right now.",
+          "Type 'ls' to see what branches (folders) or leaves (files) are reachable from here.",
+          "Type 'cd /etc' to jump to the system configuration branch.",
+          "Type 'cd ~' to jump back to your personal nest (home)."
+        ],
+        "common_mistakes": "Forgetting the leading '/' for absolute paths. If you type 'cd etc' while in '/home', it will fail because there is no 'etc' folder inside 'home'.",
+        "debugging_thinking": "If 'cd' fails, run 'ls -d path' to verify the target actually exists and is a directory.",
+        "real_workflow": "Engineers use 'cd -' to quickly toggle back and forth between two directories, like a 'previous channel' button on a remote.",
+        "kernel_internals": "Every process in Linux has a 'Current Working Directory' (CWD) attribute in its Task Descriptor. The 'cd' command is a shell builtin because it must modify the shell's own CWD, not a child's.",
         "mini_labs": [
-          { "task": "Check your current TTY identification.", "command": "tty" }
+          { "task": "Navigate to /tmp and create a folder.", "command": "cd /tmp && mkdir my_lab" }
+        ]
+      },
+      "commands": [
+        { "command": "pwd", "explanation": "Print Working Directory. Tells you your absolute location in the VFS." },
+        { "command": "cd /", "explanation": "Jump to the absolute root of the entire system." },
+        { "command": "ls -F", "explanation": "Lists files and appends a '/' to directories so you can tell them apart visually." }
+      ]
+    },
+    {
+      "id": "hidden-permissions",
+      "title": "Level 2: Hidden Files & Permissions Secrets",
+      "category": "Systems",
+      "difficulty": "Intermediate",
+      "tags": ["ls -a", "chmod", "metadata"],
+      "content": {
+        "why_exists": "Security and configuration. You don't want your private keys or system configs visible to everyone by default.",
+        "problem": "You want to hide a configuration file from normal 'ls' output, and you want to ensure only YOU can read it.",
+        "beginner_explanation": "In Linux, starting a filename with a '.' makes it 'hidden'. Permissions (Read, Write, Execute) decide who can touch what.",
+        "visual_story": "Think of a file like a locked box. The owner has the key. The group has a spare. The 'others' (everyone else) have to look through the window or stay out.",
+        "step_by_step": [
+          "Create a hidden file: 'touch .secret_note'.",
+          "Try 'ls' - it's gone!",
+          "Try 'ls -a' - it appears.",
+          "Check permissions with 'ls -l'."
         ],
-        "troubleshooting": "If your terminal starts showing weird symbols, try the 'reset' command to re-initialize the TTY driver.",
+        "common_mistakes": "Setting 'chmod 777' on everything to fix errors. This is a massive security hole and a 'lazy engineer' red flag.",
+        "debugging_thinking": "See 'Permission Denied'? Immediately check 'ls -l' and see if you are the owner or part of the group.",
+        "real_workflow": "Deployment scripts use 'chmod +x' to make scripts runnable, but maintain '600' on SSH keys so other users can't steal them.",
+        "kernel_internals": "Permissions are stored in the file's Inode. When you try to 'open()', the kernel checks your UID/GID against the Inode's mode bits before granting access.",
         "interview_questions": [
-          "What is the difference between a login shell and a non-login shell?",
-          "How does Ctrl+C stop a process?"
-        ],
-        "mini_recap": "The terminal is your cockpit; the shell is your engine. Mastering them is the first step to systems engineering.",
-        "next_topic": "Now that we're in the cockpit, let's learn how to navigate the map: The Filesystem Hierarchy."
-      }
+          "What is the difference between 755 and 644 permissions?",
+          "How do you find all files owned by 'root' in /home?"
+        ]
+      },
+      "commands": [
+        { "command": "ls -la", "explanation": "Long listing including hidden files. Shows the full metadata (Inode state)." },
+        { "command": "chmod 600 private.txt", "explanation": "Set permissions so ONLY the owner can read/write. Everyone else is blocked." },
+        { "command": "stat filename", "explanation": "Displays the complete Inode data, including timestamps and block counts." }
+      ]
     }
   ]
 }

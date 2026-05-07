@@ -83,19 +83,12 @@ export class Executor {
   }
 
   async executeCommand(node, stdin) {
-    // 1. Expand Variables in arguments
-    const expandedArgs = node.args.map(arg => this.expandVariables(arg));
-    
-    // 2. Expand Globs in arguments
-    const finalArgs = this.runtime.expandGlobs(expandedArgs);
-
     const process = this.runtime.processManager.createProcess({
         name: node.name,
         cwd: this.runtime.cwd,
         env: { ...this.runtime.env },
         ppid: this.runtime.shellPid
     });
-
 
     // Syscall Visualization Hook
     Bus.emit('syscall_trace', { 
@@ -110,8 +103,8 @@ export class Executor {
         let result;
 
         if (builtin) {
-            Bus.emit('syscall_trace', { call: 'exec()', name: node.name, args: finalArgs });
-            result = await builtin.execute(finalArgs, {
+            Bus.emit('syscall_trace', { call: 'exec()', name: node.name, args: node.args });
+            result = await builtin.execute(node.args, {
                 stdin,
                 cwd: this.runtime.cwd,
                 env: this.runtime.env,
@@ -123,7 +116,7 @@ export class Executor {
         } else {
             result = { stdout: '', stderr: `bash: ${node.name}: command not found`, exitCode: 127 };
         }
-        
+
         // Handle redirections after command execution
         if (node.redirects) {
             for (const red of node.redirects) {
@@ -136,17 +129,11 @@ export class Executor {
         this.runtime.processManager.terminateProcess(process.pid, result.exitCode);
         return result;
 
+
     } catch (e) {
         this.runtime.processManager.terminateProcess(process.pid, 1);
         return { stdout: '', stderr: `bash: internal error: ${e.message}`, exitCode: 1 };
     }
-  }
-
-  expandVariables(token) {
-    if (typeof token !== 'string') return token;
-    return token.replace(/\$([A-Za-z_?@*#$0-9]+)/g, (match, p1) => {
-        return this.runtime.env[p1] || '';
-    });
   }
 
   handleRedirection(red, stdout, stderr) {
@@ -166,4 +153,3 @@ export class Executor {
     }
   }
 }
-

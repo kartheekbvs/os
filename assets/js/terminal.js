@@ -112,12 +112,8 @@ export class TerminalEngine {
           this.inputField.disabled = false;
           this.inputField.focus();
 
-          if (result.special === 'clear') {
-            this.outputContainer.innerHTML = '';
-          } else {
-            if (result.stdout) this.renderOutput(result.stdout, true, false);
-            if (result.stderr) this.renderOutput(result.stderr, false, true);
-          }
+          if (result.stdout) this.renderOutput(result.stdout, true, false);
+          if (result.stderr) this.renderOutput(result.stderr, false, true);
 
           this.promptElement.innerHTML = this.promptString;
         }

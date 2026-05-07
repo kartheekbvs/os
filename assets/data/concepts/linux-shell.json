@@ -1,44 +1,73 @@
 {
   "meta": {
-    "module": "Shell Scripting: Level 4 Mastery",
-    "schemaVersion": "1.2",
+    "module": "Shell Scripting & Automation: The Systems Engineer",
+    "schemaVersion": "1.1",
     "lastUpdated": "2026-05-07"
   },
   "concepts": [
     {
-      "id": "bash-scripting-core",
-      "title": "Bash Scripting: Automation & The Shebang",
+      "id": "variables-automation",
+      "title": "Level 3: Variables, Environment & PATH",
+      "category": "Operational",
+      "difficulty": "Intermediate",
+      "tags": ["export", "env", "PATH"],
+      "content": {
+        "why_exists": "Consistency and automation. Variables allow you to write scripts that work anywhere by using names instead of hardcoded paths.",
+        "problem": "You want to run a custom script, but you have to type the full path '/home/user/scripts/my_tool.sh' every single time. Why doesn't it work like 'ls'?",
+        "beginner_explanation": "The '$PATH' variable is a list of folders the shell looks in when you type a command. If your folder isn't in that list, the shell can't find your tool.",
+        "visual_story": "Think of variables like labeled boxes. '$USER' is a box that always contains your name. '$PATH' is a box containing a map of where all the tools are kept.",
+        "step_by_step": [
+          "Check your name: 'echo $USER'.",
+          "Create a new variable: 'FOO=bar'.",
+          "Try to see it in a subshell: '(echo $FOO)'.",
+          "Make it permanent for children: 'export FOO'."
+        ],
+        "common_mistakes": "Forgetting the '$' when accessing a variable (type 'echo USER' instead of 'echo $USER'). Also, putting spaces around the '=' in assignments.",
+        "debugging_thinking": "Command not found but file exists? Check your PATH: 'echo $PATH'. Is your directory in the colon-separated list?",
+        "real_workflow": "CI/CD pipelines use environment variables (like 'API_KEY') to inject secrets into applications without hardcoding them in the source code.",
+        "kernel_internals": "Environment variables are stored at the very top of a process's stack. When a process calls 'execve()', it passes its environment array to the new program.",
+        "mini_labs": [
+          { "task": "Add a new directory to your PATH for this session.", "command": "export PATH=$PATH:/tmp/my_bin" }
+        ]
+      },
+      "commands": [
+        { "command": "export NAME=VAL", "explanation": "Defines an environment variable and marks it for export to child processes." },
+        { "command": "env", "explanation": "Lists all currently exported environment variables in the session." },
+        { "command": "set", "explanation": "Displays all shell variables, including local ones and shell functions." }
+      ]
+    },
+    {
+      "id": "shell-scripting-logic",
+      "title": "Level 4: Scripting Logic & The Systems Lab",
       "category": "Automation",
       "difficulty": "Advanced",
-      "tags": ["bash", "scripting", "automation", "shebang"],
+      "tags": ["bash", "automation", "loops", "if"],
       "content": {
-        "why_exists": "Laziness as a virtue. If you do something more than twice, you should automate it. Scripts are the glue of the internet.",
-        "problem": "Manual tasks are prone to human error. If you need to backup 50 servers every night, doing it manually is impossible. We need a way to tell the computer: 'Follow these steps exactly.'",
-        "beginner_explanation": "A script is just a text file containing a list of commands. When you run it, the computer executes each line one by one as if you were typing them into the terminal.",
-        "analogy": "A script is a recipe. You don't need a professional chef to cook a meal if you have a clear recipe; you just need someone who can follow instructions.",
-        "kernel_story": "When you run a file starting with '#!', the kernel's 'binfmt_script' handler reads the path after the '!', launches that interpreter (like /bin/bash), and feeds it your script.",
-        "execution_flow": "1. User runs ./myscript.sh. 2. Kernel reads first two bytes (#!). 3. Kernel starts bash process. 4. Bash reads script line by line.",
-        "visual_model": "An assembly line where each station is a command from your script, processing data as it moves along.",
-        "formal_definition": "A program written for a shell, a command-line interpreter, designed to be run by the Unix shell.",
-        "command_anatomy": "#!/bin/bash -> [Shebang] [Path to Interpreter].",
-        "kernel_internals": "The execve() system call is responsible for checking the shebang and loading the correct interpreter into memory.",
-        "data_flow": "Script File -> Interpreter -> System Calls -> Kernel -> Hardware.",
-        "performance_implications": "Shell scripts are slower than compiled languages (like C) because each command spawns a new process (fork/exec).",
-        "security_implications": "Scripts can be dangerous if they use user input without validation (Shell Injection). Never run scripts from the internet without reading them first.",
-        "common_mistakes": "Forgetting the shebang line, or forgetting to make the script executable with 'chmod +x'.",
-        "real_world_workflows": "Continuous Integration (CI/CD) pipelines are almost entirely made of shell scripts that build, test, and deploy applications.",
-        "professional_usage": "DevOps Engineers use shell scripts to 'bootstrap' new servers, installing all necessary software automatically upon first boot.",
-        "mini_labs": [
-          { "task": "Create a script that greets you and shows the current date.", "command": "echo '#!/bin/bash\necho Hello $USER\ndate' > hello.sh; chmod +x hello.sh; ./hello.sh" }
+        "why_exists": "Laziness is a virtue in engineering. If you have to do it twice, automate it.",
+        "problem": "You need to rename 500 files from '.jpg' to '.png' and then move them to an archive folder. Doing this manually is a waste of human potential.",
+        "beginner_explanation": "A script is just a text file with a list of commands. Bash reads it line by line and executes them, adding logic like 'if' and 'loops' to handle complex tasks.",
+        "visual_story": "A script is like a recipe. You list the ingredients (variables) and the steps (commands). The 'if' statements are the 'taste tests' along the way.",
+        "step_by_step": [
+          "Create a file 'myscript.sh'.",
+          "Add '#!/bin/bash' to the top (the Shebang).",
+          "Add commands like 'echo Hello $USER'.",
+          "Make it runnable: 'chmod +x myscript.sh'.",
+          "Run it: './myscript.sh'."
         ],
-        "troubleshooting": "Use 'bash -x script.sh' to see every command as it runs. This is the ultimate debugging tool for scripts.",
-        "interview_questions": [
-          "What is the difference between '$*' and '$@' in a script?",
-          "How do you handle errors in a bash script?"
-        ],
-        "mini_recap": "Scripting is how you scale your knowledge. One script can do the work of a thousand humans.",
-        "next_topic": "Now that we can write logic, let's learn how to communicate with other machines: Networking."
-      }
+        "common_mistakes": "Forgetting the shebang line. Without it, the kernel doesn't know which interpreter to use (Bash? Python? Perl?).",
+        "debugging_thinking": "Script acting weird? Use 'bash -x script.sh'. This will print every command as it runs, showing exactly where it goes wrong.",
+        "real_workflow": "System maintenance scripts run every night via 'cron' to backup databases, clear logs, and check for security updates.",
+        "kernel_internals": "When you run a script, the kernel reads the first two bytes. If it sees '#!', it stops, reads the path to the interpreter, and spawns the interpreter with your script as an argument.",
+        "mini_tasks": [
+          "Create a script that prints the date and then lists the files in /tmp.",
+          "Add a loop to print 'Processing...' five times."
+        ]
+      },
+      "commands": [
+        { "command": "bash -x script.sh", "explanation": "Debug mode. Prints each command and its expanded arguments before execution." },
+        { "command": "./script.sh", "explanation": "Executes a script in the current directory (requires +x permission)." },
+        { "command": "sh -c 'cmd'", "explanation": "Runs a specific command in a new, isolated shell instance." }
+      ]
     }
   ]
 }

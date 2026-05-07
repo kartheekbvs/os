@@ -61,45 +61,6 @@ export class ShellRuntime {
     }
   }
 
-  /**
-   * Expands glob patterns (*, ?) in arguments
-   */
-  expandGlobs(args) {
-    let expanded = [];
-    for (const arg of args) {
-      if (arg.includes('*') || arg.includes('?')) {
-        const matches = this.matchGlob(arg);
-        if (matches.length > 0) {
-          expanded.push(...matches);
-        } else {
-          expanded.push(arg); // No match, leave literal (bash behavior)
-        }
-      } else {
-        expanded.push(arg);
-      }
-    }
-    return expanded;
-  }
-
-  matchGlob(pattern) {
-    const parts = pattern.split('/');
-    const isAbsolute = pattern.startsWith('/');
-    let currentDirs = [isAbsolute ? '/' : this.cwd];
-    
-    // Simple glob matching for current directory for now
-    // A full recursive globber would be more complex
-    const targetDir = isAbsolute ? '/' : this.cwd;
-    const node = this.vfs.resolvePath(targetDir);
-    if (!node || !node.children) return [];
-
-    // Convert glob to regex
-    const regexStr = '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.') + '$';
-    const regex = new RegExp(regexStr);
-    
-    return Object.keys(node.children).filter(name => regex.test(name));
-  }
-
-
   getBuiltin(name) {
     return this.builtins[name];
   }

@@ -5,8 +5,6 @@ import { cat } from './cat.js';
 import * as system from './system.js';
 import * as text from './text.js';
 import * as shell from './shell.js';
-import * as permissions from './permissions.js';
-import * as advancedText from './advanced-text.js';
 
 export const Builtins = {
     ls,
@@ -16,7 +14,5 @@ export const Builtins = {
     ...system,
     ...text,
     ...shell,
-    ...permissions,
-    ...advancedText,
-    'export': shell.export_cmd
+    'export': shell.export_cmd // Map reserved word
 };
