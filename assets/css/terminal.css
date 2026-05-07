@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Terminal Emulator System
+   ========================================================================== */
+
+.terminal-container {
+  background-color: var(--terminal-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-bottom: var(--space-6);
+}
+
+.terminal-header {
+  background-color: var(--bg-surface-elevated);
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.terminal-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red { background-color: #ff5f56; }
+.terminal-dot.yellow { background-color: #ffbd2e; }
+.terminal-dot.green { background-color: #27c93f; }
+
+.terminal-title {
+  margin: 0 auto;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  transform: translateX(-18px); /* Offset for dots */
+}
+
+.terminal-body {
+  padding: var(--space-4);
+  height: 300px;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* CRT Scanline Effect Overlay */
+.terminal-body::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+.terminal-output {
+  color: var(--terminal-green);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: var(--space-2);
+}
+
+.terminal-output .error {
+  color: var(--accent-red);
+}
+
+.terminal-output .dir {
+  color: var(--accent-cyan);
+  font-weight: bold;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+}
+
+.terminal-prompt {
+  color: var(--accent-cyan);
+  margin-right: var(--space-2);
+  white-space: nowrap;
+}
+
+.terminal-prompt span {
+  color: var(--accent-purple);
+}
+
+.terminal-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  flex: 1;
+  outline: none;
+  caret-color: var(--text-primary);
+}
+
+/* Blinking Cursor Simulation via CSS animation */
+.terminal-input:focus {
+  outline: none;
+}

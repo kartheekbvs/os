@@ -1,0 +1,29 @@
+<!-- Reusable Topbar Component -->
+<header class="topbar w-full" aria-label="Page Header">
+  <!-- Mobile Menu Toggle -->
+  <button id="mobile-menu-btn" class="lg:hidden text-text-primary mr-4 p-2 rounded-md hover:bg-bg-surface-elevated transition-colors" aria-label="Toggle Sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Dynamic Breadcrumb Container -->
+  <div class="breadcrumb text-sm text-text-secondary font-mono flex items-center gap-2" id="topbar-breadcrumb">
+    <a href="index.html" class="hover:text-text-primary transition-colors"><i class="fas fa-home"></i></a>
+    <span class="text-border-strong">/</span>
+    <span class="text-accent-cyan" id="breadcrumb-current">Loading...</span>
+  </div>
+
+  <div class="topbar-right flex items-center gap-4">
+    <!-- Version Badge -->
+    <div class="hidden sm:flex items-center px-2 py-1 bg-code-bg border border-border-strong rounded-md text-xs font-mono text-text-muted select-none">
+      <i class="fab fa-linux mr-1"></i> Kernel v6.8.x
+    </div>
+
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="p-2 text-text-secondary hover:text-accent-cyan hover:bg-bg-surface-elevated rounded-full transition-all" aria-label="Toggle Dark/Light Theme">
+      <i class="fas fa-adjust"></i>
+    </button>
+  </div>
+
+  <!-- Scroll Progress Indicator -->
+  <div id="scroll-progress" aria-hidden="true"></div>
+</header>

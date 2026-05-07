@@ -1,0 +1,90 @@
+<!-- Reusable Sidebar Component -->
+<aside class="sidebar" id="app-sidebar" aria-label="Main Navigation">
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="fas fa-terminal"></i> LINUX<span>.OS</span>
+    </div>
+  </div>
+  
+  <div class="sidebar-content">
+    <div class="px-4 mb-4">
+      <div class="relative">
+        <input type="text" id="sidebar-search" class="w-full bg-bg-primary border border-border-subtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent-cyan transition-colors" placeholder="Search concepts, commands..." aria-label="Search curriculum">
+        <i class="fas fa-search absolute right-3 top-2.5 text-text-muted"></i>
+      </div>
+    </div>
+
+    <!-- Active Module TOC -->
+    <div id="module-toc-container" class="hidden px-4 mb-6 border-b border-border-subtle pb-4">
+      <div class="text-xs font-mono text-text-muted uppercase tracking-widest mb-3 flex-between">
+        <span>Contents</span>
+        <i class="fas fa-list-ul"></i>
+      </div>
+      <ul id="module-toc" class="space-y-1 text-sm list-none p-0 m-0">
+        <!-- Injected via ContentRenderer -->
+      </ul>
+    </div>
+
+    <nav class="nav-links flex flex-col">
+      <!-- Section: Dashboard -->
+      <a href="index.html" class="nav-link"><i class="fas fa-home w-5"></i> Dashboard</a>
+
+      <!-- Section: TRACK 1 - OS CORE -->
+      <div class="nav-section mt-6">
+        <div class="nav-section-title flex-between px-4 py-2 text-[10px] font-mono text-accent-purple uppercase tracking-widest cursor-pointer">
+          <span>01: OS CORE TRACK</span>
+          <i class="fas fa-chevron-down transition-transform"></i>
+        </div>
+        <div class="nav-section-links">
+          <a href="os-foundations.html" class="nav-link" data-id="os-foundations">
+            <span class="nav-link-icon text-accent-purple"><i class="fas fa-microchip"></i></span>
+            <span class="nav-link-text">A: Foundations</span>
+          </a>
+          <a href="os-processes.html" class="nav-link" data-id="os-processes">
+            <span class="nav-link-icon text-accent-purple"><i class="fas fa-tasks"></i></span>
+            <span class="nav-link-text">B: Processes</span>
+          </a>
+          <a href="os-synchronization.html" class="nav-link" data-id="os-synchronization">
+            <span class="nav-link-icon text-accent-purple"><i class="fas fa-sync"></i></span>
+            <span class="nav-link-text">C: Synchronization</span>
+          </a>
+          <a href="os-memory.html" class="nav-link" data-id="os-memory">
+            <span class="nav-link-icon text-accent-purple"><i class="fas fa-memory"></i></span>
+            <span class="nav-link-text">D: Memory</span>
+          </a>
+          <a href="os-storage.html" class="nav-link" data-id="os-storage">
+            <span class="nav-link-icon text-accent-purple"><i class="fas fa-database"></i></span>
+            <span class="nav-link-text">E: Storage</span>
+          </a>
+          <a href="os-security.html" class="nav-link" data-id="os-security">
+            <span class="nav-link-icon text-accent-purple"><i class="fas fa-shield-halved"></i></span>
+            <span class="nav-link-text">F: Security</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Section: TRACK 2 - LINUX -->
+      <div class="nav-section mt-4">
+        <div class="nav-section-title flex-between px-4 py-2 text-[10px] font-mono text-accent-cyan uppercase tracking-widest cursor-pointer opacity-60">
+          <span>02: LINUX TRACK</span>
+          <i class="fas fa-chevron-down transition-transform"></i>
+        </div>
+        <div class="nav-section-links opacity-50">
+          <a href="linux-basics.html" class="nav-link" data-id="linux-basics"><i class="fab fa-linux w-5"></i> Linux Basics</a>
+          <a href="linux-commands.html" class="nav-link" data-id="linux-commands"><i class="fas fa-code w-5"></i> Commands</a>
+          <a href="linux-shell.html" class="nav-link" data-id="linux-shell"><i class="fas fa-file-code w-5"></i> Shell Scripting</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <div class="sidebar-footer p-4 border-t border-border-subtle bg-bg-surface mt-auto">
+    <div class="progress-stats flex-between mb-2 text-xs text-text-secondary font-mono">
+      <span>Curriculum Progress</span>
+      <span id="sidebar-progress-text">0/12</span>
+    </div>
+    <div class="w-full bg-bg-primary h-2 rounded-full overflow-hidden border border-border-subtle">
+      <div id="sidebar-progress-fill" class="bg-accent-green h-full w-0 transition-all duration-500 ease-out"></div>
+    </div>
+  </div>
+</aside>

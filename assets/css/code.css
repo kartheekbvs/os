@@ -1,0 +1,100 @@
+/* ==========================================================================
+   Code & Formula Highlighting Overrides
+   ========================================================================== */
+
+/* Prism JS Custom Theme Integration (Dark/Light aware) */
+pre[class*="language-"] {
+  background: var(--code-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-md);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  overflow: auto;
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  text-shadow: none;
+}
+
+/* Syntax Colors (Adapted for Dark Mode default) */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: var(--text-secondary);
+}
+
+.token.namespace {
+  opacity: .7;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: var(--accent-orange);
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: var(--accent-green);
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: var(--accent-cyan);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: var(--accent-purple);
+}
+
+.token.function,
+.token.class-name {
+  color: var(--accent-cyan);
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: var(--accent-red);
+}
+
+/* KaTeX Formula Overrides */
+.concept-formula {
+  background: var(--bg-surface-elevated);
+  padding: var(--space-4);
+  border-radius: var(--border-radius-md);
+  margin: var(--space-4) 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+  border-left: 4px solid var(--accent-purple);
+}
+
+.katex {
+  font-size: 1.1em;
+  color: var(--text-primary);
+}

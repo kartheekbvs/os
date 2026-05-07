@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "module": "Core Linux Commands",
+    "schemaVersion": "1.0",
+    "lastUpdated": "2026-05-06"
+  },
+  "concepts": [
+    {
+      "id": "linux-redirection",
+      "title": "I/O Redirection & File Descriptors",
+      "category": "Shell Execution",
+      "difficulty": "Medium",
+      "tags": ["stdout", "stderr", "redirection", ">", ">>", "2>"],
+      "content": {
+        "definition": "Redirection allows you to control where the output of a command goes and where its input comes from, manipulating File Descriptors (FDs). FD 0 is Standard Input (stdin), 1 is Standard Output (stdout), and 2 is Standard Error (stderr).",
+        "internals": "When you run `echo hello > out.txt`, the shell opens `out.txt`, maps File Descriptor 1 to it, and then executes `echo`. `echo` still writes to FD 1, completely unaware that it's writing to a file instead of the terminal screen.",
+        "security_warning": "Be careful with `>`. It truncates (empties) the target file before writing. If you want to append data to an existing file, you MUST use `>>`.",
+        "interactive_simulator": {
+          "type": "File Descriptors",
+          "config": {}
+        },
+        "man_page": {
+          "name": "Redirection Operators",
+          "synopsis": "cmd > file   cmd >> file   cmd 2> file",
+          "description": "> : Redirect stdout to a file, overwriting it.\n>> : Redirect stdout to a file, appending to it.\n2> : Redirect stderr to a file.\n&> : Redirect BOTH stdout and stderr to the same file."
+        }
+      },
+      "commands": [
+        { "command": "echo 'Hello' > test.txt", "explanation": "Writes 'Hello' into test.txt." },
+        { "command": "cat fakefile 2> errors.log", "explanation": "Attempts to read a fake file. The resulting error message is routed into errors.log instead of the screen." }
+      ]
+    },
+    {
+      "id": "linux-pipes",
+      "title": "Pipes & Stream Processing",
+      "category": "Shell Execution",
+      "difficulty": "Medium",
+      "tags": ["pipe", "stdin", "stdout", "|"],
+      "content": {
+        "definition": "A pipe `|` connects the stdout of one command directly into the stdin of another command. This allows you to chain small, single-purpose utilities together to perform complex data processing.",
+        "intuition": "Imagine an assembly line. Command A builds the chassis and passes it down the conveyor belt (the pipe) to Command B, which adds the wheels.",
+        "internals": "The shell creates an anonymous pipe in memory via the `pipe()` system call, which returns two file descriptors (one for reading, one for writing). It then forks two processes. Process A's stdout is mapped to the write end, and Process B's stdin is mapped to the read end.",
+        "interactive_simulator": {
+          "type": "Stream Pipeline",
+          "config": {}
+        }
+      },
+      "commands": [
+        { "command": "ls -la | grep root", "explanation": "Lists all files, but pipes the output into grep to filter and display only lines containing 'root'." },
+        { "command": "cat ~/.bashrc | wc -l", "explanation": "Counts the number of lines in the .bashrc file." }
+      ],
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "What happens if the command on the left side of a pipe fails and outputs an error message?",
+            "options": ["The error is piped to the next command", "The error is printed to the screen (stderr is not piped by default)", "The entire pipeline crashes", "The right side command receives null input"],
+            "answer": "The error is printed to the screen (stderr is not piped by default)",
+            "explanation": "The standard pipe `|` only connects FD 1 (stdout) to FD 0 (stdin). FD 2 (stderr) remains pointed at the terminal display unless explicitly redirected using `|&` or `2>&1`."
+          }
+        ]
+      }
+    },
+    {
+      "id": "linux-searching",
+      "title": "Searching: find & grep",
+      "category": "Utilities",
+      "difficulty": "Hard",
+      "tags": ["grep", "find", "regex", "search"],
+      "content": {
+        "definition": "`find` is used to search for files and directories based on metadata (name, size, permissions, age). `grep` is used to search inside files for specific text patterns (using regular expressions).",
+        "internals": "`find` traverses the directory tree structure directly reading inodes. `grep` sequentially reads file contents into memory and applies a state machine to match regex patterns.",
+        "common_mistakes": "People often use `find` when they want `grep`, and vice versa. Remember: `find` = locate the file object. `grep` = locate the text inside the file.",
+        "man_page": {
+          "name": "grep - print lines that match patterns",
+          "synopsis": "grep [OPTION...] PATTERNS [FILE...]",
+          "description": "grep searches for PATTERNS in each FILE. A FILE of '-' stands for standard input.",
+          "options": [
+            { "flag": "-i", "desc": "Ignore case distinctions in patterns and input data." },
+            { "flag": "-v", "desc": "Invert match, to select non-matching lines." },
+            { "flag": "-r", "desc": "Read all files under each directory, recursively." }
+          ]
+        }
+      },
+      "commands": [
+        { "command": "grep 'alias' ~/.bashrc", "explanation": "Searches for the word 'alias' inside the .bashrc file." },
+        { "command": "find /var/log -name '*.log'", "explanation": "Searches the /var/log directory for any file ending in .log." }
+      ]
+    },
+    {
+      "id": "linux-archiving",
+      "title": "Archiving & Compression: tar",
+      "category": "Utilities",
+      "difficulty": "Medium",
+      "tags": ["tar", "gzip", "archive", "backup"],
+      "content": {
+        "definition": "`tar` (Tape Archive) is the standard UNIX utility used to collect many files into one archive file. It does NOT compress files by default; it only bundles them. Compression is handled by passing the archive through gzip or bzip2.",
+        "intuition": "`tar` is putting all your loose papers into a single cardboard box. Compression (`gzip`) is then using a vacuum sealer on the box to make it smaller.",
+        "man_page": {
+          "name": "tar - an archiving utility",
+          "synopsis": "tar [OPTION...] [FILE]...",
+          "description": "GNU tar saves many files together into a single tape or disk archive, and can restore individual files from the archive.",
+          "options": [
+            { "flag": "-c", "desc": "Create a new archive" },
+            { "flag": "-x", "desc": "Extract files from an archive" },
+            { "flag": "-v", "desc": "Verbosely list files processed" },
+            { "flag": "-f", "desc": "Use archive file or device ARCHIVE" },
+            { "flag": "-z", "desc": "Filter the archive through gzip" }
+          ]
+        }
+      },
+      "commands": [
+        { "command": "tar -cvf archive.tar /home/user", "explanation": "Creates an uncompressed archive containing the user directory." },
+        { "command": "tar -czvf archive.tar.gz /home/user", "explanation": "Creates a compressed (gzip) archive." },
+        { "command": "tar -xzvf archive.tar.gz", "explanation": "Extracts the compressed archive." }
+      ]
+    }
+  ]
+}

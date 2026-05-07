@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "module": "Storage & File Systems",
+    "schemaVersion": "1.0",
+    "lastUpdated": "2026-05-06"
+  },
+  "concepts": [
+    {
+      "id": "fs-allocation",
+      "title": "File Allocation Methods",
+      "category": "File Systems",
+      "difficulty": "Medium",
+      "tags": ["contiguous", "linked", "indexed", "fat"],
+      "content": {
+        "definition": "File allocation methods determine how logical blocks of a file are mapped to physical sectors on a disk. The three major approaches are Contiguous, Linked, and Indexed allocation.",
+        "intuition": "Contiguous is like a book where pages 1-10 are physically glued together; reading is fast but adding a page is impossible without rewriting the whole book. Linked is a treasure hunt where each page tells you where the next page is hidden. Indexed is having an index card at the front telling you exactly where every page is located.",
+        "internals": "Linked allocation suffers from slow random access because you must traverse pointers (O(N)). FAT (File Allocation Table) improves this by moving all the pointers into a separate table in memory, making pointer traversal extremely fast. Indexed allocation brings all pointers for a single file into one 'Index Block'.",
+        "comparison_table": {
+          "headers": ["Method", "Sequential Access", "Random Access", "Fragmentation", "Overhead"],
+          "rows": [
+            ["Contiguous", "Excellent", "Excellent (O(1))", "External", "None"],
+            ["Linked", "Good", "Terrible (O(N))", "None", "Pointers per block"],
+            ["Indexed", "Good", "Excellent (O(1))", "None", "Index block per file"]
+          ]
+        },
+        "linux_mapping": "Modern Linux filesystems (like ext4, XFS, Btrfs) use Extent-based allocation, which is a hybrid. An extent is a contiguous run of blocks. A file is represented by a tree of extents, blending the speed of contiguous allocation with the flexibility of indexed allocation."
+      },
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "Which allocation method suffers from external fragmentation?",
+            "options": ["Indexed", "Linked", "Contiguous", "FAT"],
+            "answer": "Contiguous",
+            "explanation": "Because files must be stored in consecutive blocks, free space becomes chopped into small, unusable chunks over time (external fragmentation)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fs-inodes",
+      "title": "Inodes & Ext4 Architecture",
+      "category": "File Systems",
+      "difficulty": "Hard",
+      "tags": ["inode", "ext4", "indirect-blocks"],
+      "content": {
+        "definition": "An inode (Index Node) is a data structure in a UNIX-style file system that describes a filesystem object such as a file or a directory. It stores attributes (permissions, owner, timestamps) and disk block locations, but NOT the file name or data itself.",
+        "hardware_interaction": "To read a file, the OS must first fetch the inode from disk (causing a seek), parse the pointers, and then fetch the actual data blocks (causing more seeks).",
+        "internals": "Traditional inodes use direct and indirect pointers. A typical ext2 inode has 12 Direct pointers, 1 Single Indirect, 1 Double Indirect, and 1 Triple Indirect pointer. This allows small files to be accessed extremely quickly (direct), while permitting massive files to exist (triple indirect).",
+        "algorithm_steps": "Reading block N of a file:\n1. OS reads inode.\n2. If N < 12, use Direct pointer N. Return block.\n3. If N < 12 + (BlockSize/4), go to Single Indirect block.\n4. Read Single Indirect block into RAM.\n5. Look up pointer at index (N - 12). Return block.\n6. For larger N, traverse Double or Triple indirect trees.",
+        "worked_example": "Assume 4KB blocks and 4-byte pointers (1024 pointers per block).\nMax file size via Direct: 12 * 4KB = 48KB.\nMax via Single Indirect: 1024 * 4KB = 4MB.\nMax via Double Indirect: 1024 * 1024 * 4KB = 4GB.\nMax via Triple Indirect: 1024 * 1024 * 1024 * 4KB = 4TB.",
+        "formula_sandbox": {
+          "description": "Calculate Max File Size for Inode Structures",
+          "inputs": [
+            { "label": "Block Size (Bytes)", "default": 4096 },
+            { "label": "Pointer Size (Bytes)", "default": 4 }
+          ]
+        },
+        "interactive_simulator": {
+          "type": "Inode Traversal",
+          "config": {
+            "initialState": { "ptr": "direct", "level": 0 },
+            "timeline": [
+              { "state_updates": {"ptr": "single", "level": 1}, "log": "Allocating Single Indirect block" },
+              { "state_updates": {"ptr": "double", "level": 2}, "log": "Allocating Double Indirect block tree" }
+            ]
+          }
+        },
+        "linux_mapping": "Ext4 abandoned indirect blocks in favor of Extent Trees for performance, though the fundamental inode structure (metadata separation) remains. You can view a file's inode number using `ls -i` or full metadata using `stat`."
+      },
+      "commands": [
+        { "command": "stat /etc/passwd", "explanation": "Displays the exact inode number, size, blocks allocated, IO Block size, and timestamps." },
+        { "command": "df -i", "explanation": "Displays inode usage per mounted filesystem. Running out of inodes means you cannot create new files, even if space is available." }
+      ]
+    },
+    {
+      "id": "disk-scheduling",
+      "title": "Disk Scheduling Algorithms",
+      "category": "Mass Storage",
+      "difficulty": "Hard",
+      "tags": ["fcfs", "sstf", "scan", "c-scan", "look", "seek-time"],
+      "content": {
+        "definition": "Disk scheduling algorithms determine the order in which disk I/O requests are serviced by the disk head to minimize seek time (the mechanical movement of the head arm).",
+        "intuition": "Imagine an elevator. FCFS is going wherever the buttons were pressed in order (erratic, slow). SCAN (Elevator Algorithm) goes all the way up, servicing requests on the way, then goes all the way down.",
+        "formula": "T_{access} = T_{seek} + T_{rotation} + T_{transfer}",
+        "algorithm_steps": "1. SSTF (Shortest Seek Time First): Services request closest to current head position. Risks starvation.\n2. SCAN: Head moves from one end to the other, servicing requests, then reverses.\n3. C-SCAN: Moves from one end to the other, but when it reaches the end, it returns to the beginning WITHOUT servicing requests on the return trip. Provides more uniform wait times.\n4. LOOK / C-LOOK: Like SCAN/C-SCAN but only goes as far as the last request, not the physical edge of the disk.",
+        "worked_example": "Queue: 98, 183, 37, 122, 14, 124, 65, 67. Head start: 53.\nFCFS path: 53 -> 98 -> 183 -> 37 ... Total movement = 640 cylinders.\nSSTF path: 53 -> 65 -> 67 -> 37 -> 14 -> 98 ... Total movement = 236 cylinders.",
+        "common_mistakes": "Assuming these algorithms are heavily used today. Modern SSDs have no moving parts (seek time is 0), so FCFS or simple merging algorithms (NOOP) are often preferred over SCAN.",
+        "interactive_simulator": {
+          "type": "Disk Scheduling",
+          "config": {
+            "initialState": { "head": 50, "requests": [98, 183, 37, 122, 14] },
+            "timeline": [
+              { "state_updates": { "head": 65 }, "log": "Head moves to 65 (SSTF)" },
+              { "state_updates": { "head": 67 }, "log": "Head moves to 67 (SSTF)" }
+            ]
+          }
+        },
+        "linux_mapping": "Linux uses I/O Schedulers like `mq-deadline`, `kyber`, or `bfq` (Budget Fair Queueing). You can check the active scheduler for a block device via `/sys/block/sda/queue/scheduler`."
+      },
+      "commands": [
+        { "command": "cat /sys/block/sda/queue/scheduler", "explanation": "Shows the currently loaded block I/O scheduler for disk sda." }
+      ]
+    },
+    {
+      "id": "raid",
+      "title": "RAID Architectures",
+      "category": "Mass Storage",
+      "difficulty": "Medium",
+      "tags": ["raid0", "raid1", "raid5", "raid10", "parity", "striping"],
+      "content": {
+        "definition": "RAID (Redundant Array of Independent Disks) uses multiple disk drives to improve performance, reliability, or both. It uses techniques like striping, mirroring, and parity.",
+        "intuition": "RAID 0 is splitting a heavy load across two trucks (fast, but if one crashes, the cargo is lost). RAID 1 is putting identical cargo in two trucks (safe, but no speed gain). RAID 5 is 3 trucks where the 3rd carries math formulas to rebuild the cargo if truck 1 or 2 crashes.",
+        "internals": "Parity in RAID 5 is calculated using the XOR logical operation. If Block A = 0100 and Block B = 1010, Parity Block P = A XOR B = 1110. If Drive A dies, Block A can be rebuilt by computing B XOR P (1010 XOR 1110 = 0100).",
+        "comparison_table": {
+          "headers": ["Level", "Technique", "Fault Tolerance", "Performance", "Capacity"],
+          "rows": [
+            ["RAID 0", "Striping", "None (1 drive failure kills all)", "Excellent", "Sum of all drives"],
+            ["RAID 1", "Mirroring", "Excellent (1 drive can fail)", "Good Read, Normal Write", "Half of total drives"],
+            ["RAID 5", "Striping + Distributed Parity", "Good (1 drive can fail)", "Excellent Read, Slow Write", "Total - 1 drive"],
+            ["RAID 10", "Striping + Mirroring", "Excellent (1 drive per mirror)", "Excellent", "Half of total drives"]
+          ]
+        },
+        "worked_example": "If you have four 1TB drives:\nRAID 0: 4TB usable, 0 failures tolerated.\nRAID 1: 2TB usable, up to 2 failures tolerated (if in different mirrors).\nRAID 5: 3TB usable, 1 failure tolerated.",
+        "interactive_simulator": {
+          "type": "RAID Striping",
+          "config": {
+            "initialState": { "raidLevel": 5, "drives": 3 },
+            "timeline": [
+              { "state_updates": { "action": "write A1" }, "log": "Block A1 written to Drive 1" },
+              { "state_updates": { "action": "write A2" }, "log": "Block A2 written to Drive 2" },
+              { "state_updates": { "action": "write Ap" }, "log": "Parity A calculated (XOR) and written to Drive 3" }
+            ]
+          }
+        },
+        "linux_mapping": "Linux provides Software RAID via `mdadm` (Multiple Device Administrator). This allows treating standard block devices as RAID arrays without hardware RAID controllers."
+      },
+      "commands": [
+        { "command": "cat /proc/mdstat", "explanation": "Displays the status of all active software RAID arrays managed by mdadm." }
+      ],
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "What is the primary disadvantage of RAID 5?",
+            "options": ["High storage overhead", "Write Penalty due to parity calculation", "No fault tolerance", "Extremely slow read speeds"],
+            "answer": "Write Penalty due to parity calculation",
+            "explanation": "Every write operation in RAID 5 requires reading the old data, reading the old parity, calculating the new parity, and then writing the new data and new parity (the RAID 5 write penalty)."
+          }
+        ]
+      }
+    }
+  ]
+}

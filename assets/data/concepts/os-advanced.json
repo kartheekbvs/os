@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "module": "Advanced OS",
+    "schemaVersion": "1.0",
+    "lastUpdated": "2026-05-06"
+  },
+  "concepts": [
+    {
+      "id": "os-concurrency",
+      "title": "Concurrency & The Critical Section",
+      "category": "Synchronization",
+      "difficulty": "Medium",
+      "tags": ["race-condition", "mutual-exclusion", "critical-section"],
+      "content": {
+        "definition": "Concurrency occurs when multiple instruction sequences execute in overlapping time periods. The Critical Section Problem arises when multiple processes/threads attempt to access shared modifiable data concurrently, potentially leading to race conditions where the final state depends on the unpredictable execution order.",
+        "intuition": "Imagine a bank account with $100. You and your partner both check the balance simultaneously ($100), both withdraw $50 simultaneously, and both calculate the new balance as $50. You write $50 back. The bank just lost $50 because the operations interleaved.",
+        "internals": "In the kernel, a critical section is a code segment where shared kernel structures (like process queues) are manipulated. The OS must provide synchronization primitives to ensure only one thread executes in its critical section at a time.",
+        "algorithm_steps": "To solve the critical section problem, a protocol must satisfy three requirements:\n1. Mutual Exclusion: If Process P is executing in its critical section, no other processes can execute in theirs.\n2. Progress: If no process is in its critical section and some wish to enter, only those not executing in their remainder sections can participate in deciding who goes next, and this cannot be postponed indefinitely.\n3. Bounded Waiting: There must be a bound on the number of times other processes are allowed to enter their critical sections after a process has made a request to enter its critical section and before that request is granted.",
+        "linux_mapping": "Linux uses `atomic_t` variables for simple integer operations, avoiding locks entirely at the hardware level using instructions like `LOCK INC`.",
+        "common_mistakes": "Assuming high-level statements like `count++` are atomic. In assembly, this is read (load), modify (add), write (store). An interrupt between load and store causes a race condition.",
+        "worked_example": "Thread A executes `count++`. Thread B executes `count--`. Count starts at 5.\nPossible race interleaving:\nA reads 5 into Register1.\nB reads 5 into Register2.\nA adds 1 (Reg1 = 6).\nB subtracts 1 (Reg2 = 4).\nA writes 6 to Memory (count = 6).\nB writes 4 to Memory (count = 4). Final count is 4, but should be 5!"
+      },
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "gate",
+            "question": "Which of the following conditions is required to solve the critical section problem?",
+            "options": ["Mutual Exclusion", "Progress", "Bounded Waiting", "All of the above"],
+            "answer": "All of the above",
+            "explanation": "A complete solution to the critical section problem MUST satisfy all three: Mutual Exclusion, Progress, and Bounded Waiting."
+          }
+        ],
+        "interview_questions": [
+          "Explain the difference between a Race Condition and a Data Race."
+        ]
+      },
+      "graph": {
+        "prerequisites": ["os-threads", "os-processes"],
+        "related_topics": ["os-mutex"],
+        "next_topics": []
+      }
+    },
+    {
+      "id": "os-mutex",
+      "title": "Mutexes & Spinlocks",
+      "category": "Synchronization",
+      "difficulty": "Medium",
+      "tags": ["locks", "spinlock", "mutex", "test-and-set"],
+      "content": {
+        "definition": "A Mutex (Mutual Exclusion object) is a lock used to protect critical sections. A Spinlock is a type of lock where the thread simply waits in a loop (\"spins\") repeatedly checking to see if the lock is available.",
+        "hardware_interaction": "Locks require hardware support to guarantee atomicity. CPUs provide instructions like Test-And-Set (TAS) or Compare-And-Swap (CAS) which read and modify a memory location in a single, uninterruptible bus cycle.",
+        "internals": "In Linux, a spinlock (`spinlock_t`) is used in interrupt context where sleeping is forbidden. A mutex (`struct mutex`) is used in process context where the thread can be put to sleep (yield the CPU) if the lock is held.",
+        "comparison_table": {
+          "headers": ["Feature", "Spinlock", "Mutex"],
+          "rows": [
+            ["Waiting Mechanism", "Busy waiting (spins CPU)", "Sleeps (yields CPU)"],
+            ["Context", "Safe in Interrupt handlers", "Process context only"],
+            ["Duration", "For very short critical sections", "For long critical sections"],
+            ["Overhead", "High CPU usage if blocked", "High context switch overhead"]
+          ]
+        },
+        "worked_example": "Hardware TestAndSet Logic:\n```c\nbool TestAndSet(bool *target) {\n  bool rv = *target;\n  *target = true;\n  return rv;\n}\n```\nUsage:\n```c\nwhile (TestAndSet(&lock)) { /* do nothing */ }\n// Critical Section\nlock = false;\n```"
+      },
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "Why are spinlocks preferred over mutexes in multiprocessor systems for very short critical sections?",
+            "options": ["They don't require hardware support", "They avoid the overhead of a context switch", "They allow multiple threads to enter", "They prevent deadlocks inherently"],
+            "answer": "They avoid the overhead of a context switch",
+            "explanation": "If the lock is held for less time than it takes to perform two context switches (sleep and wake), spinning is actually faster."
+          }
+        ]
+      }
+    },
+    {
+      "id": "os-semaphores",
+      "title": "Semaphores",
+      "category": "Synchronization",
+      "difficulty": "Hard",
+      "tags": ["dijkstra", "counting-semaphore", "binary-semaphore", "wait-signal"],
+      "content": {
+        "definition": "A Semaphore is an integer variable accessed only through two standard atomic operations: wait() (or P) and signal() (or V). It can be used to control access to a given number of instances of a resource (Counting Semaphore) or act as a Mutex (Binary Semaphore).",
+        "internals": "If a thread calls `wait(S)` and `S <= 0`, the OS removes the thread from the ready queue, places it in a waiting queue associated with the semaphore, and switches to another thread. A `signal(S)` operation wakes up a thread from this waiting queue.",
+        "algorithm_steps": "Wait (P / Down):\n```c\nwait(S) {\n  while (S <= 0) ; // busy wait or sleep\n  S--;\n}\n```\nSignal (V / Up):\n```c\nsignal(S) {\n  S++;\n}\n```",
+        "linux_mapping": "POSIX provides `<semaphore.h>` with `sem_wait()` and `sem_post()`. In the Linux kernel, `struct semaphore` is defined in `<linux/semaphore.h>`. However, Linux aggressively replaced semaphores used for mutual exclusion with the more efficient `struct mutex`.",
+        "common_mistakes": "Confusing a Binary Semaphore with a Mutex. While they look similar, a Mutex has the concept of an 'owner' (the thread that locked it must unlock it). A Binary Semaphore has no owner; Thread A can wait() and Thread B can signal() it, which is useful for condition signaling.",
+        "interactive_simulator": {
+          "type": "Semaphore Synchronization",
+          "config": {}
+        }
+      },
+      "diagram": { "type": "semaphore", "config": {} }
+    },
+    {
+      "id": "os-classical-problems",
+      "title": "Classical Synchronization Problems",
+      "category": "Synchronization",
+      "difficulty": "Hard",
+      "tags": ["producer-consumer", "readers-writers", "dining-philosophers"],
+      "content": {
+        "definition": "Standard problems used to test newly proposed synchronization schemes. The three major ones are: Bounded-Buffer (Producer-Consumer), Readers-Writers, and Dining-Philosophers.",
+        "intuition": "Dining Philosophers: 5 philosophers sit around a table with 5 chopsticks. To eat, one needs 2 chopsticks. If everyone picks up their left chopstick simultaneously, no one can pick up their right. Everyone starves (Deadlock).",
+        "algorithm_steps": "Producer-Consumer solution using 3 semaphores:\n`mutex = 1` (binary, protects buffer)\n`empty = N` (counting, tracks empty slots)\n`full = 0` (counting, tracks filled slots)\n\nProducer:\n`wait(empty); wait(mutex);`\n`// add item`\n`signal(mutex); signal(full);`\n\nConsumer:\n`wait(full); wait(mutex);`\n`// remove item`\n`signal(mutex); signal(empty);`",
+        "interactive_simulator": {
+          "type": "Dining Philosophers",
+          "config": {}
+        }
+      },
+      "diagram": { "type": "dining_philosophers", "config": {} }
+    },
+    {
+      "id": "os-deadlocks",
+      "title": "Deadlocks: Conditions & Avoidance",
+      "category": "Deadlocks",
+      "difficulty": "Hard",
+      "tags": ["coffman", "bankers-algorithm", "resource-allocation-graph"],
+      "content": {
+        "definition": "A deadlock is a state where a set of processes are blocked because each process is holding a resource and waiting for another resource acquired by some other process.",
+        "internals": "Coffman's Four Necessary Conditions for Deadlock:\n1. Mutual Exclusion: At least one resource must be non-shareable.\n2. Hold and Wait: A process holds a resource while waiting for another.\n3. No Preemption: Resources cannot be forcibly taken.\n4. Circular Wait: P1 waits for P2, P2 waits for P1.",
+        "algorithm_steps": "Banker's Algorithm (Deadlock Avoidance):\n1. Process states max resources it will ever need.\n2. When process requests resources, OS checks if granting them leaves the system in a 'Safe State'.\n3. Safe State means there exists a sequence of all processes such that they can finish executing.\n4. If safe, grant. If unsafe, process must wait.",
+        "worked_example": "Banker's Algorithm Matrix:\nAvailable: [3, 3, 2]\nAllocation Matrix:\nP0: [0, 1, 0]\nP1: [2, 0, 0]\nP2: [3, 0, 2]\nMax Matrix:\nP0: [7, 5, 3]\nP1: [3, 2, 2]\nP2: [9, 0, 2]\nNeed Matrix (Max - Alloc):\nP0: [7, 4, 3]\nP1: [1, 2, 2]\nP2: [6, 0, 0]\nCan P1 finish? Need [1,2,2] <= Avail [3,3,2]. Yes. Avail becomes [5,3,2].\nCan P0 finish? Need [7,4,3] <= Avail [5,3,2]. No.\nSystem is SAFE if all can finish.",
+        "formula_sandbox": {
+          "description": "Banker's Algorithm Safety Check",
+          "inputs": [
+            { "label": "Available A", "default": 3 },
+            { "label": "Available B", "default": 3 },
+            { "label": "Available C", "default": 2 }
+          ]
+        },
+        "interactive_simulator": {
+          "type": "Deadlock Resource Graph",
+          "config": {}
+        }
+      },
+      "diagram": { "type": "deadlock_graph", "config": {} },
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "gate",
+            "question": "Which deadlock handling strategy does Linux and Windows primarily use?",
+            "options": ["Deadlock Prevention", "Deadlock Avoidance (Banker's)", "Deadlock Detection and Recovery", "Ostrich Algorithm (Ignore it)"],
+            "answer": "Ostrich Algorithm (Ignore it)",
+            "explanation": "Modern OSes use the Ostrich approach because the overhead of running Banker's algorithm on every resource request is astronomically high. It is up to application developers to write deadlock-free code."
+          }
+        ]
+      }
+    },
+    {
+      "id": "os-ipc",
+      "title": "Inter-Process Communication (IPC)",
+      "category": "System Architecture",
+      "difficulty": "Medium",
+      "tags": ["pipes", "shared-memory", "message-queues", "sockets"],
+      "content": {
+        "definition": "IPC refers to mechanisms an OS provides to allow processes to manage shared data. The two fundamental models are Shared Memory (fast, requires synchronization) and Message Passing (safer, slower due to kernel involvement).",
+        "internals": "Shared Memory requires mapping the same physical RAM frame into the virtual address spaces of two different processes. Message Passing (like Pipes) requires copying data from Process A to Kernel Buffer to Process B.",
+        "linux_mapping": "Linux provides Pipes (`|`), Named Pipes (FIFOs), POSIX Message Queues, POSIX Shared Memory (`shmget`), and UNIX Domain Sockets. Sockets are the most versatile as they work over networks as well as locally.",
+        "comparison_table": {
+          "headers": ["IPC Mechanism", "Type", "Speed", "Synchronization"],
+          "rows": [
+            ["Shared Memory", "Data Memory", "Very Fast (No context switch)", "Manual (User must use Semaphores)"],
+            ["Pipes", "Byte Stream", "Moderate (Kernel copies)", "Automatic (Kernel blocks readers if empty)"],
+            ["Message Queues", "Discrete Messages", "Moderate", "Automatic"],
+            ["Sockets", "Byte Stream", "Moderate/Slow", "Automatic"]
+          ]
+        }
+      },
+      "commands": [
+        { "command": "ipcs -m", "explanation": "Shows active Shared Memory segments in the Linux kernel." },
+        { "command": "mkfifo /tmp/my_pipe", "explanation": "Creates a named pipe on the filesystem." }
+      ]
+    }
+  ]
+}

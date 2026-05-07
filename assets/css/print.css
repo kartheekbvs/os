@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Print Styles (@media print)
+   ========================================================================== */
+
+@media print {
+  /* Hide UI elements that shouldn't print */
+  .sidebar,
+  .topbar,
+  .btn,
+  .placement-section .mcq-panel {
+    display: none !important;
+  }
+
+  /* Reset layout constraints */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  body {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-size: 12pt;
+  }
+
+  /* Optimize Typography for print */
+  h1, h2, h3, h4 {
+    color: #000 !important;
+    page-break-after: avoid;
+  }
+
+  p, h2, h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Optimize educational notes and code blocks */
+  pre, code, .concept-block {
+    background: transparent !important;
+    border: 1px solid #ccc !important;
+    color: #000 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure formulas print correctly */
+  .concept-formula {
+    page-break-inside: avoid;
+    border-left: 4px solid #000 !important;
+    background: transparent !important;
+  }
+
+  /* Terminal representation */
+  .terminal-container {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    page-break-inside: avoid;
+  }
+
+  .terminal-body::after {
+    display: none !important; /* Remove CRT scanline */
+  }
+
+  .terminal-output {
+    color: #000 !important;
+  }
+
+  /* Add URL after links */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+    color: #555;
+  }
+}

@@ -1,0 +1,73 @@
+/* ==========================================================================
+   Typography System
+   ========================================================================== */
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--accent-cyan);
+  margin-bottom: var(--space-4);
+}
+
+h1 { font-size: var(--text-4xl); letter-spacing: -0.02em; }
+h2 { font-size: var(--text-3xl); letter-spacing: -0.01em; margin-top: var(--space-8); }
+h3 { font-size: var(--text-2xl); color: var(--text-primary); margin-top: var(--space-6); }
+h4 { font-size: var(--text-xl); color: var(--text-primary); }
+
+p {
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+}
+
+strong, b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+}
+
+/* Inline Code */
+code:not(pre code) {
+  background-color: var(--code-bg);
+  color: var(--accent-cyan);
+  padding: 0.2em 0.4em;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.85em;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Base Pre Block (Prism.js handles the rest in a separate file) */
+pre {
+  background-color: var(--code-bg);
+  padding: var(--space-4);
+  border-radius: var(--border-radius-md);
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+ul, ol {
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-6);
+  color: var(--text-secondary);
+}
+
+li {
+  margin-bottom: var(--space-2);
+}
+
+/* Accessibility Focus States */
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}

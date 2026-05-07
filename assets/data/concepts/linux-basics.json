@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "module": "Linux Basic Systems",
+    "schemaVersion": "1.0",
+    "lastUpdated": "2026-05-06"
+  },
+  "concepts": [
+    {
+      "id": "linux-philosophy",
+      "title": "The UNIX Philosophy: Everything is a File",
+      "category": "Fundamentals",
+      "difficulty": "Easy",
+      "tags": ["vfs", "posix", "stdin", "stdout", "stderr"],
+      "content": {
+        "definition": "In Linux and UNIX systems, 'everything is a file'. This means that physical hardware devices (like keyboards, hard drives, and printers), directories, and even running processes are exposed to user-space applications as standard file descriptors.",
+        "intuition": "Imagine you write a program that outputs text to a file. In Linux, without changing your code, you can point that file descriptor to a network socket, a printer, or a graphical terminal. The program doesn't know the difference; it just writes bytes to a 'file'.",
+        "internals": "This is achieved through the Virtual File System (VFS) layer. The kernel exposes standard operations: `open()`, `read()`, `write()`, and `close()`. Device drivers implement these functions for their specific hardware.",
+        "security_warning": "Because devices are files, incorrect permissions on a device file (like `/dev/sda` which represents your main hard drive) can allow a regular user to read or overwrite the entire disk, bypassing all filesystem security.",
+        "comparison_table": {
+          "headers": ["Standard Stream", "File Descriptor", "Default Target", "Purpose"],
+          "rows": [
+            ["stdin (Standard Input)", "0", "Keyboard", "Receives input data"],
+            ["stdout (Standard Output)", "1", "Terminal Display", "Outputs normal application data"],
+            ["stderr (Standard Error)", "2", "Terminal Display", "Outputs diagnostic/error messages"]
+          ]
+        }
+      },
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "easy",
+            "question": "Which system call is universally used in Linux to send data to a hardware device, a file, or a network socket?",
+            "options": ["send()", "write()", "output()", "ioctl()"],
+            "answer": "write()",
+            "explanation": "Because 'everything is a file', the standard write() syscall is used to push bytes to any file descriptor, regardless of what underlying object it represents."
+          }
+        ]
+      }
+    },
+    {
+      "id": "linux-navigation",
+      "title": "Filesystem Hierarchy & Navigation",
+      "category": "Operational",
+      "difficulty": "Easy",
+      "tags": ["cd", "pwd", "ls", "fhs"],
+      "content": {
+        "definition": "Linux follows the Filesystem Hierarchy Standard (FHS), defining the directory structure and directory contents. The root of the filesystem is denoted by a forward slash `/`.",
+        "internals": "Paths can be Absolute (starting from `/`) or Relative (starting from the current working directory). The special directories `.` represent the current directory, and `..` represent the parent directory.",
+        "linux_mapping": "Key FHS locations: `/bin` (essential user binaries), `/etc` (host-specific system configuration), `/home` (user home directories), `/var` (variable data like logs), `/tmp` (temporary files deleted on reboot).",
+        "man_page": {
+          "name": "ls - list directory contents",
+          "synopsis": "ls [OPTION]... [FILE]...",
+          "description": "List information about the FILEs (the current directory by default). Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.",
+          "options": [
+            { "flag": "-a, --all", "desc": "do not ignore entries starting with ." },
+            { "flag": "-l", "desc": "use a long listing format showing permissions, owner, size, and timestamps" },
+            { "flag": "-h, --human-readable", "desc": "with -l and -s, print sizes like 1K 234M 2G etc." }
+          ]
+        }
+      },
+      "commands": [
+        { "command": "pwd", "explanation": "Print name of current/working directory." },
+        { "command": "cd /etc", "explanation": "Change the shell working directory to /etc (absolute path)." },
+        { "command": "cd ..", "explanation": "Move up one directory level (relative path)." },
+        { "command": "ls -la", "explanation": "List all files (including hidden) in long format." }
+      ]
+    },
+    {
+      "id": "linux-manipulation",
+      "title": "File & Directory Manipulation",
+      "category": "Operational",
+      "difficulty": "Easy",
+      "tags": ["mkdir", "touch", "rm"],
+      "content": {
+        "definition": "Creating, modifying timestamps, and removing files/directories are fundamental operations. In Linux, removal is permanent; there is typically no 'Recycle Bin' at the command line level.",
+        "security_warning": "The `rm -rf /` command will forcefully and recursively delete everything on the system without prompting for confirmation. It is catastrophic.",
+        "man_page": {
+          "name": "rm - remove files or directories",
+          "synopsis": "rm [OPTION]... [FILE]...",
+          "description": "rm removes each specified file. By default, it does not remove directories.",
+          "options": [
+            { "flag": "-f, --force", "desc": "ignore nonexistent files and arguments, never prompt" },
+            { "flag": "-r, -R, --recursive", "desc": "remove directories and their contents recursively" }
+          ]
+        }
+      },
+      "commands": [
+        { "command": "mkdir testdir", "explanation": "Creates a new directory named 'testdir' in the current working directory." },
+        { "command": "touch newfile.txt", "explanation": "Creates an empty file named 'newfile.txt', or updates its access timestamp if it exists." },
+        { "command": "rm newfile.txt", "explanation": "Permanently deletes the file." },
+        { "command": "rm -r testdir", "explanation": "Recursively deletes 'testdir' and all its contents." }
+      ]
+    }
+  ]
+}

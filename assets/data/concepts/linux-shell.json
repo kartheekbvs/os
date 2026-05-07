@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "module": "Bash Shell Scripting",
+    "schemaVersion": "1.0",
+    "lastUpdated": "2026-05-06"
+  },
+  "concepts": [
+    {
+      "id": "shell-variables",
+      "title": "Variables, Scope, and Environment",
+      "category": "Execution Context",
+      "difficulty": "Medium",
+      "tags": ["export", "local", "env", "subshell"],
+      "content": {
+        "definition": "Variables in Bash are untyped strings by default. They exist in specific scopes: the current shell environment, exported to child processes, or localized within functions.",
+        "intuition": "A Local Variable is a secret kept within the current room (shell). An Exported Variable is written on a nametag; when you spawn a child process (leave the room), the child inherits the nametag.",
+        "internals": "When a new process is spawned via `fork()`, the kernel copies the parent's environment block (the exported variables) into the child's memory space. Variables that are NOT exported are strictly local to the parent's memory and are destroyed when the shell exits.",
+        "security_warning": "Never store plaintext secrets in exported environment variables if untrusted child processes might be spawned, as they will inherit the secrets.",
+        "interactive_simulator": {
+          "type": "Env Inheritance",
+          "config": {}
+        }
+      },
+      "commands": [
+        { "command": "VAR=hello", "explanation": "Creates a local variable in the current shell." },
+        { "command": "export VAR=hello", "explanation": "Creates an exported variable that child processes will inherit." },
+        { "command": "env", "explanation": "Prints all exported environment variables." }
+      ]
+    },
+    {
+      "id": "shell-substitution",
+      "title": "Subshells & Command Substitution",
+      "category": "Execution Context",
+      "difficulty": "Hard",
+      "tags": ["$()", "fork", "subshell"],
+      "content": {
+        "definition": "Command Substitution `$(cmd)` allows the standard output of a command to replace the command itself within a line of code. A Subshell `(cmd)` executes commands in an isolated child process.",
+        "internals": "When `$(whoami)` is parsed, Bash calls `pipe()`, `fork()`, and `exec()` to run `whoami`. It reads the output from the pipe, strips trailing newlines, and replaces the token in the Abstract Syntax Tree (AST) before executing the main command.",
+        "common_mistakes": "Using `cd` inside a subshell `(cd /tmp && ls)` will NOT change the directory of your current terminal. The `cd` only affects the temporary child process, which dies immediately after `ls`.",
+        "man_page": {
+          "name": "Command Substitution",
+          "synopsis": "$(command)   or   `command`",
+          "description": "Command substitution allows the output of a command to replace the command name. Bash performs the expansion by executing command and replacing the command substitution with the standard output of the command, with any trailing newlines deleted."
+        }
+      },
+      "commands": [
+        { "command": "echo \"I am $(whoami)\"", "explanation": "Evaluates whoami first, replacing the string, then runs echo." },
+        { "command": "(cd /tmp && pwd)", "explanation": "Changes directory and prints it safely inside an isolated subshell." }
+      ]
+    },
+    {
+      "id": "shell-control-flow",
+      "title": "Control Flow & Exit Codes",
+      "category": "Logic",
+      "difficulty": "Medium",
+      "tags": ["if", "[[", "exit", "$?"],
+      "content": {
+        "definition": "Control flow in Bash evaluates the Exit Code (`$?`) of commands. A code of `0` means True/Success. Any non-zero code (1-255) means False/Failure. The `[[ ]]` construct is actually an enhanced command that evaluates expressions and returns 0 or 1.",
+        "internals": "The `if` statement does not evaluate boolean math directly; it executes a command. `if grep -q root /etc/passwd; then` runs `grep`. If `grep` finds 'root', it exits 0, and the `if` branch executes.",
+        "interactive_simulator": {
+          "type": "Control Flow",
+          "config": {}
+        }
+      },
+      "commands": [
+        { "command": "echo $?", "explanation": "Prints the exit code of the most recently executed pipeline." },
+        { "command": "[[ 5 -gt 3 ]] && echo 'True'", "explanation": "Evaluates the numeric comparison. Since it is true (0), the && short-circuit executes the echo." }
+      ],
+      "placement": {
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "What does an exit code of 0 signify in Bash?",
+            "options": ["Failure", "Success", "Syntax Error", "Null Pointer"],
+            "answer": "Success",
+            "explanation": "Unlike C/C++ booleans where 0 is false, POSIX shell exit codes use 0 to indicate absolute success without errors."
+          }
+        ]
+      }
+    },
+    {
+      "id": "shell-loops",
+      "title": "Iteration & Positional Parameters",
+      "category": "Logic",
+      "difficulty": "Hard",
+      "tags": ["for", "while", "$1", "$@"],
+      "content": {
+        "definition": "Bash supports standard `for` and `while` loops. When writing shell scripts, input is passed via Positional Parameters (`$1`, `$2`). `$@` represents an array of all parameters, making it ideal for iteration.",
+        "algorithm_steps": "Typical script iteration over files:\n1. User runs `./script.sh file1.txt file2.txt`\n2. Bash assigns `$1=file1.txt` and `$2=file2.txt`.\n3. The loop `for f in \"$@\"` expands to `for f in file1.txt file2.txt`.\n4. The loop body executes twice, assigning `$f` each time.",
+        "interactive_simulator": {
+          "type": "Loop Execution",
+          "config": {}
+        }
+      },
+      "commands": [
+        { "command": "for i in {1..3}; do echo $i; done", "explanation": "A brace expansion loop that prints 1, 2, and 3." }
+      ]
+    }
+  ]
+}

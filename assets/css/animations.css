@@ -1,0 +1,54 @@
+/* ==========================================================================
+   Animations & Transitions
+   ========================================================================== */
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Reusable Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+/* Staggered Children Animations */
+.stagger-1 { animation-delay: 100ms; }
+.stagger-2 { animation-delay: 200ms; }
+.stagger-3 { animation-delay: 300ms; }
+.stagger-4 { animation-delay: 400ms; }
+
+/* SVG Animation Helpers (Triggered via JS) */
+.svg-animated path.draw-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 2s ease-in-out;
+}
+
+.svg-animated.is-visible path.draw-path {
+  stroke-dashoffset: 0;
+}
+
+.svg-node {
+  transition: fill var(--transition-normal), stroke var(--transition-normal);
+}
+
+.svg-node.active {
+  fill: rgba(0, 212, 255, 0.2);
+  stroke: var(--accent-cyan);
+}

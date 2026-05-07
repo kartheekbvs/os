@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operating Systems Academy | Master the Core</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    .hero-gradient {
+      background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent 40%),
+                  radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.05), transparent 40%);
+    }
+    .track-section {
+      margin-bottom: 5rem;
+    }
+    .track-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .module-card {
+      position: relative;
+      border-left: 4px solid var(--track-color, var(--accent-cyan));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .module-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -8px rgba(0,0,0,0.5);
+    }
+    .track-header {
+      border-bottom: 2px solid var(--track-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .track-primary { 
+      --track-color: var(--accent-purple); 
+      background: rgba(168, 85, 247, 0.02);
+      padding: 2rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(168, 85, 247, 0.1);
+    }
+    .track-secondary { 
+      --track-color: var(--accent-cyan);
+      opacity: 0.85;
+    }
+    .track-secondary:hover { opacity: 1; }
+    
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .badge-track {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body class="app-container hero-gradient">
+
+  <div id="sidebar-mount"></div>
+
+  <main class="main-content">
+    <div id="topbar-mount"></div>
+
+    <div class="page-container max-w-6xl mx-auto py-20 px-6">
+      <header class="mb-24">
+        <div class="inline-block px-3 py-1 bg-accent-purple/10 border border-accent-purple/30 rounded-full text-accent-purple text-xs font-mono mb-8">
+          V4.0 SYSTEMS ENGINEERING
+        </div>
+        <h1 class="hero-title font-display font-bold mb-8">
+          The <span class="text-accent-purple">Operating Systems</span> <br>
+          Master Academy.
+        </h1>
+        <p class="text-xl text-text-secondary max-w-3xl leading-relaxed mb-12">
+          An interactive laboratory designed to teach systems thinking. 
+          Bridge the gap between high-level code and physical silicon through hardware stories, 
+          kernel-level simulations, and mathematical rigor.
+        </p>
+        <div class="flex flex-wrap gap-6">
+          <a href="os-foundations.html" class="btn btn-primary px-12 py-5 text-lg shadow-lg shadow-accent-purple/20">Start Track 1: OS Core</a>
+          <a href="#curriculum" class="btn btn-outline px-12 py-5 text-lg">View Full Curriculum</a>
+        </div>
+      </header>
+
+      <div id="curriculum">
+        <!-- TRACK 1: OS CORE (DOMINANT) -->
+        <section class="track-section track-primary">
+          <header class="track-header flex-between items-end">
+            <div>
+              <div class="badge-track bg-accent-purple/20 text-accent-purple mb-2 inline-block">Recommended Path</div>
+              <h2 class="text-4xl font-display font-bold text-accent-purple">TRACK 1: OPERATING SYSTEMS CORE</h2>
+              <p class="text-text-secondary mt-2 max-w-xl">Deep theoretical foundation and internal architectural principles. Prerequisite for all practical implementations.</p>
+            </div>
+            <div class="text-right hidden lg:block">
+              <span class="text-3xl font-bold text-accent-purple/30 font-mono">01</span>
+            </div>
+          </header>
+
+          <div class="track-grid">
+            <a href="os-foundations.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">SECTION A</h4>
+                <i class="fas fa-microchip text-accent-purple opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3 group-hover:text-accent-purple transition-colors">OS Foundations</h3>
+              <p class="text-sm text-text-secondary leading-relaxed mb-4">Kernel Mode vs User Mode, System Calls, Interrupts, and the hardware-software bridge.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-easy">Beginner</span>
+                <span class="text-[10px] font-mono text-text-muted uppercase">9 Hours</span>
+              </div>
+            </a>
+
+            <a href="os-processes.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">SECTION B</h4>
+                <i class="fas fa-tasks text-accent-purple opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3 group-hover:text-accent-purple transition-colors">Processes & Scheduling</h3>
+              <p class="text-sm text-text-secondary leading-relaxed mb-4">Context switching, PCB architecture, and algorithmic CPU scheduling mastery.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-medium">Core</span>
+                <span class="text-[10px] font-mono text-text-muted uppercase">14 Hours</span>
+              </div>
+            </a>
+
+            <a href="os-synchronization.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">SECTION C</h4>
+                <i class="fas fa-sync text-accent-purple opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3 group-hover:text-accent-purple transition-colors">Synchronization</h3>
+              <p class="text-sm text-text-secondary leading-relaxed mb-4">Race conditions, Mutex/Semaphores, and Deadlock prevention strategies.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-hard">Advanced</span>
+                <span class="text-[10px] font-mono text-text-muted uppercase">10 Hours</span>
+              </div>
+            </a>
+
+            <a href="os-memory.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">SECTION D</h4>
+                <i class="fas fa-memory text-accent-purple opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3 group-hover:text-accent-purple transition-colors">Memory Management</h3>
+              <p class="text-sm text-text-secondary leading-relaxed mb-4">Paging, Virtual Memory, TLB, and page replacement mechanics.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-hard">Advanced</span>
+                <span class="text-[10px] font-mono text-text-muted uppercase">14 Hours</span>
+              </div>
+            </a>
+
+            <a href="os-storage.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">SECTION E</h4>
+                <i class="fas fa-hdd text-accent-purple opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3 group-hover:text-accent-purple transition-colors">Storage Systems</h3>
+              <p class="text-sm text-text-secondary leading-relaxed mb-4">File system internals, Inodes, RAID, and disk scheduling.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-medium">Core</span>
+                <span class="text-[10px] font-mono text-text-muted uppercase">9 Hours</span>
+              </div>
+            </a>
+
+            <a href="os-security.html" class="module-card card group">
+              <div class="flex-between mb-4">
+                <h4 class="text-xs font-mono text-text-muted">SECTION F</h4>
+                <i class="fas fa-shield-halved text-accent-purple opacity-20 group-hover:opacity-100 transition-opacity"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3 group-hover:text-accent-purple transition-colors">Security & Protection</h3>
+              <p class="text-sm text-text-secondary leading-relaxed mb-4"> CIA Triad, UNIX Permissions, and hardware-level memory protection.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-medium">Core</span>
+                <span class="text-[10px] font-mono text-text-muted uppercase">6 Hours</span>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <!-- TRACK 2: LINUX IMPLEMENTATION (SECONDARY) -->
+        <section class="track-section track-secondary">
+          <header class="track-header flex-between items-end">
+            <div>
+              <div class="badge-track bg-accent-cyan/20 text-accent-cyan mb-2 inline-block">Practical Layer</div>
+              <h2 class="text-3xl font-display font-bold text-accent-cyan">TRACK 2: LINUX IMPLEMENTATION</h2>
+              <p class="text-text-secondary mt-2 max-w-xl">Applying theoretical concepts to the world's most powerful kernel. Mastery requires Track 1 knowledge.</p>
+            </div>
+            <div class="text-right hidden lg:block">
+              <span class="text-3xl font-bold text-accent-cyan/30 font-mono">02</span>
+            </div>
+          </header>
+
+          <div class="track-grid">
+            <div class="module-card card group opacity-70">
+              <h3 class="text-lg font-bold mb-2">Linux Basics</h3>
+              <p class="text-xs text-text-muted mb-4">Architecture, Shell Basics, and FHS.</p>
+              <span class="text-[10px] font-mono text-accent-cyan">LOCKED: PREREQ REQUIRED</span>
+            </div>
+            <div class="module-card card group opacity-70">
+              <h3 class="text-lg font-bold mb-2">Commands & Pipelines</h3>
+              <p class="text-xs text-text-muted mb-4">I/O Redirection, Streams, and Filters.</p>
+              <span class="text-[10px] font-mono text-accent-cyan">LOCKED: PREREQ REQUIRED</span>
+            </div>
+            <div class="module-card card group opacity-70">
+              <h3 class="text-lg font-bold mb-2">Shell Scripting</h3>
+              <p class="text-xs text-text-muted mb-4">Automation, Logic, and POSIX Compliance.</p>
+              <span class="text-[10px] font-mono text-accent-cyan">LOCKED: PREREQ REQUIRED</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    async function loadLayout() {
+      const [sidebarRes, topbarRes] = await Promise.all([
+        fetch('components/sidebar.html'),
+        fetch('components/topbar.html')
+      ]);
+      
+      document.getElementById('sidebar-mount').innerHTML = await sidebarRes.text();
+      document.getElementById('topbar-mount').innerHTML = await topbarRes.text();
+
+      const bc = document.getElementById('breadcrumb-current');
+      if (bc) bc.textContent = 'Learning Tracks';
+    }
+
+    import './assets/js/core.js';
+
+    document.addEventListener('DOMContentLoaded', loadLayout);
+  </script>
+</body>
+</html>

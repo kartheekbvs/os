@@ -1,0 +1,354 @@
+{
+  "meta": {
+    "module": "Synchronization & Deadlocks",
+    "track": "01",
+    "concept_template_mode": "adaptive"
+  },
+  "track": "Process Synchronization & Deadlocks",
+  "trackId": "os-sync",
+  "description": "Orchestrating chaos: Master the high-tension logic of concurrency, resource contention, and system freezes.",
+  "concepts": [
+    {
+      "id": "race-conditions-stress",
+      "title": "Module 3.1: Race Conditions - The Chaos of Interleaving",
+      "category": "Concurrency Fundamentals",
+      "difficulty": "Hard",
+      "tags": ["race-condition", "atomicity", "interleaving", "non-determinism"],
+      "content": {
+        "why_exists": "Concurrency is a double-edged sword. When two threads access the same memory without coordination, the result depends on the 'luck' of the timer interrupt. This is the source of the most expensive and elusive bugs in history.",
+        "hardware_limitation": "The **Load-Store Architecture**. A single C statement like `count++` is NOT a single CPU instruction. It is 3: LOAD from RAM to Register, ADD 1 to Register, STORE Register to RAM. If a context switch happens *between* these, the value is corrupted.",
+        "analogy": "A **Shared Bank Account**. You and your spouse both withdraw $100 at the exact same millisecond from two different ATMs. Both ATMs see $500, both subtract $100, and both write back $400. You spent $200, but only $100 was deducted. The bank just 'lost' $100 due to a race condition.",
+        "execution_flow": "THE CORRUPTION TRACE:\n1. **Thread A:** LOAD count (500) into EAX.\n2. **INTERRUPT:** Scheduler kicks A off, puts B on.\n3. **Thread B:** LOAD count (500) into EAX.\n4. **Thread B:** ADD EAX, 1 (501).\n5. **Thread B:** STORE EAX to count (count is now 501).\n6. **INTERRUPT:** Scheduler puts A back on.\n7. **Thread A:** ADD EAX, 1 (501) -- *Note: A still has the OLD value 500 in its EAX!*\n8. **Thread A:** STORE EAX to count (count is now 501).\n**RESULT:** Two increments happened, but the value only increased by 1.",
+        "kernel_internals": "The Linux Kernel handles millions of these 'Race Zones' every second. It uses **Critical Sections** to ensure that once a thread starts the LOAD-ADD-STORE sequence, no one else can touch that variable.",
+        "register_story": "The **EAX/RAX** register is the scene of the crime. Because every thread has its own private registers but shares the same RAM, the register becomes a 'Stale Snapshot' of memory the moment a context switch occurs.",
+        "memory_interaction": "**Cache Coherency:** On multi-core CPUs, this is even worse. Core 1 might have the variable in its L1 cache while Core 2 changes it in RAM. Without 'Memory Barriers', Core 1 will continue using the 'Lie' in its cache.",
+        "performance_tradeoffs": "**The Cost of Safety:** To fix this, we must 'Lock' memory. But locking stops the CPU from working in parallel. A system with too many locks is safe but slow; a system with too few is fast but crashes.",
+        "security_implications": "**TOCTOU (Time-of-Check to Time-of-Use):** A hacker can change a file path *after* the OS checks if it's safe but *before* the OS actually opens it, gaining root access.",
+        "definition": "A race condition occurs when the behavior of a software system depends on the sequence or timing of uncontrollable events, leading to inconsistent results.",
+        "formulas": "Probability of Corruption ∝ (Number of Threads) * (Complexity of Operation) / (Quantum Size).",
+        "worked_example": "Two threads incrementing a counter 1,000,000 times each. Without sync, the final count might be 1,432,012 instead of 2,000,000.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Is 'count++' atomic? Why or why not?",
+          "What is the difference between a race condition and a deadlock?",
+          "How does a multi-core CPU make race conditions harder to debug?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which instruction sequence represents a race condition risk?",
+            "options": ["Read -> Read", "Write -> Read", "Read -> Modify -> Write", "Write -> Write"],
+            "answer": "Read -> Modify -> Write"
+          }
+        ],
+        "misconceptions": "- **'It only happens on slow computers'**: No, faster computers context-switch more often, making race conditions *more* likely.\n- **'I can fix it with a sleep() call'**: No, that just hides the bug; it doesn't remove the race.",
+        "recap": "Race conditions are the 'Ghosts' of concurrency, caused by the non-atomic nature of hardware instructions.",
+        "next_topic_why": "To stop the chaos, we must define the 'Danger Zone' where only one thread can enter: **The Critical Section**."
+      },
+      "interactive_simulator": {
+        "type": "Race Condition Simulator",
+        "config": {
+          "title": "Chaos in the Bus",
+          "description": "Step through Thread A and B. Click 'SWITCH' at the exact moment needed to make 1 + 1 = 1. Watch the RAM 'Glitch' as the race condition corrupts the system."
+        }
+      }
+    },
+    {
+      "id": "critical-section-problem",
+      "title": "Module 3.2: The Critical Section Problem - The Rules of Engagement",
+      "category": "Concurrency Fundamentals",
+      "difficulty": "Medium",
+      "tags": ["critical-section", "mutual-exclusion", "progress", "bounded-waiting"],
+      "content": {
+        "why_exists": "We can't just 'Lock everything'—that would turn a multi-core supercomputer into a 1980s calculator. We need a formal set of 3 rules that allow threads to cooperate without starving each other.",
+        "hardware_limitation": "The **Interrupt Masking Problem**. You could stop interrupts to protect a section, but if that section takes 10 seconds, the whole system (including the mouse and keyboard) freezes. We need a 'Smarter' way.",
+        "analogy": "A **Single-Person Bathroom**. \n1. **Mutual Exclusion:** Only one person at a time. \n2. **Progress:** If it's empty, the next person in line MUST be allowed in. \n3. **Bounded Waiting:** You can't let your friend cut in line forever while a stranger waits outside.",
+        "execution_flow": "THE PROTECTED REGION:\n1. **Entry Section:** 'Can I go in?' (Ask for lock).\n2. **Critical Section:** 'I am in' (Do dangerous memory work).\n3. **Exit Section:** 'I am out' (Release lock).\n4. **Remainder Section:** 'Doing other stuff' (Non-shared work).",
+        "kernel_internals": "The Kernel enforces these rules using **Spinlocks** for short sections and **Semaphores** for long sections. If a thread breaks the rules, the system inevitably deadlocks.",
+        "register_story": "N/A",
+        "memory_interaction": "**Memory Fencing:** The exit section must issue a 'Store Barrier' instruction to ensure the CPU finishes writing all data to RAM before it tells other cores the lock is free.",
+        "performance_tradeoffs": "**The 3-Way Balance:** \n- Strict Mutex = High Security / Low Speed.\n- Relaxed Progress = High Speed / Risk of Starvation.\n- Bounded Waiting = High Fairness / Increased Overhead.",
+        "security_implications": "Many exploits involve 'Luring' a high-priority process into a Critical Section and then keeping it there forever (Denial of Service).",
+        "definition": "The Critical Section Problem is the challenge of designing a protocol that processes can use to cooperate, ensuring that only one process is executing in its critical section at a time.",
+        "formulas": "Wait Time ∝ (Number of Processes) * (Critical Section Duration).",
+        "worked_example": "Peterson's Solution is the 'Classic' software answer for two processes, using a 'Turn' variable and a 'Flag' array.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What are the three requirements for a solution to the Critical Section problem?",
+          "Why is 'Progress' as important as 'Mutual Exclusion'?",
+          "What happens if 'Bounded Waiting' is violated?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which requirement ensures that no process is indefinitely postponed?",
+            "options": ["Mutual Exclusion", "Progress", "Bounded Waiting", "Atomicity"],
+            "answer": "Bounded Waiting"
+          }
+        ],
+        "misconceptions": "- **'A critical section is a part of the OS'**: No, it's any part of YOUR code that touches shared data.",
+        "recap": "The 3 rules (Mutex, Progress, Bounded Wait) are the 'Bill of Rights' for concurrent processes.",
+        "next_topic_why": "Software solutions are slow. To solve this at 5GHz, we need help from the silicon: **Hardware Synchronization**."
+      }
+    },
+    {
+      "id": "hardware-sync-tsl",
+      "title": "Module 3.3: Hardware Synchronization - The Atomic Shield",
+      "category": "Hardware Support",
+      "difficulty": "Hard",
+      "tags": ["tsl", "cas", "atomicity", "bus-lock", "instruction-set"],
+      "content": {
+        "why_exists": "Software solutions like Peterson's are too slow and fail on modern CPUs that reorder instructions. We need the **Silicon** to guarantee that a 'Check and Set' operation happens in one single, un-interruptible heartbeat.",
+        "hardware_limitation": "The **Bus Lock**. When a CPU executes an atomic instruction like `LOCK CMPXCHG`, it physically blocks other cores from touching memory for a few cycles. This is the ultimate bottleneck of modern computing.",
+        "analogy": "A **Nuclear Key**. Two generals must turn the key at once. The hardware ensures that you cannot turn the key 'halfway'. It is either 0 or 1, with no 'Gray Area' where a context switch could occur.",
+        "execution_flow": "THE TSL (Test-and-Set) CYCLE:\n1. **Call:** `TSL Register, LockVariable` enters the pipeline.\n2. **Hardware Lock:** CPU signals the Memory Bus: 'Nobody touch this address!'\n3. **Read:** CPU reads `LockVariable` into the register.\n4. **Write:** CPU writes `1` to `LockVariable` immediately.\n5. **Release:** Bus is unlocked.\n6. **Check:** If the register was `0`, you just got the lock! If it was `1`, someone else already had it.",
+        "kernel_internals": "Linux uses `atomic_t` types. Under the hood, these use assembly instructions like `lock xadd` (x86) to ensure counters (like process reference counts) never suffer from race conditions.",
+        "register_story": "The **ZF (Zero Flag)** in the EFLAGS register is often the result of an atomic `CMPXCHG`. The OS checks this flag immediately after the instruction to know if the 'Swap' succeeded.",
+        "memory_interaction": "**Cache Line Bouncing:** If 8 cores all try to `TestAndSet` the same lock, the 'Cache Line' containing that lock must bounce between the cores like a hot potato. This can slow down a CPU by 90%.",
+        "performance_tradeoffs": "**Spinning vs. Yielding:** Atomic instructions are fast, but if the lock is held for a long time, 'Spinning' (looping `TSL`) wastes billions of cycles. The OS must decide when to stop spinning and go to sleep.",
+        "security_implications": "N/A",
+        "definition": "Hardware synchronization refers to special CPU instructions that perform read-modify-write operations as a single atomic unit, providing the foundation for all high-level locks.",
+        "formulas": "Lock Latency = (Bus Lock Time) + (Cache Coherency Propagation).",
+        "worked_example": "`CompareAndSwap(target, expected, new)`: If `target == expected`, set `target = new`. Return true. Else return false. This is the basis of 'Lock-Free' data structures.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What does 'Atomic' mean in the context of hardware instructions?",
+          "How does Compare-and-Swap (CAS) prevent race conditions?",
+          "Why is a software-only solution like Peterson's insufficient on modern CPUs?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which instruction is used to implement atomic operations on x86?",
+            "options": ["MOV", "LOCK CMPXCHG", "PUSH", "CALL"],
+            "answer": "LOCK CMPXCHG"
+          }
+        ],
+        "misconceptions": "- **'Atomic means fast'**: No, atomic instructions are actually slower than normal instructions because they require bus coordination.",
+        "recap": "Hardware atomicity is the 'Bedrock' of all process synchronization.",
+        "next_topic_why": "On top of this hardware bedrock, we build the most common software tool: **The Mutex**."
+      },
+      "interactive_simulator": {
+        "type": "Atomic Bus Visualizer",
+        "config": {
+          "title": "The Bus Lock",
+          "description": "Watch the Memory Bus turn RED as one core locks the variable. See other cores 'REJECTED' until the instruction completes.",
+          "instructions": ["TSL Register, Lock", "Normal MOV"]
+        }
+      }
+    },
+    {
+      "id": "mutex-locks",
+      "title": "Module 3.4: Mutex Locks - The Binary Guardian",
+      "category": "High-Level Sync",
+      "difficulty": "Easy",
+      "tags": ["mutex", "lock", "unlock", "boolean"],
+      "content": {
+        "why_exists": "Programmers shouldn't have to write assembly `TSL` loops. A Mutex (Mutual Exclusion) provides a simple 'Key' metaphor: you either have the key or you wait.",
+        "hardware_limitation": "The **Sleep Penalty**. When a thread fails to get a Mutex, the OS might put it to sleep. This requires a full **Context Switch**—the most expensive operation in the OS. If you only needed the lock for 1 microsecond, sleeping is a disaster.",
+        "analogy": "A **Single-Key Bathroom**. To use the bathroom, you take the key from the counter. While you have it, no one else can get in. When you're done, you put the key back.",
+        "execution_flow": "THE LOCKING LIFECYCLE:\n1. **Acquire:** Thread calls `lock()`. If `available == true`, it takes it and sets it to `false`.\n2. **Block:** If `available == false`, the thread is moved to the **Blocked Queue**.\n3. **Critical Section:** Thread does its work.\n4. **Release:** Thread calls `unlock()`, sets `available = true`, and 'Wakes Up' one thread from the Blocked Queue.",
+        "kernel_internals": "Linux implements Mutexes using **Futexes** (Fast Userspace Mutexes). It tries to lock in user-space first (fast) and only 'Traps' to the kernel if there is contention (slow).",
+        "register_story": "N/A",
+        "memory_interaction": "The Mutex variable itself is just a single bit in RAM, but it is surrounded by a 'Guard' that uses hardware atomicity to protect that bit.",
+        "performance_tradeoffs": "**Spinning vs. Blocking:** \n- **Spinlock:** Wait by looping (Uses CPU, but instant response).\n- **Mutex:** Wait by sleeping (Saves CPU, but slow wake-up).",
+        "security_implications": "N/A",
+        "definition": "A Mutex is a synchronization primitive that grants exclusive access to a shared resource to only one thread at a time.",
+        "formulas": "Overhead = (Context Switch Time) if contention occurs.",
+        "worked_example": "`pthread_mutex_lock(&lock); shared_var++; pthread_mutex_unlock(&lock);`",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Difference between a Mutex and a Spinlock?",
+          "Can a Mutex be shared between processes?",
+          "What happens if a thread forgets to unlock?"
+        ],
+        "mcqs": [
+          {
+            "question": "What is the primary state of a Mutex?",
+            "options": ["0 or 1", "0 to N", "Ready or Waiting", "Locked or Unlocked"],
+            "answer": "Locked or Unlocked"
+          }
+        ],
+        "misconceptions": "- **'A Mutex 'forces' other threads to wait'**: No, only threads that *also* call `lock()` are blocked. A buggy thread can still touch the shared data without the lock!",
+        "recap": "Mutexes are the simplest and most common tool for protecting critical sections.",
+        "next_topic_why": "What if we have 5 keys instead of 1? We need a **Semaphore**."
+      }
+    },
+    {
+      "id": "semaphores-deep",
+      "title": "Module 3.5: Semaphores - The Signaling Orchestrator",
+      "category": "High-Level Sync",
+      "difficulty": "Hard",
+      "tags": ["semaphore", "wait", "signal", "p-v", "counting-semaphore"],
+      "content": {
+        "why_exists": "Mutexes are 'Me Only.' Semaphores are 'We Only.' They allow us to manage a **Pool of Resources** (e.g., 3 printers) or coordinate complex timing between threads (Thread A must finish before B starts).",
+        "hardware_limitation": "The **Sleep/Wakeup Race**. There is a tiny window where a thread might decide to go to sleep *just* as another thread sends the wakeup signal. If the OS doesn't handle this atomically, the signal is 'Lost' and the thread sleeps forever.",
+        "analogy": "A **Restaurant with 10 Tables**. A 'Counting Semaphore' starts at 10. Every group that enters (Wait) decrements the count. When it hits 0, new groups must wait in the lobby. As groups leave (Signal), the count increments and the next group is called in.",
+        "execution_flow": "THE P and V OPERATIONS:\n1. **wait(S) / P(S):** While `S <= 0` do nothing; `S--`.\n2. **signal(S) / V(S):** `S++`.\n*Note: Modern OSs implement these as 'Atomic Sleeper' functions, not busy-wait loops.*",
+        "kernel_internals": "A Semaphore contains an `integer` value and a **Queue of PCBs**. When `wait()` fails, the kernel physically unmaps the process from the CPU and attaches its PCB to the Semaphore's list.",
+        "register_story": "N/A",
+        "memory_interaction": "Semaphores are often used for **Bounded Buffers**. They act as 'Counters' for empty and full slots in a shared memory region.",
+        "performance_tradeoffs": "**Binary vs. Counting:** \n- **Binary Semaphore:** (0 or 1) - Works like a Mutex.\n- **Counting Semaphore:** (0 to N) - Works like a resource manager.",
+        "security_implications": "N/A",
+        "definition": "A semaphore is a synchronization tool that provides a sophisticated way for processes to synchronize their activities using an integer value and wait/signal operations.",
+        "formulas": "Current Available Resources = Initial Value + Total Signals - Total Waits.",
+        "worked_example": "A 'Producer' thread signals a semaphore every time it adds an item to a queue. A 'Consumer' thread waits on that semaphore before trying to remove an item.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Difference between a Mutex and a Binary Semaphore?",
+          "What are P and V operations?",
+          "How can a semaphore be used for synchronization (ordering)?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which operation increments the semaphore value?",
+            "options": ["wait()", "P()", "signal()", "block()"],
+            "answer": "signal()"
+          }
+        ],
+        "misconceptions": "- **'Semaphores have owners'**: No! Unlike a Mutex, any thread can signal a semaphore, even if they didn't 'wait' on it first. This makes them powerful but dangerous.",
+        "recap": "Semaphores are the 'Swiss Army Knife' of synchronization, capable of locking, signaling, and resource counting.",
+        "next_topic_why": "When synchronization goes wrong, the system can freeze in a fatal embrace: **Deadlock**."
+      },
+      "interactive_simulator": {
+        "type": "Semaphore Queue Visualizer",
+        "config": {
+          "title": "The Blocking Lobby",
+          "description": "Watch PCBs move from the 'Running' state to the Semaphore's 'Wait Queue'. Signal the semaphore to see them pop back to 'Ready'.",
+          "initial_value": 2
+        }
+      }
+    },
+    {
+      "id": "dining-philosophers",
+      "title": "Module 3.6: The Dining Philosophers - A Study in Contention",
+      "category": "Classic Problems",
+      "difficulty": "Hard",
+      "tags": ["deadlock", "starvation", "concurrency", "resource-contention"],
+      "content": {
+        "why_exists": "This isn't just about hungry philosophers. It's a perfect metaphor for any system where multiple processes need **multiple resources** to finish a single task. It illustrates the 'Fatal Embrace' that leads to deadlocks.",
+        "hardware_limitation": "The **Circular Wait**. If 5 philosophers (processes) each pick up their left fork (resource), they are all waiting for their right fork. The CPU is idle, the RAM is full, and the system is dead. Hardware cannot fix this; only logic can.",
+        "analogy": "Five scholars sit at a round table. To eat, you need two forks. If everyone picks up their left fork first, everyone is stuck holding one fork, unable to eat, and unable to put their fork down until they've eaten.",
+        "execution_flow": "THE STARVATION LOOP:\n1. Phil 1: `wait(fork[1])` -> Success.\n2. Phil 2: `wait(fork[2])` -> Success.\n3. Phil 3: `wait(fork[3])` -> Success.\n4. Phil 4: `wait(fork[4])` -> Success.\n5. Phil 5: `wait(fork[5])` -> Success.\n6. Phil 1: `wait(fork[2])` -> **BLOCKS**.\n7. Phil 2: `wait(fork[3])` -> **BLOCKS**...\n**RESULT:** 100% CPU lockup.",
+        "kernel_internals": "N/A",
+        "register_story": "N/A",
+        "memory_interaction": "N/A",
+        "performance_tradeoffs": "**The Asymmetric Solution:** To fix this, we can force one philosopher to pick up their right fork first. This breaks the 'Symmetry' and prevents the cycle. It increases complexity but guarantees progress.",
+        "security_implications": "N/A",
+        "definition": "The Dining Philosophers problem is a classic synchronization problem that illustrates the challenges of allocating multiple resources among several processes without deadlock or starvation.",
+        "formulas": "Max Eating Philosophers = floor(N / 2).",
+        "worked_example": "Dijkstra's solution involves using a semaphore to limit the number of philosophers at the table to 4, ensuring at least one can always get two forks.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What are the 4 necessary conditions for deadlock?",
+          "How does breaking symmetry solve the Dining Philosophers problem?",
+          "Difference between deadlock and starvation?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which condition is broken if one philosopher picks up the right fork first?",
+            "options": ["Mutual Exclusion", "Hold and Wait", "No Preemption", "Circular Wait"],
+            "answer": "Circular Wait"
+          }
+        ],
+        "misconceptions": "- **'It's a made-up problem'**: No, it's a direct model of how a database might need a 'Table Lock' and a 'Row Lock' simultaneously.",
+        "recap": "Dining Philosophers teaches us that uncoordinated resource acquisition leads to circular death.",
+        "next_topic_why": "If we don't break the cycle, we hit the OS's ultimate failure state: **Deadlock**."
+      },
+      "interactive_simulator": {
+        "type": "Philosopher Stress Table",
+        "config": {
+          "title": "The Fatal Embrace",
+          "description": "Watch the philosophers turn RED as they enter the 'Hold and Wait' state. Try to trigger a global freeze by clicking the 'Left Fork' for everyone.",
+          "philosophers": 5
+        }
+      }
+    },
+    {
+      "id": "deadlock-characterization",
+      "title": "Module 3.7: Deadlock Characterization - The 4 Horsemen",
+      "category": "Deadlocks",
+      "difficulty": "Medium",
+      "tags": ["deadlock", "coffman-conditions", "mutual-exclusion", "circular-wait"],
+      "content": {
+        "why_exists": "Deadlocks don't happen by accident. They require a perfect storm of 4 specific conditions. If you can break just **one** of these, deadlocks become mathematically impossible.",
+        "hardware_limitation": "The **Immutable Resource**. Some hardware (like a Printer or a Tape Drive) physically cannot be shared. This 'Mutual Exclusion' is the first seed of a deadlock.",
+        "analogy": "A **Traffic Gridlock**. \n1. **Mutual Exclusion:** Two cars can't be in the same space. \n2. **Hold and Wait:** You are in an intersection (Hold) and waiting for the car ahead (Wait). \n3. **No Preemption:** You can't just 'delete' the car in front of you. \n4. **Circular Wait:** The traffic is blocked in a perfect square.",
+        "execution_flow": "THE COFFMAN CONDITIONS:\n1. **Mutual Exclusion:** Resource is non-shareable.\n2. **Hold and Wait:** Process holds one resource while waiting for another.\n3. **No Preemption:** Resource can only be released voluntarily.\n4. **Circular Wait:** P1 waits for P2, P2 for P3... Pn for P1.",
+        "kernel_internals": "Linux generally ignores deadlocks in user-space (the 'Ostrich Algorithm'). But a deadlock in the **Kernel** (Spinlock deadlock) will cause a 'Kernel Panic' and a total system reboot.",
+        "register_story": "N/A",
+        "memory_interaction": "N/A",
+        "performance_tradeoffs": "**The Cost of Prevention:** Breaking 'Hold and Wait' (requiring a process to ask for all resources at once) is very inefficient because it keeps resources idle for a long time.",
+        "security_implications": "N/A",
+        "definition": "A deadlock is a state where a set of processes are blocked because each process is holding a resource and waiting for another resource held by some other process.",
+        "formulas": "N/A",
+        "worked_example": "A database transaction holds Lock A and asks for Lock B. Another transaction holds Lock B and asks for Lock A. Both wait forever.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "List the four necessary conditions for deadlock.",
+          "What is the Ostrich Algorithm?",
+          "Can deadlock happen with shareable resources?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which condition is met if a resource cannot be forcibly taken away?",
+            "options": ["Mutual Exclusion", "Hold and Wait", "No Preemption", "Circular Wait"],
+            "answer": "No Preemption"
+          }
+        ],
+        "misconceptions": "- **'Deadlocks are the same as crashes'**: No, a deadlocked system is 'Running' but doing 0% work. It's a frozen living thing.",
+        "recap": "The 4 Coffman conditions are the checklist for system failure.",
+        "next_topic_why": "How do we visualize this square of death? The **Resource Allocation Graph**."
+      },
+      "interactive_simulator": {
+        "type": "Deadlock RAG Simulator",
+        "config": {
+          "title": "The Circle of Death",
+          "description": "Add 'Request' and 'Assignment' edges. If you create a cycle, watch the RAG pulse RED as the system freezes."
+        }
+      }
+    },
+    {
+      "id": "bankers-algorithm",
+      "title": "Module 3.8: Banker's Algorithm - The Safety Check",
+      "category": "Deadlocks",
+      "difficulty": "Hard",
+      "tags": ["avoidance", "safety-check", "dijkstra", "resource-allocation"],
+      "content": {
+        "why_exists": "We can't always 'Prevent' deadlocks (it's too restrictive). Instead, we 'Avoid' them by being smart. Every time a process asks for a resource, the OS runs a simulation: 'If I give this to you, is there still a way for everyone to finish?'",
+        "hardware_limitation": "The **Computational Tax**. Running the Banker's Algorithm on every single resource request is slow. It's like a bank manager doing a 10-page audit every time you want to withdraw $5. Most OSs don't use it in the real world for this reason.",
+        "analogy": "A **Bank Manager**. You have $1000 total. Client A might need $800 eventually. Client B might need $600 eventually. If you give A $600 and B $500, you are 'Safe' for now, but if they both ask for their max tomorrow, you go bankrupt (Deadlock). The Banker's Algorithm says 'No' to B today to stay safe.",
+        "execution_flow": "THE SAFETY ALGORITHM:\n1. **Work = Available**.\n2. Find a process whose **Need <= Work**.\n3. If found: **Work = Work + Allocation** (Assume they finish and return everything).\n4. Repeat until all processes are finished (SAFE) or you get stuck (UNSAFE).",
+        "kernel_internals": "N/A",
+        "register_story": "N/A",
+        "memory_interaction": "N/A",
+        "performance_tradeoffs": "Safe state vs. Unsafe state. An **Unsafe state** does NOT mean you have a deadlock; it just means you *might* have one if everyone asks for their max at once.",
+        "security_implications": "N/A",
+        "definition": "The Banker's Algorithm is a resource allocation and deadlock avoidance algorithm that tests for safety by simulating the allocation for predetermined maximum possible amounts of all resources.",
+        "formulas": "Need = Max - Allocation.",
+        "worked_example": "Process P1 needs 2 more units. OS has 3. OS gives them to P1. P1 finishes, returns 5 units. Now OS has 8. Everyone can finish. The state is SAFE.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What is the difference between an Unsafe State and a Deadlock?",
+          "Why is the Banker's Algorithm rarely used in modern OSs?",
+          "Explain the 'Need' matrix."
+        ],
+        "mcqs": [
+          {
+            "question": "If a system is in a safe state, can a deadlock occur?",
+            "options": ["Yes, if a new process arrives", "No", "Only if preemption is used", "Yes, if resources are shared"],
+            "answer": "No"
+          }
+        ],
+        "misconceptions": "- **'Unsafe = Deadlock'**: No, it's just a warning that the OS has lost control of the safety margin.",
+        "recap": "Banker's Algorithm is the 'Oracle' that predicts and avoids system failure.",
+        "next_topic_why": "We've learned to avoid it. But how do we detect it if it's already happened? **Deadlock Detection**."
+      },
+      "interactive_simulator": {
+        "type": "Banker Simulation Engine",
+        "config": {
+          "title": "The Safety Audit",
+          "description": "Click 'Request' and watch the OS run the Safety Check. Observe the 'Work' vector and 'Available' resources in real-time as the kernel predicts system stability."
+        }
+      }
+    }
+
+  ]
+}

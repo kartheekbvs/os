@@ -1,0 +1,45 @@
+{
+  "/": {
+    "type": "dir",
+    "permissions": "rwxr-xr-x",
+    "owner": "root",
+    "group": "root",
+    "children": {
+      "bin": { "type": "dir", "permissions": "rwxr-xr-x", "owner": "root", "group": "root", "children": {} },
+      "etc": {
+        "type": "dir",
+        "permissions": "rwxr-xr-x",
+        "owner": "root",
+        "group": "root",
+        "children": {
+          "passwd": { "type": "file", "permissions": "rw-r--r--", "owner": "root", "group": "root", "content": "root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:User:/home/user:/bin/bash" },
+          "hostname": { "type": "file", "permissions": "rw-r--r--", "owner": "root", "group": "root", "content": "linux-academy" }
+        }
+      },
+      "home": {
+        "type": "dir",
+        "permissions": "rwxr-xr-x",
+        "owner": "root",
+        "group": "root",
+        "children": {
+          "user": {
+            "type": "dir",
+            "permissions": "rwxr-x---",
+            "owner": "user",
+            "group": "user",
+            "children": {
+              "documents": { "type": "dir", "permissions": "rwxr-xr-x", "owner": "user", "group": "user", "children": {} },
+              "script.sh": { "type": "file", "permissions": "rwxr-xr-x", "owner": "user", "group": "user", "content": "#!/bin/bash\necho 'Hello World'" },
+              ".bashrc": { "type": "file", "permissions": "rw-r--r--", "owner": "user", "group": "user", "content": "alias ll='ls -la'" }
+            }
+          }
+        }
+      },
+      "var": { "type": "dir", "permissions": "rwxr-xr-x", "owner": "root", "group": "root", "children": {
+        "log": { "type": "dir", "permissions": "rwxr-xr-x", "owner": "root", "group": "root", "children": {
+          "syslog": { "type": "file", "permissions": "rw-r-----", "owner": "root", "group": "adm", "content": "System started." }
+        }}
+      }}
+    }
+  }
+}

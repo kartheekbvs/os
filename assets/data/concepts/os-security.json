@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "module": "Security & Protection",
+    "schemaVersion": "1.0",
+    "lastUpdated": "2026-05-06"
+  },
+  "concepts": [
+    {
+      "id": "sec-permissions",
+      "title": "Linux File Permissions & ACLs",
+      "category": "Access Control",
+      "difficulty": "Easy",
+      "tags": ["chmod", "rwx", "chown", "acl"],
+      "content": {
+        "definition": "Linux employs a Discretionary Access Control (DAC) system where every file and directory has permissions divided into three classes: Owner, Group, and Others. Permissions consist of Read (r, 4), Write (w, 2), and Execute (x, 1).",
+        "intuition": "Think of a house. The Owner has the key to every room (rwx). The Group (family) can enter but not change the locks (r-x). Others (strangers) can only look at the outside of the house (r--).",
+        "internals": "Permissions are stored as a bitmask in the file's inode. `rwxr-xr-x` translates to binary `111 101 101`, which is octal `755`.",
+        "security_warning": "Never use `chmod 777` on a web server directory. This grants arbitrary code execution privileges to any user or exploited web service on the machine.",
+        "worked_example": "If a file has permissions `rw-r--r--` (644):\nOwner: 4 (read) + 2 (write) = 6\nGroup: 4 (read) = 4\nOthers: 4 (read) = 4",
+        "formula_sandbox": {
+          "description": "Calculate Octal Permissions",
+          "inputs": [
+            { "label": "Owner (0-7)", "default": 7 },
+            { "label": "Group (0-7)", "default": 5 },
+            { "label": "Others (0-7)", "default": 5 }
+          ]
+        },
+        "interactive_simulator": {
+          "type": "Chmod Bitmask",
+          "config": {
+            "initialState": { "perms": "rwxr-xr-x" },
+            "timeline": [
+              { "state_updates": { "perms": "rw-r--r--" }, "log": "chmod 644 applied" },
+              { "state_updates": { "perms": "rwx------" }, "log": "chmod 700 applied" }
+            ]
+          }
+        },
+        "linux_mapping": "POSIX Access Control Lists (setfacl, getfacl) extend this basic model to allow assigning permissions to specific users outside the owner/group paradigm."
+      },
+      "commands": [
+        { "command": "chmod 755 script.sh", "explanation": "Sets the file to rwxr-xr-x." },
+        { "command": "getfacl file.txt", "explanation": "Displays the extended ACLs for a file." }
+      ]
+    },
+    {
+      "id": "sec-buffer-overflow",
+      "title": "Buffer Overflows & Memory Corruption",
+      "category": "Vulnerability",
+      "difficulty": "Hard",
+      "tags": ["stack-smashing", "return-address", "strcpy"],
+      "content": {
+        "definition": "A buffer overflow occurs when a program writes more data to a block of memory (buffer) than it was allocated to hold. In languages like C, this overwrites adjacent memory locations, potentially altering the execution path of the program.",
+        "internals": "When a function is called, the CPU pushes the Return Address (where to go after the function finishes) onto the Stack. If a local array is overflowed, the attacker can overwrite this Return Address with a pointer to malicious code (shellcode).",
+        "threat_model": {
+          "goal": "Arbitrary Code Execution (ACE) to gain remote shell.",
+          "vulnerability": "Unsafe functions like strcpy() failing to check bounds.",
+          "mitigation": "Stack Canaries, ASLR, and DEP/NX bits."
+        },
+        "algorithm_steps": "1. Attacker sends payload larger than buffer size (e.g., 20 bytes into a 16 byte array).\n2. Payload fills the buffer.\n3. Payload spills over and overwrites the saved EBP (Base Pointer).\n4. Payload spills over and overwrites the Return Address (EIP/RIP).\n5. Function hits 'ret' instruction.\n6. CPU jumps to the attacker's injected address.",
+        "common_mistakes": "Assuming bounds checking is automatic in C/C++. Functions like `gets()` and `strcpy()` will happily write past the buffer until they hit a null byte.",
+        "interactive_simulator": {
+          "type": "Stack Overflow",
+          "config": {
+            "initialState": { "written": 0, "overwritten": false, "owned": false },
+            "timeline": [
+              { "state_updates": { "written": 16 }, "log": "Buffer legally filled." },
+              { "state_updates": { "written": 20, "overwritten": true }, "log": "Bounds exceeded. Saved EBP overwritten." },
+              { "state_updates": { "written": 24, "owned": true }, "log": "Return Address overwritten to 0xDEADBEEF." }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "sec-memory-protections",
+      "title": "OS Memory Protections (ASLR & NX)",
+      "category": "Defense Mechanisms",
+      "difficulty": "Hard",
+      "tags": ["aslr", "nx-bit", "dep", "stack-canary"],
+      "content": {
+        "definition": "Modern Operating Systems employ probabilistic and hardware-backed defenses to make memory corruption exploitation extremely difficult. The two primary pillars are ASLR and NX.",
+        "internals": "NX (No-eXecute) / DEP (Data Execution Prevention) relies on the MMU Page Table. The OS marks the Stack and Heap pages as Non-Executable. Even if an attacker injects shellcode, the CPU refuses to run it. ASLR (Address Space Layout Randomization) randomizes the base addresses of the stack, heap, and libraries every time the program runs, making it impossible for the attacker to hardcode a jump address.",
+        "linux_mapping": "ASLR is controlled globally in Linux via `/proc/sys/kernel/randomize_va_space`. Value 0 disables it, 1 randomizes stack/vdso, and 2 randomizes heap as well.",
+        "security_warning": "Attackers bypass NX using ROP (Return-Oriented Programming) by chaining together existing executable code snippets (gadgets) already present in libc. They bypass ASLR using memory leak vulnerabilities to calculate the random offset.",
+        "interactive_simulator": {
+          "type": "ASLR Randomization",
+          "config": {}
+        }
+      },
+      "commands": [
+        { "command": "cat /proc/sys/kernel/randomize_va_space", "explanation": "Checks if ASLR is enabled on the system." }
+      ]
+    },
+    {
+      "id": "sec-mac",
+      "title": "Mandatory Access Control (SELinux)",
+      "category": "Access Control",
+      "difficulty": "Hard",
+      "tags": ["selinux", "apparmor", "mac", "dac"],
+      "content": {
+        "definition": "Mandatory Access Control (MAC) is a security model where the OS strictly enforces access policies determined by a central authority, overriding any Discretionary (DAC) permissions set by users. SELinux and AppArmor are the Linux implementations.",
+        "intuition": "In DAC (standard Linux permissions), if a user gets hacked, the hacker can read all of that user's files. In MAC, even if the user gets hacked, a web server process is strictly forbidden from reading SSH keys, regardless of file permissions.",
+        "internals": "SELinux uses labels (Contexts). Every process (Subject) and file (Object) has a label like `user_u:object_r:httpd_sys_content_t:s0`. The kernel enforces a massive Matrix of Allow/Deny rules based strictly on these labels.",
+        "linux_mapping": "You can view SELinux contexts using the `-Z` flag on many commands, such as `ls -Z` or `ps -Z`.",
+        "interactive_simulator": {
+          "type": "Policy Graph",
+          "config": {}
+        }
+      },
+      "commands": [
+        { "command": "ls -Z /var/www/html", "explanation": "Displays the SELinux security context of files in the web directory." },
+        { "command": "sestatus", "explanation": "Displays the current status (Enforcing, Permissive, Disabled) of SELinux." }
+      ]
+    }
+  ]
+}

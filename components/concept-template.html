@@ -1,0 +1,199 @@
+<!-- Standardized Concept Rendering Template (Slot-Based) -->
+<article class="concept-block card" data-slot="concept-container" id="concept-container">
+  
+  <header class="concept-block-header flex-between mb-8 pb-4 border-b border-border-strong">
+    <div class="flex items-center gap-4">
+      <h2 class="text-3xl font-display text-accent-cyan m-0" data-slot="title"></h2>
+      <span data-slot="difficulty-badge"></span>
+    </div>
+    <div class="concept-tags hidden lg:flex gap-2" data-slot="tags"></div>
+  </header>
+
+  <div class="grid lg:grid-cols-2 gap-8">
+    <div class="space-y-8">
+      <section class="concept-intro-layer bg-bg-surface-elevated/20 p-6 rounded-lg border border-border-subtle">
+        <div class="mb-6">
+          <h4 class="text-xs font-mono text-accent-purple uppercase tracking-widest mb-2">1. Why This Exists</h4>
+          <p class="text-text-primary leading-relaxed" data-slot="why-exists"></p>
+        </div>
+        <div class="mb-6">
+          <h4 class="text-xs font-mono text-accent-orange uppercase tracking-widest mb-2">2. Real World Problem</h4>
+          <p class="text-text-secondary text-sm italic" data-slot="real-world-problem"></p>
+        </div>
+        <div>
+          <h4 class="text-xs font-mono text-accent-cyan uppercase tracking-widest mb-2">3. Daily Life Analogy</h4>
+          <div class="flex items-start gap-3 p-4 bg-bg-surface rounded border-l-4 border-accent-cyan">
+            <i class="fas fa-lightbulb text-accent-cyan mt-1"></i>
+            <p class="text-text-secondary text-sm m-0" data-slot="daily-life-analogy"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="concept-hardware-layer p-6 bg-bg-surface-elevated border-l-4 border-accent-red rounded-r-lg shadow-sm">
+        <h4 class="text-xs font-mono text-accent-red uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fas fa-microchip"></i> 4. Hardware Story
+        </h4>
+        <p class="text-text-secondary m-0" data-slot="hardware-story"></p>
+      </section>
+    </div>
+
+    <div class="space-y-8">
+      <section class="concept-internals p-6 bg-bg-surface-elevated/30 border border-border-strong rounded-lg">
+        <h4 class="text-xs font-mono text-accent-green uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fas fa-cogs"></i> 5. Execution Flow & Model
+        </h4>
+        <div class="space-y-4">
+          <div class="p-3 bg-black rounded font-mono text-xs text-accent-green border border-accent-green/20" data-slot="execution-flow"></div>
+          <div class="text-text-secondary text-sm" data-slot="visual-machine-model"></div>
+        </div>
+      </section>
+
+      <section class="concept-kernel-layer p-6 border border-border-subtle rounded-lg">
+        <h4 class="text-xs font-mono text-text-muted uppercase tracking-widest mb-3">7. Kernel Internals</h4>
+        <div class="text-text-secondary text-sm leading-relaxed" data-slot="internals"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="concept-formal-layer mt-10 p-8 bg-bg-primary border border-border-strong rounded-xl">
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <h4 class="text-xs font-mono text-text-muted uppercase tracking-widest mb-3">8. Formal Definition</h4>
+        <p class="text-text-primary text-xl font-display leading-snug" data-slot="definition"></p>
+      </div>
+      <div>
+        <h4 class="text-xs font-mono text-text-muted uppercase tracking-widest mb-3">Tradeoff Analysis</h4>
+        <div class="space-y-4">
+          <div>
+            <div class="text-[10px] uppercase font-bold text-accent-cyan mb-1">Performance</div>
+            <p class="text-xs text-text-secondary" data-slot="performance-tradeoffs"></p>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold text-accent-red mb-1">Security</div>
+            <p class="text-xs text-text-secondary" data-slot="security-tradeoffs"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-slot="formula-container" class="hidden mt-6">
+    <h4 class="text-sm font-mono text-text-muted uppercase tracking-wider mb-2">Mathematical Formulation</h4>
+    <div class="concept-formula overflow-x-auto p-4 bg-bg-primary border border-border-subtle rounded-md flex-center" data-slot="formula"></div>
+  </section>
+
+  <section data-slot="algorithm-container" class="hidden mt-6">
+    <h4 class="text-sm font-mono text-text-muted uppercase tracking-wider mb-2">Algorithm Steps</h4>
+    <div class="p-4 bg-bg-surface-elevated rounded-md" data-slot="algorithm-steps"></div>
+  </section>
+
+  <section data-slot="simulator-container" class="hidden mt-10">
+    <h4 class="text-xs font-mono text-accent-green uppercase tracking-widest mb-4 flex items-center gap-2">
+      <i class="fas fa-play-circle"></i> Interactive Kernel Simulator
+    </h4>
+    <div class="p-6 bg-black border border-accent-green/30 rounded-xl shadow-inner relative overflow-hidden" data-slot="interactive-simulator">
+      <div class="absolute inset-0 bg-accent-green/5 pointer-events-none"></div>
+      <div class="coming-soon-card border-none bg-transparent">
+        <i class="fas fa-vial animate-pulse"></i>
+        <span>Loading simulation environment...</span>
+      </div>
+    </div>
+  </section>
+
+  <section data-slot="comparison-container" class="hidden mt-6">
+    <h4 class="text-sm font-mono text-text-muted uppercase tracking-wider mb-2">Architectural Comparison</h4>
+    <div class="overflow-x-auto" data-slot="comparison-table"></div>
+  </section>
+
+  <section data-slot="example-container" class="hidden mt-6">
+    <h4 class="text-sm font-mono text-text-muted uppercase tracking-wider mb-2">Worked Example</h4>
+    <div class="p-4 bg-bg-primary border border-border-subtle rounded-md" data-slot="worked-example"></div>
+  </section>
+
+  <section data-slot="sandbox-container" class="hidden mt-6">
+    <h4 class="text-sm font-mono text-text-muted uppercase tracking-wider mb-2 text-accent-cyan flex items-center gap-2">
+      <i class="fas fa-calculator"></i> Formula Sandbox
+    </h4>
+    <div class="p-4 bg-bg-surface border border-border-strong rounded-md" data-slot="formula-sandbox"></div>
+  </section>
+
+  <section data-slot="diagram-container" class="hidden mt-10">
+    <h4 class="text-xs font-mono text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
+      <i class="fas fa-project-diagram"></i> Kernel Architecture Visualization
+    </h4>
+    <div class="svg-container w-full bg-bg-primary rounded-xl p-8 border border-border-strong shadow-lg" data-animation="fade-in" data-slot="diagram">
+      <div class="coming-soon-card border-none bg-transparent">
+        <i class="fas fa-layer-group"></i>
+        <span>Generating architectural flow...</span>
+      </div>
+    </div>
+  </section>
+
+  <section data-slot="linux-map-container" class="concept-linux-map mt-8 pt-6 border-t border-border-subtle hidden">
+    <h3 class="text-lg text-text-primary mb-4 flex items-center gap-2">
+      <i class="fab fa-linux text-text-primary"></i> Linux Implementation
+    </h3>
+    <p class="text-text-secondary mb-4" data-slot="linux-mapping"></p>
+    
+    <div data-slot="code-block" class="hidden"></div>
+    <div data-slot="terminal-mount" class="mt-4 hidden"></div>
+    <div data-slot="interactive-sandbox" class="mt-4 hidden"></div>
+  </section>
+
+  <section data-slot="threat-model-container" class="hidden mt-6 p-4 bg-bg-surface border border-accent-purple rounded-md">
+    <h4 class="text-sm font-mono text-accent-purple uppercase tracking-wider mb-2 flex items-center gap-2">
+      <i class="fas fa-biohazard"></i> Threat Model
+    </h4>
+    <div data-slot="threat-model" class="grid-2 gap-4 text-sm"></div>
+  </section>
+
+  <section data-slot="man-page-container" class="hidden mt-6 bg-black text-[#00ff00] p-4 font-mono text-sm rounded-md shadow-lg border border-[#00ff00]/30">
+    <h4 class="text-xs uppercase tracking-widest text-[#00ff00]/70 mb-4 border-b border-[#00ff00]/30 pb-2">User Commands Manual</h4>
+    <div data-slot="man-page" class="space-y-4"></div>
+  </section>
+
+  <section data-slot="security-warning-container" class="hidden mt-6 p-4 bg-bg-surface-elevated border-l-4 border-accent-orange rounded-r-md">
+    <h4 class="text-sm font-mono text-accent-orange uppercase tracking-wider mb-2 flex items-center gap-2">
+      <i class="fas fa-shield-alt"></i> Security Best Practice
+    </h4>
+    <div class="text-text-secondary" data-slot="security-warning"></div>
+  </section>
+
+  <section data-slot="mistakes-container" class="hidden mt-6 p-4 bg-bg-surface-elevated border-l-4 border-accent-red rounded-r-md">
+    <h4 class="text-sm font-mono text-accent-red uppercase tracking-wider mb-2 flex items-center gap-2">
+      <i class="fas fa-exclamation-triangle"></i> Common Mistakes
+    </h4>
+    <div class="text-text-secondary" data-slot="common-mistakes"></div>
+  </section>
+
+  <section data-slot="placement-container" class="placement-section mt-12 pt-8 border-t border-border-strong hidden">
+    <h3 class="text-xl font-display text-accent-purple mb-6 flex items-center gap-3">
+      <i class="fas fa-graduation-cap"></i> Placement & Interview Prep
+    </h3>
+    <div class="grid lg:grid-cols-2 gap-8">
+      <div class="placement-inject-point space-y-4" data-slot="mcqs"></div>
+      <div class="placement-inject-point space-y-4" data-slot="interview-questions"></div>
+    </div>
+  </section>
+
+  <footer class="mt-12 pt-8 border-t border-border-strong">
+    <div class="bg-bg-surface-elevated p-6 rounded-lg border border-border-subtle mb-8">
+      <h4 class="text-xs font-mono text-text-muted uppercase tracking-widest mb-4">15. Mini Recap</h4>
+      <p class="text-text-secondary text-sm italic" data-slot="mini-recap"></p>
+    </div>
+
+    <div class="flex-between items-start gap-8">
+      <div class="flex-1">
+        <h4 class="text-xs font-mono text-accent-cyan uppercase tracking-widest mb-2">16. Why the next topic exists</h4>
+        <p class="text-text-muted text-xs leading-relaxed" data-slot="next-topic-why"></p>
+      </div>
+      <div class="flex gap-4">
+        <div data-slot="prerequisites" class="text-text-secondary text-xs"></div>
+        <div data-slot="related-topics" class="text-text-secondary text-xs"></div>
+        <div data-slot="next-topics" class="text-text-secondary text-xs"></div>
+      </div>
+    </div>
+  </footer>
+
+</article>
+
