@@ -1,99 +1,72 @@
 {
   "meta": {
-    "module": "Bash Shell Scripting",
-    "schemaVersion": "1.0",
-    "lastUpdated": "2026-05-06"
+    "module": "Shell Scripting & Automation: The Systems Engineer",
+    "schemaVersion": "1.1",
+    "lastUpdated": "2026-05-07"
   },
   "concepts": [
     {
-      "id": "shell-variables",
-      "title": "Variables, Scope, and Environment",
-      "category": "Execution Context",
-      "difficulty": "Medium",
-      "tags": ["export", "local", "env", "subshell"],
+      "id": "variables-automation",
+      "title": "Level 3: Variables, Environment & PATH",
+      "category": "Operational",
+      "difficulty": "Intermediate",
+      "tags": ["export", "env", "PATH"],
       "content": {
-        "definition": "Variables in Bash are untyped strings by default. They exist in specific scopes: the current shell environment, exported to child processes, or localized within functions.",
-        "intuition": "A Local Variable is a secret kept within the current room (shell). An Exported Variable is written on a nametag; when you spawn a child process (leave the room), the child inherits the nametag.",
-        "internals": "When a new process is spawned via `fork()`, the kernel copies the parent's environment block (the exported variables) into the child's memory space. Variables that are NOT exported are strictly local to the parent's memory and are destroyed when the shell exits.",
-        "security_warning": "Never store plaintext secrets in exported environment variables if untrusted child processes might be spawned, as they will inherit the secrets.",
-        "interactive_simulator": {
-          "type": "Env Inheritance",
-          "config": {}
-        }
-      },
-      "commands": [
-        { "command": "VAR=hello", "explanation": "Creates a local variable in the current shell." },
-        { "command": "export VAR=hello", "explanation": "Creates an exported variable that child processes will inherit." },
-        { "command": "env", "explanation": "Prints all exported environment variables." }
-      ]
-    },
-    {
-      "id": "shell-substitution",
-      "title": "Subshells & Command Substitution",
-      "category": "Execution Context",
-      "difficulty": "Hard",
-      "tags": ["$()", "fork", "subshell"],
-      "content": {
-        "definition": "Command Substitution `$(cmd)` allows the standard output of a command to replace the command itself within a line of code. A Subshell `(cmd)` executes commands in an isolated child process.",
-        "internals": "When `$(whoami)` is parsed, Bash calls `pipe()`, `fork()`, and `exec()` to run `whoami`. It reads the output from the pipe, strips trailing newlines, and replaces the token in the Abstract Syntax Tree (AST) before executing the main command.",
-        "common_mistakes": "Using `cd` inside a subshell `(cd /tmp && ls)` will NOT change the directory of your current terminal. The `cd` only affects the temporary child process, which dies immediately after `ls`.",
-        "man_page": {
-          "name": "Command Substitution",
-          "synopsis": "$(command)   or   `command`",
-          "description": "Command substitution allows the output of a command to replace the command name. Bash performs the expansion by executing command and replacing the command substitution with the standard output of the command, with any trailing newlines deleted."
-        }
-      },
-      "commands": [
-        { "command": "echo \"I am $(whoami)\"", "explanation": "Evaluates whoami first, replacing the string, then runs echo." },
-        { "command": "(cd /tmp && pwd)", "explanation": "Changes directory and prints it safely inside an isolated subshell." }
-      ]
-    },
-    {
-      "id": "shell-control-flow",
-      "title": "Control Flow & Exit Codes",
-      "category": "Logic",
-      "difficulty": "Medium",
-      "tags": ["if", "[[", "exit", "$?"],
-      "content": {
-        "definition": "Control flow in Bash evaluates the Exit Code (`$?`) of commands. A code of `0` means True/Success. Any non-zero code (1-255) means False/Failure. The `[[ ]]` construct is actually an enhanced command that evaluates expressions and returns 0 or 1.",
-        "internals": "The `if` statement does not evaluate boolean math directly; it executes a command. `if grep -q root /etc/passwd; then` runs `grep`. If `grep` finds 'root', it exits 0, and the `if` branch executes.",
-        "interactive_simulator": {
-          "type": "Control Flow",
-          "config": {}
-        }
-      },
-      "commands": [
-        { "command": "echo $?", "explanation": "Prints the exit code of the most recently executed pipeline." },
-        { "command": "[[ 5 -gt 3 ]] && echo 'True'", "explanation": "Evaluates the numeric comparison. Since it is true (0), the && short-circuit executes the echo." }
-      ],
-      "placement": {
-        "mcqs": [
-          {
-            "difficulty": "medium",
-            "question": "What does an exit code of 0 signify in Bash?",
-            "options": ["Failure", "Success", "Syntax Error", "Null Pointer"],
-            "answer": "Success",
-            "explanation": "Unlike C/C++ booleans where 0 is false, POSIX shell exit codes use 0 to indicate absolute success without errors."
-          }
+        "why_exists": "Consistency and automation. Variables allow you to write scripts that work anywhere by using names instead of hardcoded paths.",
+        "problem": "You want to run a custom script, but you have to type the full path '/home/user/scripts/my_tool.sh' every single time. Why doesn't it work like 'ls'?",
+        "beginner_explanation": "The '$PATH' variable is a list of folders the shell looks in when you type a command. If your folder isn't in that list, the shell can't find your tool.",
+        "visual_story": "Think of variables like labeled boxes. '$USER' is a box that always contains your name. '$PATH' is a box containing a map of where all the tools are kept.",
+        "step_by_step": [
+          "Check your name: 'echo $USER'.",
+          "Create a new variable: 'FOO=bar'.",
+          "Try to see it in a subshell: '(echo $FOO)'.",
+          "Make it permanent for children: 'export FOO'."
+        ],
+        "common_mistakes": "Forgetting the '$' when accessing a variable (type 'echo USER' instead of 'echo $USER'). Also, putting spaces around the '=' in assignments.",
+        "debugging_thinking": "Command not found but file exists? Check your PATH: 'echo $PATH'. Is your directory in the colon-separated list?",
+        "real_workflow": "CI/CD pipelines use environment variables (like 'API_KEY') to inject secrets into applications without hardcoding them in the source code.",
+        "kernel_internals": "Environment variables are stored at the very top of a process's stack. When a process calls 'execve()', it passes its environment array to the new program.",
+        "mini_labs": [
+          { "task": "Add a new directory to your PATH for this session.", "command": "export PATH=$PATH:/tmp/my_bin" }
         ]
-      }
-    },
-    {
-      "id": "shell-loops",
-      "title": "Iteration & Positional Parameters",
-      "category": "Logic",
-      "difficulty": "Hard",
-      "tags": ["for", "while", "$1", "$@"],
-      "content": {
-        "definition": "Bash supports standard `for` and `while` loops. When writing shell scripts, input is passed via Positional Parameters (`$1`, `$2`). `$@` represents an array of all parameters, making it ideal for iteration.",
-        "algorithm_steps": "Typical script iteration over files:\n1. User runs `./script.sh file1.txt file2.txt`\n2. Bash assigns `$1=file1.txt` and `$2=file2.txt`.\n3. The loop `for f in \"$@\"` expands to `for f in file1.txt file2.txt`.\n4. The loop body executes twice, assigning `$f` each time.",
-        "interactive_simulator": {
-          "type": "Loop Execution",
-          "config": {}
-        }
       },
       "commands": [
-        { "command": "for i in {1..3}; do echo $i; done", "explanation": "A brace expansion loop that prints 1, 2, and 3." }
+        { "command": "export NAME=VAL", "explanation": "Defines an environment variable and marks it for export to child processes." },
+        { "command": "env", "explanation": "Lists all currently exported environment variables in the session." },
+        { "command": "set", "explanation": "Displays all shell variables, including local ones and shell functions." }
+      ]
+    },
+    {
+      "id": "shell-scripting-logic",
+      "title": "Level 4: Scripting Logic & The Systems Lab",
+      "category": "Automation",
+      "difficulty": "Advanced",
+      "tags": ["bash", "automation", "loops", "if"],
+      "content": {
+        "why_exists": "Laziness is a virtue in engineering. If you have to do it twice, automate it.",
+        "problem": "You need to rename 500 files from '.jpg' to '.png' and then move them to an archive folder. Doing this manually is a waste of human potential.",
+        "beginner_explanation": "A script is just a text file with a list of commands. Bash reads it line by line and executes them, adding logic like 'if' and 'loops' to handle complex tasks.",
+        "visual_story": "A script is like a recipe. You list the ingredients (variables) and the steps (commands). The 'if' statements are the 'taste tests' along the way.",
+        "step_by_step": [
+          "Create a file 'myscript.sh'.",
+          "Add '#!/bin/bash' to the top (the Shebang).",
+          "Add commands like 'echo Hello $USER'.",
+          "Make it runnable: 'chmod +x myscript.sh'.",
+          "Run it: './myscript.sh'."
+        ],
+        "common_mistakes": "Forgetting the shebang line. Without it, the kernel doesn't know which interpreter to use (Bash? Python? Perl?).",
+        "debugging_thinking": "Script acting weird? Use 'bash -x script.sh'. This will print every command as it runs, showing exactly where it goes wrong.",
+        "real_workflow": "System maintenance scripts run every night via 'cron' to backup databases, clear logs, and check for security updates.",
+        "kernel_internals": "When you run a script, the kernel reads the first two bytes. If it sees '#!', it stops, reads the path to the interpreter, and spawns the interpreter with your script as an argument.",
+        "mini_tasks": [
+          "Create a script that prints the date and then lists the files in /tmp.",
+          "Add a loop to print 'Processing...' five times."
+        ]
+      },
+      "commands": [
+        { "command": "bash -x script.sh", "explanation": "Debug mode. Prints each command and its expanded arguments before execution." },
+        { "command": "./script.sh", "explanation": "Executes a script in the current directory (requires +x permission)." },
+        { "command": "sh -c 'cmd'", "explanation": "Runs a specific command in a new, isolated shell instance." }
       ]
     }
   ]

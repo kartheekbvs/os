@@ -1,94 +1,103 @@
 {
   "meta": {
-    "module": "Linux Basic Systems",
-    "schemaVersion": "1.0",
-    "lastUpdated": "2026-05-06"
+    "module": "Linux Fundamentals: The Engineering Mindset",
+    "schemaVersion": "1.1",
+    "lastUpdated": "2026-05-07"
   },
   "concepts": [
     {
-      "id": "linux-philosophy",
-      "title": "The UNIX Philosophy: Everything is a File",
+      "id": "terminal-anatomy",
+      "title": "Level 1: Terminal Anatomy & The Shell Prompt",
       "category": "Fundamentals",
-      "difficulty": "Easy",
-      "tags": ["vfs", "posix", "stdin", "stdout", "stderr"],
+      "difficulty": "Beginner",
+      "tags": ["tty", "shell", "prompt", "bash"],
       "content": {
-        "definition": "In Linux and UNIX systems, 'everything is a file'. This means that physical hardware devices (like keyboards, hard drives, and printers), directories, and even running processes are exposed to user-space applications as standard file descriptors.",
-        "intuition": "Imagine you write a program that outputs text to a file. In Linux, without changing your code, you can point that file descriptor to a network socket, a printer, or a graphical terminal. The program doesn't know the difference; it just writes bytes to a 'file'.",
-        "internals": "This is achieved through the Virtual File System (VFS) layer. The kernel exposes standard operations: `open()`, `read()`, `write()`, and `close()`. Device drivers implement these functions for their specific hardware.",
-        "security_warning": "Because devices are files, incorrect permissions on a device file (like `/dev/sda` which represents your main hard drive) can allow a regular user to read or overwrite the entire disk, bypassing all filesystem security.",
-        "comparison_table": {
-          "headers": ["Standard Stream", "File Descriptor", "Default Target", "Purpose"],
-          "rows": [
-            ["stdin (Standard Input)", "0", "Keyboard", "Receives input data"],
-            ["stdout (Standard Output)", "1", "Terminal Display", "Outputs normal application data"],
-            ["stderr (Standard Error)", "2", "Terminal Display", "Outputs diagnostic/error messages"]
-          ]
-        }
-      },
-      "placement": {
-        "mcqs": [
-          {
-            "difficulty": "easy",
-            "question": "Which system call is universally used in Linux to send data to a hardware device, a file, or a network socket?",
-            "options": ["send()", "write()", "output()", "ioctl()"],
-            "answer": "write()",
-            "explanation": "Because 'everything is a file', the standard write() syscall is used to push bytes to any file descriptor, regardless of what underlying object it represents."
-          }
+        "why_exists": "Before you can control a system, you must understand the bridge between you and the operating system. The terminal is your cockpit.",
+        "problem": "You sit in front of a computer and want to talk to the kernel, but you don't have a mouse or a GUI. How do you issue commands and see results?",
+        "beginner_explanation": "The terminal (or TTY) is just a window that displays text. The 'Shell' (like Bash) is the program running inside that window that reads your typing, translates it for the Kernel, and shows you the result.",
+        "visual_story": "Think of the shell as a translator. You speak 'User', the kernel speaks 'Machine Code'. The Shell translates your command 'ls' into 'System Call: list files'.",
+        "step_by_step": [
+          "Open your terminal emulator.",
+          "Identify the prompt: usually 'user@hostname:path$'.",
+          "Type your first command 'whoami' and press Enter.",
+          "Observe the output (your username)."
+        ],
+        "common_mistakes": "Confusing the 'Terminal' (the window) with the 'Shell' (the logic engine). Also, typing commands in the wrong case—Linux is case-sensitive!",
+        "debugging_thinking": "If you type a command and see 'command not found', your first check should be: 'Did I spell it right?' and 'Is it in my PATH?'",
+        "real_workflow": "Sysadmins often spend 99% of their time in a terminal because it is faster, automatable, and works over slow network connections (SSH).",
+        "kernel_internals": "The terminal interacts with the kernel through the PTY (Pseudo-terminal) subsystem. When you press Enter, the TTY driver sends an interrupt to the kernel, which then wakes up the shell process to read the buffer.",
+        "mini_tasks": [
+          "Find your current username using 'whoami'.",
+          "Find the name of your computer using 'uname -n'."
         ]
-      }
-    },
-    {
-      "id": "linux-navigation",
-      "title": "Filesystem Hierarchy & Navigation",
-      "category": "Operational",
-      "difficulty": "Easy",
-      "tags": ["cd", "pwd", "ls", "fhs"],
-      "content": {
-        "definition": "Linux follows the Filesystem Hierarchy Standard (FHS), defining the directory structure and directory contents. The root of the filesystem is denoted by a forward slash `/`.",
-        "internals": "Paths can be Absolute (starting from `/`) or Relative (starting from the current working directory). The special directories `.` represent the current directory, and `..` represent the parent directory.",
-        "linux_mapping": "Key FHS locations: `/bin` (essential user binaries), `/etc` (host-specific system configuration), `/home` (user home directories), `/var` (variable data like logs), `/tmp` (temporary files deleted on reboot).",
-        "man_page": {
-          "name": "ls - list directory contents",
-          "synopsis": "ls [OPTION]... [FILE]...",
-          "description": "List information about the FILEs (the current directory by default). Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.",
-          "options": [
-            { "flag": "-a, --all", "desc": "do not ignore entries starting with ." },
-            { "flag": "-l", "desc": "use a long listing format showing permissions, owner, size, and timestamps" },
-            { "flag": "-h, --human-readable", "desc": "with -l and -s, print sizes like 1K 234M 2G etc." }
-          ]
-        }
       },
       "commands": [
-        { "command": "pwd", "explanation": "Print name of current/working directory." },
-        { "command": "cd /etc", "explanation": "Change the shell working directory to /etc (absolute path)." },
-        { "command": "cd ..", "explanation": "Move up one directory level (relative path)." },
-        { "command": "ls -la", "explanation": "List all files (including hidden) in long format." }
+        { "command": "whoami", "explanation": "Asks the shell: 'Who is the effective user logged into this session?'" },
+        { "command": "uname -a", "explanation": "Prints detailed information about the kernel version and system architecture." },
+        { "command": "echo $SHELL", "explanation": "Asks the environment: 'Which shell program am I currently running?'" }
       ]
     },
     {
-      "id": "linux-manipulation",
-      "title": "File & Directory Manipulation",
+      "id": "filesystem-traversal",
+      "title": "Level 1: Navigating the VFS Labyrinth",
       "category": "Operational",
-      "difficulty": "Easy",
-      "tags": ["mkdir", "touch", "rm"],
+      "difficulty": "Beginner",
+      "tags": ["cd", "pwd", "ls", "fhs"],
       "content": {
-        "definition": "Creating, modifying timestamps, and removing files/directories are fundamental operations. In Linux, removal is permanent; there is typically no 'Recycle Bin' at the command line level.",
-        "security_warning": "The `rm -rf /` command will forcefully and recursively delete everything on the system without prompting for confirmation. It is catastrophic.",
-        "man_page": {
-          "name": "rm - remove files or directories",
-          "synopsis": "rm [OPTION]... [FILE]...",
-          "description": "rm removes each specified file. By default, it does not remove directories.",
-          "options": [
-            { "flag": "-f, --force", "desc": "ignore nonexistent files and arguments, never prompt" },
-            { "flag": "-r, -R, --recursive", "desc": "remove directories and their contents recursively" }
-          ]
-        }
+        "why_exists": "A computer is a collection of data. Navigation is how you locate and access that data efficiently.",
+        "problem": "You need to find a configuration file in '/etc', but you are currently in your home directory. How do you move across the system without a file explorer?",
+        "beginner_explanation": "Linux uses a single unified tree. Everything starts at '/' (the root). You 'move' around this tree using 'cd' (change directory).",
+        "visual_story": "Imagine a giant tree with branches. '/' is the trunk. '/home' is a major branch. '/home/user' is a smaller branch. You are like a squirrel jumping from branch to branch.",
+        "step_by_step": [
+          "Type 'pwd' to see exactly where you are sitting right now.",
+          "Type 'ls' to see what branches (folders) or leaves (files) are reachable from here.",
+          "Type 'cd /etc' to jump to the system configuration branch.",
+          "Type 'cd ~' to jump back to your personal nest (home)."
+        ],
+        "common_mistakes": "Forgetting the leading '/' for absolute paths. If you type 'cd etc' while in '/home', it will fail because there is no 'etc' folder inside 'home'.",
+        "debugging_thinking": "If 'cd' fails, run 'ls -d path' to verify the target actually exists and is a directory.",
+        "real_workflow": "Engineers use 'cd -' to quickly toggle back and forth between two directories, like a 'previous channel' button on a remote.",
+        "kernel_internals": "Every process in Linux has a 'Current Working Directory' (CWD) attribute in its Task Descriptor. The 'cd' command is a shell builtin because it must modify the shell's own CWD, not a child's.",
+        "mini_labs": [
+          { "task": "Navigate to /tmp and create a folder.", "command": "cd /tmp && mkdir my_lab" }
+        ]
       },
       "commands": [
-        { "command": "mkdir testdir", "explanation": "Creates a new directory named 'testdir' in the current working directory." },
-        { "command": "touch newfile.txt", "explanation": "Creates an empty file named 'newfile.txt', or updates its access timestamp if it exists." },
-        { "command": "rm newfile.txt", "explanation": "Permanently deletes the file." },
-        { "command": "rm -r testdir", "explanation": "Recursively deletes 'testdir' and all its contents." }
+        { "command": "pwd", "explanation": "Print Working Directory. Tells you your absolute location in the VFS." },
+        { "command": "cd /", "explanation": "Jump to the absolute root of the entire system." },
+        { "command": "ls -F", "explanation": "Lists files and appends a '/' to directories so you can tell them apart visually." }
+      ]
+    },
+    {
+      "id": "hidden-permissions",
+      "title": "Level 2: Hidden Files & Permissions Secrets",
+      "category": "Systems",
+      "difficulty": "Intermediate",
+      "tags": ["ls -a", "chmod", "metadata"],
+      "content": {
+        "why_exists": "Security and configuration. You don't want your private keys or system configs visible to everyone by default.",
+        "problem": "You want to hide a configuration file from normal 'ls' output, and you want to ensure only YOU can read it.",
+        "beginner_explanation": "In Linux, starting a filename with a '.' makes it 'hidden'. Permissions (Read, Write, Execute) decide who can touch what.",
+        "visual_story": "Think of a file like a locked box. The owner has the key. The group has a spare. The 'others' (everyone else) have to look through the window or stay out.",
+        "step_by_step": [
+          "Create a hidden file: 'touch .secret_note'.",
+          "Try 'ls' - it's gone!",
+          "Try 'ls -a' - it appears.",
+          "Check permissions with 'ls -l'."
+        ],
+        "common_mistakes": "Setting 'chmod 777' on everything to fix errors. This is a massive security hole and a 'lazy engineer' red flag.",
+        "debugging_thinking": "See 'Permission Denied'? Immediately check 'ls -l' and see if you are the owner or part of the group.",
+        "real_workflow": "Deployment scripts use 'chmod +x' to make scripts runnable, but maintain '600' on SSH keys so other users can't steal them.",
+        "kernel_internals": "Permissions are stored in the file's Inode. When you try to 'open()', the kernel checks your UID/GID against the Inode's mode bits before granting access.",
+        "interview_questions": [
+          "What is the difference between 755 and 644 permissions?",
+          "How do you find all files owned by 'root' in /home?"
+        ]
+      },
+      "commands": [
+        { "command": "ls -la", "explanation": "Long listing including hidden files. Shows the full metadata (Inode state)." },
+        { "command": "chmod 600 private.txt", "explanation": "Set permissions so ONLY the owner can read/write. Everyone else is blocked." },
+        { "command": "stat filename", "explanation": "Displays the complete Inode data, including timestamps and block counts." }
       ]
     }
   ]
