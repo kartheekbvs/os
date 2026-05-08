@@ -7,76 +7,170 @@
   "concepts": [
     {
       "id": "mem-intro",
-      "title": "Module 4.1: The Memory Hierarchy - Why We Paging",
+      "title": "Module 4.1: The Memory Hierarchy - Why We Need Speed Layers",
+      "category": "Memory Fundamentals",
       "difficulty": "Medium",
-      "tags": ["Physical Memory", "Hierarchy", "Latency"],
+      "tags": ["Physical Memory", "Hierarchy", "Latency", "Cache", "Bandwidth"],
       "content": {
-        "why_exists": "Processors are fast, but memory is slow. To bridge the gap, OS and Hardware create a hierarchy of storage, from registers to disk. Memory management is the art of making the process feel it has unlimited, fast, and private memory.",
-        "real_world_problem": "How can 100 processes share 8GB of RAM without overwriting each other or crashing the system?",
-        "daily_life_analogy": "A library (Disk) vs. a study desk (RAM) vs. your hands (Registers). You can't fit all books on the desk, so you swap them as needed.",
-        "hardware_story": "The CPU doesn't talk to the RAM directly for every instruction. It uses the MMU (Memory Management Unit) to translate addresses on the fly.",
-        "definition": "The OS subsystem responsible for tracking memory usage, allocating space to processes, and managing the mapping between virtual and physical addresses.",
-        "internals": "Relocation registers, Base and Limit registers were the ancestors of modern Paging.",
-        "performance_tradeoffs": "More cache levels reduce latency but increase hardware complexity and cost.",
-        "interactive_simulator": {
-          "type": "Memory Hierarchy Observatory",
-          "config": { "levels": ["L1", "L2", "RAM", "SWAP"] }
-        }
+        "why_exists": "The **Latency Crisis**. A CPU core operates at 3 GHz (1 cycle every ~0.33 nanoseconds). RAM takes ~100 nanoseconds to respond to a read request. This is a **300x speed gap**. If every memory access had to go all the way to RAM, the CPU would be idle 99.7% of the time. The solution is the **Memory Hierarchy**: multiple layers of storage, each smaller and faster than the last, working together to create the illusion of fast, infinite memory.",
+        "hardware_limitation": "The **Speed-Size Tradeoff**. Registers are blazingly fast (0.33ns) but you only have ~30 of them (128 bytes total). L1 Cache is still fast (3-4ns) but costs enormous silicon real estate (32-64KB per core). L2 is bigger but slower (8-12ns), then L3 (20-40ns), then RAM (100ns), then Disk (10,000,000ns). You cannot have fast + large + cheap—pick two.",
+        "analogy": "A **Restaurant Supply Chain**. Your hands (Registers) hold what you're using RIGHT NOW. The kitchen counter (L1/L2 Cache) has prepped ingredients for the next few dishes. The walk-in freezer (RAM) has bulk supplies. The warehouse (Disk) has everything else but requires 1 hour to retrieve.",
+        "execution_flow": "THE MEMORY ACCESS RACE:\n1. **CPU Request:** 'Give me data from address 0x7FFF8000'.\n2. **L1 Check:** 'Do I have this cached?' (3-4 cycles if hit, proceed to step 8).\n3. **L2 Check:** 'Do I have this cached?' (8-12 cycles if hit, proceed to step 8).\n4. **L3 Check:** 'Do I have this cached?' (20-40 cycles if hit, proceed to step 8).\n5. **RAM Request:** 'Fetch from physical address' (~100 cycles).\n6. **Stall:** CPU sits idle, twiddling its thumbs.\n7. **Data Arrives:** The CPU receives 64 bytes (a Cache Line).\n8. **Cache Population:** The data is automatically stored in all cache levels it passed through.\n9. **Resume:** CPU resumes with the requested data.",
+        "kernel_internals": "The OS **doesn't directly manage caches**—they are hardware features. But the OS DOES manage Virtual Memory, which feeds into the cache system. Good cache performance depends on **Locality**: accessing the same memory region repeatedly (temporal locality) or nearby memory regions (spatial locality). The OS's page allocation strategy can make or break cache performance.",
+        "register_story": "The **Program Counter (PC)** and **Stack Pointer (SP)** are the most frequently accessed 'locations' because they are used EVERY INSTRUCTION. They live in the CPU's registers where they take 0.33ns to access. A register is the CPU's short-term memory.",
+        "memory_interaction": "When a process is created, the OS allocates a **Memory Hierarchy** unique to that process: a private set of page tables, a private virtual address space. Other processes cannot 'see' or corrupt this process's hierarchy because the **MMU (Memory Management Unit)** enforces strict boundaries.",
+        "performance_tradeoffs": "**The 3-Way Tradeoff:** (1) More cache levels = better hit rates but more complex silicon. (2) Larger cache lines = better spatial locality but more memory bandwidth wasted on unused data. (3) Longer hierarchy = more latency variance between cache hits and misses.",
+        "security_implications": "**Cache Timing Attacks**. By measuring how long an access takes, an attacker can infer whether data was cached. This can leak information about what other processes are running (Side-Channel Attack). Mitigations include **Cache Partitioning** (dedicating cache regions to processes) and **Flush on Context Switch**.",
+        "definition": "The Memory Hierarchy is a structured organization of storage systems (registers, caches, RAM, disk) designed to provide the illusion of fast, large, low-cost memory by exploiting locality of reference.",
+        "formulas": "Average Memory Access Time (AMAT) = (L1 Hit Rate × L1 Latency) + (L1 Miss Rate × L2 Latency) + ... The goal is to maximize hit rates and minimize this.",
+        "worked_example": "Fetching a linked list in memory. If the list is 'scattered' across RAM at random addresses, every 'next' pointer is a **cache miss**. If the list is allocated contiguously, multiple nodes fit in one cache line, reducing misses by 90%.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Why does the Memory Hierarchy exist, and what problem does it solve?",
+          "What is 'Locality of Reference', and how does it relate to cache performance?",
+          "Draw the memory hierarchy from fastest to slowest. Estimate the latency of each level."
+        ],
+        "mcqs": [
+          {
+            "question": "A CPU has a 1GHz clock (1ns per cycle). RAM latency is 100ns. If every memory access missed the cache, what percentage of time would the CPU be idle?",
+            "options": ["9%", "50%", "99%", "99.9%"],
+            "answer": "99%",
+            "explanation": "100ns / 1ns = 100 cycles of stall. The CPU is active 1% of the time."
+          }
+        ],
+        "misconceptions": "- **'More cache is always better'**: False. If cache is too large, the lookup latency increases, negating the benefits. 'Goldilocks zone' is typically 8-16MB L3 per core.\n- **'Disks are just slow RAM'**: Wrong in every way. Disks have moving parts; they're not random-access like RAM. They're sequential-access storage (10,000x slower).",
+        "recap": "The Memory Hierarchy turns a latency crisis into a performance miracle through layered speed.",
+        "next_topic_why": "The hierarchy works only if processes are **isolated** and don't stomp on each other's memory. Enter **Virtual Memory**."
+      },
+      "interactive_simulator": {
+        "type": "Memory Hierarchy Observatory",
+        "config": { "levels": ["L1", "L2", "L3", "RAM", "SWAP"], "showLatencies": true }
       }
     },
     {
       "id": "mem-virtual",
-      "title": "Module 4.2: Virtual Memory - The Great Illusion",
+      "title": "Module 4.2: Virtual Memory - The Great Illusion of Infinite Memory",
+      "category": "Memory Fundamentals",
       "difficulty": "Hard",
-      "tags": ["Abstraction", "Address Space", "MMU"],
+      "tags": ["Abstraction", "Address Space", "MMU", "Hardware Protection", "Isolation"],
       "content": {
-        "why_exists": "Virtual Memory decouples the address a program uses from the actual physical location in RAM. This allows for isolation, security, and the ability to run programs larger than physical memory.",
-        "real_world_problem": "A process has a bug and writes to address 0x0000. Without Virtual Memory, this could overwrite the kernel's interrupt table.",
-        "daily_life_analogy": "Your house has an address (123 Main St), but the post office uses a routing code. You don't need to know where the sorting facility is to get mail.",
-        "hardware_story": "The MMU intercepts every memory access. If the translation is not in the TLB, it performs a Page Table Walk.",
-        "definition": "A memory management technique that provides an 'idealized' abstraction of the storage resources that are actually available on a given machine.",
-        "internals": "The process sees a contiguous address space (0 to MAX), while the physical pages are scattered across RAM.",
-        "visual_machine_model": "Process A [0x1000] -> MMU -> RAM [0x5000]. Process B [0x1000] -> MMU -> RAM [0x9000].",
-        "interactive_simulator": {
-          "type": "Address Translation Tracer",
-          "config": { "mode": "segmentation-vs-paging" }
-        }
+        "why_exists": "The **Two Monsters Problem**. (1) **Scale:** Modern programs are huge (several GB). But RAM might only be 8GB, and it's shared among 100 processes. How can we run a 4GB video editing program on an 8GB machine when it's already 75% full? (2) **Security:** If every process used physical addresses directly, one bug in Chrome could read your bank passwords from Firefox's memory. Virtual Memory solves BOTH by creating a 'Hallucination' for every process: each process thinks it has the entire 64-bit address space (16 Exabytes on modern systems) to itself, while the OS silently maps virtual addresses to whatever physical RAM is available.",
+        "hardware_limitation": "The **Address Translation Overhead**. Every single memory access must be translated from virtual to physical by the MMU. Without help, this would double the memory latency. The solution is the **TLB (Translation Lookaside Buffer)**—a hardware cache of recent translations.",
+        "analogy": "A **Magical Library of Infinite Books**. You are a reader. You reference books by their Dewey Decimal number (Virtual Address). The librarian (MMU) translates that into the actual shelf location (Physical Address). You never touch the shelves; you always go through the librarian. If another reader asks for the same book, the librarian might give them a different shelf location because they're in a different 'branch' of the library (process). Two readers can hold the same 'Virtual Book' simultaneously without conflict because they're reading from different physical shelves.",
+        "execution_flow": "THE TRANSLATION JOURNEY:\n1. **Program:** 'I want to read from address 0x4000'.\n2. **CPU:** Sends the address to the MMU.\n3. **TLB:** 'Do I have a cached translation?' If yes, jump to step 9.\n4. **Page Table Walk:** 'Looking up 0x4000 in the page table...'.\n5. **Page Table:** Returns 'Virtual page 4 maps to Physical frame 12'.\n6. **MMU:** Calculates 'Physical address = 12 * 4096 + offset = 0x30000'.\n7. **TLB:** Caches this translation (0x4000 -> 0x30000).\n8. **Memory Bus:** Fetches from physical address 0x30000.\n9. **Cache Hierarchy:** The data is fetched, possibly landing in L1/L2/L3 caches.\n10. **Register:** The data ends up in the register the program requested.",
+        "kernel_internals": "The OS maintains a separate **Page Table** for each process. When a context switch occurs, the OS loads the new process's **Page Table Base Register (PTBR)** into the CPU's **CR3** register (on x86). This instantly 'Flips' the entire memory landscape for that process.",
+        "register_story": "The **CR3 Register** is the 'Key' to the entire virtual memory system. Its value (the physical address of the page table) determines which process's memory you see. Changing CR3 takes ~300 CPU cycles and often requires **TLB Flush** (clearing all cached translations), making context switches extremely expensive.",
+        "memory_interaction": "**Memory Protection:** The MMU does not just translate; it also **checks permissions**. If a user-mode process tries to access kernel-only memory, the MMU throws a **Segmentation Fault** (SIGSEGV). If it tries to write to read-only memory, another fault. This enforcement happens at the hardware level, ensuring no amount of clever code can bypass it.",
+        "performance_tradeoffs": "**Isolation vs. Speed:** Perfect isolation requires a full context switch (TLB flush) for every process change, killing performance. Modern OSes use **ASID (Address Space ID) tags** in the TLB so multiple processes can coexist in the TLB cache without needing a flush.",
+        "security_implications": "**Spectre and Meltdown:** These exploits revealed that the CPU can **speculatively access** physical memory before the MMU checks permissions. By measuring cache timing, an attacker can leak privileged kernel memory. Mitigations include **KPTI (Kernel Page Table Isolation)**: the kernel uses a separate page table that is swapped in only when needed, reducing the kernel's 'Footprint' in the cache.",
+        "definition": "Virtual Memory is an abstraction technique where each process has its own private address space (virtual), which is dynamically mapped to physical memory (which is shared). It enables isolation, security, and apparent infinite memory.",
+        "formulas": "Virtual Address = (Virtual Page Number) * Page_Size + Offset. Physical Address = (Physical Frame Number) * Page_Size + Offset.",
+        "worked_example": "A 64-bit system with 4KB pages. Virtual Address: 0x7FFFFFFFFFFF. VPN = 0x7FFFFFFFFF (top 52 bits), Offset = 0xFFF (bottom 12 bits). The page table lookup returns 'VPN maps to Frame 0x2000'. Physical Address = 0x2000000 + 0xFFF = 0x2000FFF.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Explain why Virtual Memory enables both memory isolation AND running programs larger than physical RAM.",
+          "What is a 'Page Fault' and what causes it?",
+          "How does the TLB interact with virtual memory, and why is TLB performance critical?"
+        ],
+        "mcqs": [
+          {
+            "question": "Two processes both try to access Virtual Address 0x1000. Do they access the same physical memory?",
+            "options": ["Yes, always", "No, each process has its own page table", "Only if they are in the same address space", "Only if the OS allows sharing"],
+            "answer": "No, each process has its own page table",
+            "explanation": "Each process's page table maps 0x1000 to different physical frames, creating complete isolation."
+          }
+        ],
+        "misconceptions": "- **'Virtual Memory is swapping to disk'**: Partially true. Swapping (paging to disk) is ONE use of virtual memory, but VM is fundamentally about translation and isolation. You can have VM without swapping.\n- **'Virtual Memory is slow'**: Not necessarily. With a high TLB hit rate (>99%), VM has negligible overhead.",
+        "recap": "Virtual Memory is the OS's greatest magic trick: giving every process the illusion of infinite, private, fast memory.",
+        "next_topic_why": "But virtual memory only works if we break it into manageable pieces: **Pages**."
+      },
+      "interactive_simulator": {
+        "type": "Virtual Address Translation Tracer",
+        "config": { "mode": "multi-process", "showTLB": true, "showPageTable": true }
       }
     },
     {
       "id": "mem-paging",
-      "title": "Module 4.3: Paging - Dividing the World",
+      "title": "Module 4.3: Paging - Dividing Chaos into Order",
+      "category": "Memory Management Techniques",
       "difficulty": "Hard",
-      "tags": ["Pages", "Frames", "Fragmentation"],
+      "tags": ["Pages", "Frames", "Fragmentation", "Allocation", "Page Tables"],
       "content": {
-        "why_exists": "To solve external fragmentation, we divide physical memory into fixed-size 'Frames' and logical memory into 'Pages'. Any page can fit into any frame.",
-        "real_world_problem": "Old systems used 'Contiguous Allocation', which left holes in memory too small for new processes. Paging eliminates this entirely.",
-        "daily_life_analogy": "A loose-leaf notebook. You can put any page in any slot, and the index (Page Table) tells you where to find Section 1.",
-        "formula": "Physical Address = Frame Number \\times Page Size + Offset",
-        "internals": "Page Tables are stored in RAM. The CR3 register (on x86) points to the current process's page table.",
-        "worked_example": "Page Size: 4KB. Virtual Address: 0x1005. VPN = 1, Offset = 5. If VPN 1 maps to Frame 7, Physical Address = 7 * 4096 + 5 = 0x7005.",
-        "interactive_simulator": {
-          "type": "Paging Simulator",
-          "config": { "pageSize": 4096, "ramSize": 65536 }
-        }
+        "why_exists": "The **Fragmentation Nightmare**. Before paging, memory was allocated **contiguously**: a process got one continuous block of RAM. Sounds simple, but after a few hours of operation, you'd have Physical RAM like this: [Process A: 2MB] [Free: 0.5MB] [Process B: 1MB] [Free: 0.3MB] [Process C: 2MB] [Free: 0.2MB]. You have 5MB total free, but you can't run a new 1MB process because there's no single contiguous block big enough. This is **External Fragmentation**, and it's a killer. Paging solves this by dividing BOTH virtual and physical memory into fixed-size chunks called Pages (virtual) and Frames (physical). Any page can fit into any frame, eliminating fragmentation entirely.",
+        "hardware_limitation": "The **Page Table Storage Burden**. A 64-bit address space with 4KB pages requires 2^52 page table entries. At 8 bytes per entry, that's 1.125 Petabytes of page table storage per process—insane! The solution is **Multi-Level Page Tables** (or Hierarchical Page Tables). Instead of one flat table, we use a tree structure where upper levels are only created when needed.",
+        "analogy": "A **Country Postal System**. You don't maintain a single master file of every address in the world. Instead, you have levels: (1) National Directory (Country), (2) State Directory, (3) City Directory, (4) Street Directory, (5) House Number. You only look up the branches you need.",
+        "execution_flow": "THE PAGE LOOKUP TRACE:\n1. **Virtual Address:** 0x12345678 (32-bit example).\n2. **Split:** VPN = 0x123, Offset = 0x678.\n3. **Page Directory:** Look up index 0x123 in the first-level page table.\n4. **Page Table:** The directory points to a second-level table. Look up the next index there.\n5. **Frame Number:** Finally get the physical frame (e.g., 0xABC).\n6. **Physical Address:** 0xABC000 + 0x678 = 0xABC678.",
+        "kernel_internals": "Linux on x86-64 uses a **4-level hierarchical page table** (PGD -> PUD -> PMD -> PTE). For most applications, many of these levels are sparse. A process that only uses 8MB of memory doesn't need page tables for the rest of the 64-bit address space. The OS only creates page tables as needed, keeping the memory overhead minimal.",
+        "register_story": "The **CR3 Register** (on x86) holds the physical address of the Page Global Directory (the root of the hierarchical page table tree).",
+        "memory_interaction": "**Internal Fragmentation:** Paging introduces a new problem: waste. If a process allocates 5KB and page size is 4KB, it 'wastes' 3KB because the entire second page is allocated but only 1KB is used. This is unavoidable but typically ~2KB/process, which is acceptable.",
+        "performance_tradeoffs": "**Page Size Trade-off:** Smaller pages (2KB) reduce internal fragmentation but require more page table entries and more TLB misses. Larger pages (16MB) waste more space but have fewer table entries and better TLB performance.",
+        "security_implications": "**Page Table Poisoning:** A privileged attacker who can modify page tables can map any process to arbitrary physical memory, reading/writing anywhere. Mitigation: **Verified Boot** and **TPM** ensure the page table code is untampered.",
+        "definition": "Paging is a memory management scheme that eliminates external fragmentation by dividing memory into fixed-size pages (logical) and frames (physical), allowing non-contiguous allocation.",
+        "formulas": "Physical Address = (Frame Number from Page Table) * Page_Size + Offset. Total Page Table Size (2-level) = (# of PDE entries * 8 bytes) + (# of PTE entries * 8 bytes).",
+        "worked_example": "System: 32-bit address space, 4KB pages, 2-level page table. Page Directory size = 1024 entries * 8 = 8KB. Each Page Table = 1024 entries * 8 = 8KB. For a process using 8MB of memory, you need 2 Page Directory entries and 2000 Page Table entries total (~8.05MB overhead for 8MB of actual memory). Trade-off acceptable.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Why does paging eliminate external fragmentation?",
+          "What is 'Internal Fragmentation' and why is it acceptable?",
+          "Why do modern systems use hierarchical (multi-level) page tables instead of flat ones?"
+        ],
+        "mcqs": [
+          {
+            "question": "A system has 8GB RAM and 2KB pages. How many frame numbers exist?",
+            "options": ["4M", "8M", "16M", "32M"],
+            "answer": "4M",
+            "explanation": "8GB / 2KB = 8 * 10^9 / 2048 = 4 * 10^6 frames."
+          }
+        ],
+        "misconceptions": "- **'Paging uses more memory than contiguous allocation'**: False. Paging uses slightly more (page table overhead ~0.1%), but buys you tremendous flexibility.\n- **'All pages are the same size'**: Mostly true, but modern systems support 'Huge Pages' (2MB, 1GB) to reduce TLB pressure.",
+        "recap": "Paging transforms the memory fragmentation nightmare into a manageable, efficient system.",
+        "next_topic_why": "But translating virtual to physical on every memory access is slow. We need a **Cache** for these translations: the **TLB**."
+      },
+      "interactive_simulator": {
+        "type": "Paging Simulator",
+        "config": { "pageSize": 4096, "ramSize": 67108864, "showFragmentation": true }
       }
     },
     {
       "id": "mem-tlb",
-      "title": "Module 4.4: TLB - The Speed Demon",
+      "title": "Module 4.4: TLB - The Speed Demon of Address Translation",
+      "category": "Cache & Performance",
       "difficulty": "Hard",
-      "tags": ["Cache", "MMU", "Context Switch"],
+      "tags": ["Cache", "MMU", "Context Switch", "Performance", "Hardware"],
       "content": {
-        "why_exists": "Looking up the page table in RAM for every instruction would slow down the CPU by 50%. The TLB caches these translations in hardware.",
-        "real_world_problem": "Context switches are expensive because they often require flushing the TLB (or using ASIDs).",
-        "daily_life_analogy": "A speed-dial list on your phone. You don't look at the phone book (Page Table) every time you call a friend.",
-        "hardware_story": "The TLB is an Associative Cache. It compares the VPN against all entries in parallel (one clock cycle).",
-        "definition": "Translation Lookaside Buffer: A high-speed hardware cache used to reduce the time taken to access a user memory location.",
-        "performance_tradeoffs": "Large TLBs are fast but consume significant power and chip area.",
-        "interactive_simulator": {
-          "type": "TLB Cache Performance",
-          "config": { "tlbSize": 16, "locality": "high" }
-        }
+        "why_exists": "The **Translation Latency Problem**. Every memory access must go through address translation (Virtual -> Physical). If this always required looking up the page table in RAM (~100ns per access), memory would be 50% slower. The TLB is a **tiny, ultra-fast hardware cache** of recent translations. In a typical system, 99.9% of address translations hit the TLB, keeping that 100ns RAM access in the background.",
+        "hardware_limitation": "The **TLB Size Constraint**. A TLB large enough to cache all possible translations would require enormous chip area and power consumption. Modern CPUs have ~256-512 TLB entries per core—a tiny fraction of the millions of possible page translations. Managing TLB misses is one of the biggest performance challenges in modern computing.",
+        "analogy": "A **Mental Cache**. You frequently visit 3 coffee shops near your home. You remember their exact addresses (TLB). For a new address across the city, you need to look at a map (page table), which takes longer. But that map lookup (page table walk) only happens when you need a new destination.",
+        "execution_flow": "THE TLB LOOKUP:\n1. **Virtual Address:** 0x12345678.\n2. **Extract VPN:** 0x12345 (top bits).\n3. **TLB Lookup:** Search all TLB entries in parallel (Associative Cache lookup).\n4. **TLB Hit (99.9% of the time):** Immediately return the cached physical frame. Total latency: 0-2ns.\n5. **TLB Miss (0.1% of the time):** Trigger a 'Page Table Walk' (complex, multi-level table traversal). Latency: 50-100ns. Meanwhile, insert this translation into the TLB, pushing out the oldest entry.",
+        "kernel_internals": "**Context Switch TLB Cost:** When switching between processes, the OS must either (1) flush the entire TLB (hundreds of cycles of penalty), or (2) use **ASID tags** (Address Space Identifier) to tag TLB entries with their process ID, allowing multiple processes to coexist in the TLB. Modern Linux uses ASID to avoid full flushes.",
+        "register_story": "The **ASID Field** in the TLB entry tags which process owns that translation. When a new process runs, the OS doesn't flush the TLB; it just ignores all entries with the old ASID. When that old process runs again, its ASID entries are still 'hot' in the cache.",
+        "memory_interaction": "**TLB vs. L1 Cache:** Both are caches, but at different levels. L1 caches data. TLB caches address translations. A memory access goes: (1) Virtual Address -> TLB (translate), (2) Physical Address -> L1 Cache (fetch data). Both must hit for peak performance.",
+        "performance_tradeoffs": "**Large TLB (e.g., 2000 entries)** = Higher hit rate but larger chip area and power. **Small TLB (e.g., 32 entries)** = Lower power but more misses and slower code. A system with too many TLB misses can be 2-3x slower than ideal.",
+        "security_implications": "**Spectre Variant 1:** Attackers can cause TLB loads to leak information. For example, if accessing a valid address is faster than invalid (due to cache preloading), it reveals which process is accessing what memory.",
+        "definition": "The Translation Lookaside Buffer (TLB) is an associative hardware cache that speeds up virtual-to-physical address translation by caching recent page table entries.",
+        "formulas": "TLB Hit Time ≈ 2 ns. TLB Miss Time ≈ 50-100 ns (page table walk). Average Translation Time = (Hit Rate * 2) + (Miss Rate * 50-100).",
+        "worked_example": "TLB with 128 entries, application accessing 500 unique pages. Hit rate ≈ 128/500 = 25.6% (poor). The same application with good spatial locality (tight loops accessing nearby memory) achieves 99%+ hit rate with the same 128 entries.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Why is the TLB necessary, and what performance problem does it solve?",
+          "What is an 'ASID' and why do modern systems use it?",
+          "How does a TLB miss happen, and what is the penalty?"
+        ],
+        "mcqs": [
+          {
+            "question": "A CPU runs two processes, A and B. Process A fills the 512-entry TLB with its own translations. When B runs, what happens to A's TLB entries?",
+            "options": ["They are flushed immediately", "They are kept, tagged with A's ASID", "Process B cannot run until the TLB is cleared", "They are overwritten as B's translations arrive"],
+            "answer": "They are kept, tagged with A's ASID",
+            "explanation": "With ASID support, multiple processes coexist in the TLB. Old entries are only evicted when new entries are needed."
+          }
+        ],
+        "misconceptions": "- **'The TLB is a cache of RAM'**: Wrong. It's a cache of page table entries, which are stored in RAM.\n- **'TLB misses are rare'**: Depends on the workload. Well-localized code has >99% hit rate. Random access patterns can have 10%+ miss rates.",
+        "recap": "The TLB is the unsung hero of memory performance, bridging the gap between virtual and physical addressing.",
+        "next_topic_why": "Even with TLB, sometimes a process needs more memory than RAM. The OS then uses **Swapping** (paging to disk) to extend apparent memory. But we need a **Page Replacement Policy** to decide which pages to evict."
+      },
+      "interactive_simulator": {
+        "type": "TLB Cache Performance Visualizer",
+        "config": { "tlbSize": 256, "locality": "high", "showHitRate": true, "showMissLatency": true }
       }
     }
   ]

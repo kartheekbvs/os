@@ -1,72 +1,386 @@
 {
   "meta": {
-    "module": "Shell Scripting & Automation: The Systems Engineer",
-    "schemaVersion": "1.1",
-    "lastUpdated": "2026-05-07"
+    "module": "Linux Shell Scripting: Bash Automation",
+    "schemaVersion": "1.2",
+    "lastUpdated": "2026-05-08",
+    "sections": ["Shell Scripting (Bash)"]
   },
   "concepts": [
     {
-      "id": "variables-automation",
-      "title": "Level 3: Variables, Environment & PATH",
-      "category": "Operational",
-      "difficulty": "Intermediate",
-      "tags": ["export", "env", "PATH"],
+      "id": "shell-types-basics",
+      "title": "Section 7.1: Shell Types and Basic Concepts",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Beginner",
+      "tags": ["bash", "shell", "scripting"],
       "content": {
-        "why_exists": "Consistency and automation. Variables allow you to write scripts that work anywhere by using names instead of hardcoded paths.",
-        "problem": "You want to run a custom script, but you have to type the full path '/home/user/scripts/my_tool.sh' every single time. Why doesn't it work like 'ls'?",
-        "beginner_explanation": "The '$PATH' variable is a list of folders the shell looks in when you type a command. If your folder isn't in that list, the shell can't find your tool.",
-        "visual_story": "Think of variables like labeled boxes. '$USER' is a box that always contains your name. '$PATH' is a box containing a map of where all the tools are kept.",
-        "step_by_step": [
-          "Check your name: 'echo $USER'.",
-          "Create a new variable: 'FOO=bar'.",
-          "Try to see it in a subshell: '(echo $FOO)'.",
-          "Make it permanent for children: 'export FOO'."
-        ],
-        "common_mistakes": "Forgetting the '$' when accessing a variable (type 'echo USER' instead of 'echo $USER'). Also, putting spaces around the '=' in assignments.",
-        "debugging_thinking": "Command not found but file exists? Check your PATH: 'echo $PATH'. Is your directory in the colon-separated list?",
-        "real_workflow": "CI/CD pipelines use environment variables (like 'API_KEY') to inject secrets into applications without hardcoding them in the source code.",
-        "kernel_internals": "Environment variables are stored at the very top of a process's stack. When a process calls 'execve()', it passes its environment array to the new program.",
-        "mini_labs": [
-          { "task": "Add a new directory to your PATH for this session.", "command": "export PATH=$PATH:/tmp/my_bin" }
-        ]
+        "why_exists": "Shell scripting automates repetitive tasks and complex workflows.",
+        "problem": "You need to perform the same sequence of commands repeatedly.",
+        "beginner_explanation": "A shell script is a file containing shell commands that can be executed as a program.",
+        "shell_types": {
+          "bash": "Bourne Again SHell - most common, feature-rich",
+          "sh": "Bourne Shell - original, basic",
+          "zsh": "Z Shell - advanced, compatible with bash",
+          "fish": "Friendly Interactive SHell - user-friendly"
+        },
+        "script_creation": "Create file with .sh extension, make it executable with chmod +x",
+        "definition": "Shell scripts are programs written in shell command language."
       },
       "commands": [
-        { "command": "export NAME=VAL", "explanation": "Defines an environment variable and marks it for export to child processes." },
-        { "command": "env", "explanation": "Lists all currently exported environment variables in the session." },
-        { "command": "set", "explanation": "Displays all shell variables, including local ones and shell functions." }
+        { "command": "#!/bin/bash", "explanation": "Shebang line specifying bash interpreter." },
+        { "command": "chmod +x script.sh", "explanation": "Make script executable." },
+        { "command": "./script.sh", "explanation": "Execute the script." }
       ]
     },
     {
-      "id": "shell-scripting-logic",
-      "title": "Level 4: Scripting Logic & The Systems Lab",
-      "category": "Automation",
-      "difficulty": "Advanced",
-      "tags": ["bash", "automation", "loops", "if"],
+      "id": "shebang-line",
+      "title": "Section 7.2: Shebang - Script Interpreter Declaration",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Beginner",
+      "tags": ["shebang", "interpreter", "bash"],
       "content": {
-        "why_exists": "Laziness is a virtue in engineering. If you have to do it twice, automate it.",
-        "problem": "You need to rename 500 files from '.jpg' to '.png' and then move them to an archive folder. Doing this manually is a waste of human potential.",
-        "beginner_explanation": "A script is just a text file with a list of commands. Bash reads it line by line and executes them, adding logic like 'if' and 'loops' to handle complex tasks.",
-        "visual_story": "A script is like a recipe. You list the ingredients (variables) and the steps (commands). The 'if' statements are the 'taste tests' along the way.",
-        "step_by_step": [
-          "Create a file 'myscript.sh'.",
-          "Add '#!/bin/bash' to the top (the Shebang).",
-          "Add commands like 'echo Hello $USER'.",
-          "Make it runnable: 'chmod +x myscript.sh'.",
-          "Run it: './myscript.sh'."
+        "why_exists": "Tell the system which interpreter to use for the script.",
+        "problem": "Script fails because system doesn't know which shell to use.",
+        "beginner_explanation": "#! (shebang) followed by interpreter path.",
+        "examples": [
+          "#!/bin/bash",
+          "#!/bin/sh",
+          "#!/usr/bin/env python3",
+          "#!/usr/bin/env perl"
         ],
-        "common_mistakes": "Forgetting the shebang line. Without it, the kernel doesn't know which interpreter to use (Bash? Python? Perl?).",
-        "debugging_thinking": "Script acting weird? Use 'bash -x script.sh'. This will print every command as it runs, showing exactly where it goes wrong.",
-        "real_workflow": "System maintenance scripts run every night via 'cron' to backup databases, clear logs, and check for security updates.",
-        "kernel_internals": "When you run a script, the kernel reads the first two bytes. If it sees '#!', it stops, reads the path to the interpreter, and spawns the interpreter with your script as an argument.",
-        "mini_tasks": [
-          "Create a script that prints the date and then lists the files in /tmp.",
-          "Add a loop to print 'Processing...' five times."
-        ]
+        "definition": "Shebang specifies the interpreter for executing the script."
       },
       "commands": [
-        { "command": "bash -x script.sh", "explanation": "Debug mode. Prints each command and its expanded arguments before execution." },
-        { "command": "./script.sh", "explanation": "Executes a script in the current directory (requires +x permission)." },
-        { "command": "sh -c 'cmd'", "explanation": "Runs a specific command in a new, isolated shell instance." }
+        { "command": "#!/bin/bash", "explanation": "Use bash as interpreter." },
+        { "command": "#!/usr/bin/env bash", "explanation": "Use bash from PATH." }
+      ]
+    },
+    {
+      "id": "comments-documentation",
+      "title": "Section 7.3: Comments and Script Documentation",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Beginner",
+      "tags": ["comments", "documentation", "readability"],
+      "content": {
+        "why_exists": "Make scripts readable and maintainable.",
+        "problem": "Complex script is hard to understand and modify.",
+        "beginner_explanation": "# starts a comment. Everything after # is ignored.",
+        "best_practices": "Comment what and why, not how. Use header comments for script purpose.",
+        "examples": [
+          "#!/bin/bash",
+          "# Script: backup.sh",
+          "# Purpose: Backup user files",
+          "# Author: John Doe",
+          "# Date: 2024-01-01",
+          "",
+          "echo \"Starting backup...\"  # Inform user"
+        ],
+        "definition": "Comments explain code purpose and are ignored by interpreter."
+      },
+      "commands": [
+        { "command": "# This is a comment", "explanation": "Single line comment." },
+        { "command": ": 'Multi-line\ncomment block'", "explanation": "Multi-line comment using null command." }
+      ]
+    },
+    {
+      "id": "variables-scripting",
+      "title": "Section 7.4: Variables in Shell Scripts",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Beginner",
+      "tags": ["variables", "assignment", "scope"],
+      "content": {
+        "why_exists": "Store and manipulate data in scripts.",
+        "problem": "Hard-coded values make scripts inflexible.",
+        "beginner_explanation": "Variables store values. No spaces around = in assignment.",
+        "variable_types": {
+          "user_defined": "Created by script author",
+          "environment": "Inherited from system",
+          "special": "$0, $1, $#, $@, $?, $$"
+        },
+        "examples": [
+          "name=\"John\"",
+          "age=25",
+          "echo \"Hello $name\"",
+          "readonly constant=\"fixed value\"",
+          "unset variable"
+        ],
+        "definition": "Variables store data that can be referenced and modified."
+      },
+      "commands": [
+        { "command": "variable=value", "explanation": "Assign value to variable." },
+        { "command": "echo $variable", "explanation": "Access variable value." },
+        { "command": "readonly var=value", "explanation": "Create read-only variable." }
+      ]
+    },
+    {
+      "id": "conditionals-if-then-else",
+      "title": "Section 7.5: Conditionals - If/Then/Else Statements",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["if", "then", "else", "conditional"],
+      "content": {
+        "why_exists": "Execute different code based on conditions.",
+        "problem": "Script needs to behave differently based on circumstances.",
+        "beginner_explanation": "If condition is true, execute then block. Optionally execute else block.",
+        "syntax": "if [ condition ]; then commands; fi",
+        "test_conditions": {
+          "file_tests": "-f file (exists and regular), -d dir (directory), -r file (readable)",
+          "string_tests": "==, !=, -z (empty), -n (not empty)",
+          "numeric_tests": "-eq, -ne, -lt, -le, -gt, -ge"
+        },
+        "examples": [
+          "if [ -f file.txt ]; then echo \"File exists\"; fi",
+          "if [ \"$var\" == \"value\" ]; then echo \"Equal\"; else echo \"Not equal\"; fi",
+          "if [ $num -gt 10 ]; then echo \"Big\"; elif [ $num -gt 5 ]; then echo \"Medium\"; else echo \"Small\"; fi"
+        ],
+        "definition": "Conditional statements execute code based on true/false conditions."
+      },
+      "commands": [
+        { "command": "if [ condition ]; then commands; fi", "explanation": "Basic if statement." },
+        { "command": "if [ condition ]; then commands; else commands; fi", "explanation": "If-else statement." },
+        { "command": "if [ condition ]; then commands; elif [ condition ]; then commands; fi", "explanation": "If-elif statement." }
+      ]
+    },
+    {
+      "id": "loops-for-while-until",
+      "title": "Section 7.6: Loops - For, While, and Until",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["for", "while", "until", "loops"],
+      "content": {
+        "why_exists": "Repeat commands multiple times.",
+        "problem": "Need to process multiple items or repeat until condition met.",
+        "beginner_explanation": "For: iterate over list. While: loop while condition true. Until: loop until condition true.",
+        "loop_types": {
+          "for": "for item in list; do commands; done",
+          "while": "while [ condition ]; do commands; done",
+          "until": "until [ condition ]; do commands; done"
+        },
+        "examples": [
+          "for file in *.txt; do echo \"Processing $file\"; done",
+          "counter=1; while [ $counter -le 5 ]; do echo $counter; ((counter++)); done",
+          "until [ -f ready.txt ]; do sleep 1; done; echo \"File is ready\""
+        ],
+        "control_statements": "break (exit loop), continue (skip to next iteration)",
+        "definition": "Loops repeat execution of commands."
+      },
+      "commands": [
+        { "command": "for var in list; do commands; done", "explanation": "For loop over list." },
+        { "command": "while [ condition ]; do commands; done", "explanation": "While loop." },
+        { "command": "until [ condition ]; do commands; done", "explanation": "Until loop." }
+      ]
+    },
+    {
+      "id": "functions-scripting",
+      "title": "Section 7.7: Functions in Shell Scripts",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["functions", "modularity", "reuse"],
+      "content": {
+        "why_exists": "Organize code into reusable, modular blocks.",
+        "problem": "Same code repeated multiple times in script.",
+        "beginner_explanation": "Functions group commands that can be called multiple times.",
+        "syntax": "function_name() { commands; }",
+        "parameters": "Functions can access $1, $2, etc. for arguments.",
+        "examples": [
+          "greet() { echo \"Hello $1\"; }",
+          "greet \"World\"",
+          "calculate() { echo $(($1 + $2)); }",
+          "result=$(calculate 5 3)"
+        ],
+        "definition": "Functions are named blocks of code that can be called repeatedly."
+      },
+      "commands": [
+        { "command": "func() { commands; }", "explanation": "Define function." },
+        { "command": "func arg1 arg2", "explanation": "Call function with arguments." },
+        { "command": "echo $?", "explanation": "Get function exit status." }
+      ]
+    },
+    {
+      "id": "pipes-redirection-scripts",
+      "title": "Section 7.8: Pipes and Redirection in Scripts",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["pipes", "redirection", "input", "output"],
+      "content": {
+        "why_exists": "Control input/output flow in scripts.",
+        "problem": "Script needs to read from files, write to files, or chain commands.",
+        "beginner_explanation": "Redirect stdin/stdout/stderr in scripts.",
+        "redirection_operators": {
+          ">": "Redirect stdout to file (overwrite)",
+          ">>": "Redirect stdout to file (append)",
+          "<": "Redirect file to stdin",
+          "<<": "Here document",
+          "2>": "Redirect stderr",
+          "&>": "Redirect both stdout and stderr"
+        },
+        "examples": [
+          "echo \"Hello\" > output.txt",
+          "cat < input.txt",
+          "command >> logfile 2>&1",
+          "sort << EOF\nbanana\napple\ncherry\nEOF"
+        ],
+        "definition": "Redirection controls where input comes from and output goes."
+      },
+      "commands": [
+        { "command": "command > file", "explanation": "Redirect stdout to file." },
+        { "command": "command >> file", "explanation": "Append stdout to file." },
+        { "command": "command 2> file", "explanation": "Redirect stderr to file." }
+      ]
+    },
+    {
+      "id": "string-operations",
+      "title": "Section 7.9: String Operations in Bash",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["strings", "manipulation", "substring"],
+      "content": {
+        "why_exists": "Manipulate text data in scripts.",
+        "problem": "Need to extract parts of strings or modify text.",
+        "beginner_explanation": "Bash provides parameter expansion for string operations.",
+        "operations": {
+          "length": "${#string}",
+          "substring": "${string:position:length}",
+          "replace": "${string/old/new}",
+          "remove_prefix": "${string#pattern}",
+          "remove_suffix": "${string%pattern}"
+        },
+        "examples": [
+          "file=\"example.txt\"",
+          "echo ${file%.txt}        # Remove .txt extension",
+          "echo ${file#ex}          # Remove ex prefix",
+          "echo ${file:3:3}         # Get characters 3-5",
+          "echo ${#file}            # Get string length"
+        ],
+        "definition": "String operations manipulate text using parameter expansion."
+      },
+      "commands": [
+        { "command": "echo ${string:0:3}", "explanation": "Extract substring." },
+        { "command": "echo ${string#prefix}", "explanation": "Remove prefix." },
+        { "command": "echo ${string%suffix}", "explanation": "Remove suffix." }
+      ]
+    },
+    {
+      "id": "command-substitution",
+      "title": "Section 7.10: Command Substitution",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["substitution", "backticks", "capture"],
+      "content": {
+        "why_exists": "Capture output of commands for use in scripts.",
+        "problem": "Need to use result of one command as input to another.",
+        "beginner_explanation": "Execute command and substitute its output.",
+        "syntax": "$(command) or `command` (backticks)",
+        "examples": [
+          "files=$(ls)",
+          "date=$(date +%Y-%m-%d)",
+          "count=`ls | wc -l`",
+          "echo \"Today is $(date)\""
+        ],
+        "definition": "Command substitution captures command output as a string."
+      },
+      "commands": [
+        { "command": "var=$(command)", "explanation": "Capture command output." },
+        { "command": "var=`command`", "explanation": "Alternative syntax with backticks." }
+      ]
+    },
+    {
+      "id": "error-handling",
+      "title": "Section 7.11: Error Handling and Debugging",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["error", "debugging", "trap", "set"],
+      "content": {
+        "why_exists": "Handle errors gracefully and debug scripts.",
+        "problem": "Script fails silently or gives cryptic errors.",
+        "beginner_explanation": "Check exit codes, use traps, enable debugging.",
+        "error_handling": {
+          "exit_codes": "$? contains last command exit status",
+          "set_options": "set -e (exit on error), set -u (undefined variables), set -x (debug)",
+          "trap": "trap 'commands' SIGNAL - execute on signal"
+        },
+        "examples": [
+          "set -e  # Exit on any error",
+          "if ! command; then echo \"Command failed\"; exit 1; fi",
+          "trap 'echo \"Error on line $LINENO\"' ERR",
+          "set -x  # Show commands as executed"
+        ],
+        "definition": "Error handling ensures scripts fail gracefully and provide useful feedback."
+      },
+      "commands": [
+        { "command": "set -e", "explanation": "Exit script on first error." },
+        { "command": "trap 'handler' ERR", "explanation": "Set error handler." },
+        { "command": "set -x", "explanation": "Enable debug output." }
+      ]
+    },
+    {
+      "id": "exit-codes",
+      "title": "Section 7.12: Exit Codes and Script Termination",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Intermediate",
+      "tags": ["exit", "codes", "termination"],
+      "content": {
+        "why_exists": "Communicate script success/failure to calling programs.",
+        "problem": "Calling script doesn't know if it succeeded.",
+        "beginner_explanation": "Exit codes: 0=success, non-zero=failure.",
+        "conventions": {
+          "0": "Success",
+          "1": "General error",
+          "2": "Misuse of shell command",
+          "126": "Command cannot execute",
+          "127": "Command not found",
+          "128": "Invalid argument to exit"
+        },
+        "examples": [
+          "exit 0  # Success",
+          "exit 1  # Failure",
+          "command || exit 1  # Exit if command fails",
+          "echo \"Exit code: $?\""
+        ],
+        "definition": "Exit codes indicate script execution result to parent process."
+      },
+      "commands": [
+        { "command": "exit 0", "explanation": "Exit with success code." },
+        { "command": "exit 1", "explanation": "Exit with error code." },
+        { "command": "echo $?", "explanation": "Check last command exit code." }
+      ]
+    },
+    {
+      "id": "automation-scripts",
+      "title": "Section 7.13: Writing Automation Scripts",
+      "category": "Shell Scripting (Bash)",
+      "difficulty": "Advanced",
+      "tags": ["automation", "scripts", "workflow"],
+      "content": {
+        "why_exists": "Automate complex workflows and system administration tasks.",
+        "problem": "Manual tasks are time-consuming and error-prone.",
+        "beginner_explanation": "Combine all scripting concepts to create powerful automation tools.",
+        "script_structure": {
+          "header": "Shebang, comments, variable declarations",
+          "main_logic": "Functions, conditionals, loops",
+          "error_handling": "Traps, exit codes, validation",
+          "cleanup": "Temporary files, logging"
+        },
+        "examples": [
+          "#!/bin/bash",
+          "# Automated backup script",
+          "BACKUP_DIR=\"/backup\"",
+          "SOURCE_DIR=\"/home/user\"",
+          "",
+          "create_backup() {",
+          "    tar -czf \"$BACKUP_DIR/backup-$(date +%Y%m%d).tar.gz\" \"$SOURCE_DIR\"",
+          "}",
+          "",
+          "if [ ! -d \"$BACKUP_DIR\" ]; then mkdir -p \"$BACKUP_DIR\"; fi",
+          "create_backup",
+          "echo \"Backup completed successfully\""
+        ],
+        "best_practices": "Use functions, validate inputs, log actions, handle errors",
+        "definition": "Automation scripts combine shell commands to perform complex tasks automatically."
+      },
+      "commands": [
+        { "command": "#!/bin/bash", "explanation": "Script header." },
+        { "command": "set -euo pipefail", "explanation": "Strict error handling." },
+        { "command": "trap cleanup EXIT", "explanation": "Cleanup on exit." }
       ]
     }
   ]

@@ -7,23 +7,42 @@
   "concepts": [
     {
       "id": "fs-allocation",
-      "title": "File Allocation Methods",
-      "category": "File Systems",
+      "title": "Module 5.1: File Allocation Methods - The Physical Reality of Storage",
+      "category": "File Systems Fundamentals",
       "difficulty": "Medium",
-      "tags": ["contiguous", "linked", "indexed", "fat"],
+      "tags": ["contiguous", "linked", "indexed", "fat", "extents"],
       "content": {
-        "definition": "File allocation methods determine how logical blocks of a file are mapped to physical sectors on a disk. The three major approaches are Contiguous, Linked, and Indexed allocation.",
-        "intuition": "Contiguous is like a book where pages 1-10 are physically glued together; reading is fast but adding a page is impossible without rewriting the whole book. Linked is a treasure hunt where each page tells you where the next page is hidden. Indexed is having an index card at the front telling you exactly where every page is located.",
-        "internals": "Linked allocation suffers from slow random access because you must traverse pointers (O(N)). FAT (File Allocation Table) improves this by moving all the pointers into a separate table in memory, making pointer traversal extremely fast. Indexed allocation brings all pointers for a single file into one 'Index Block'.",
-        "comparison_table": {
-          "headers": ["Method", "Sequential Access", "Random Access", "Fragmentation", "Overhead"],
-          "rows": [
-            ["Contiguous", "Excellent", "Excellent (O(1))", "External", "None"],
-            ["Linked", "Good", "Terrible (O(N))", "None", "Pointers per block"],
-            ["Indexed", "Good", "Excellent (O(1))", "None", "Index block per file"]
-          ]
-        },
-        "linux_mapping": "Modern Linux filesystems (like ext4, XFS, Btrfs) use Extent-based allocation, which is a hybrid. An extent is a contiguous run of blocks. A file is represented by a tree of extents, blending the speed of contiguous allocation with the flexibility of indexed allocation."
+        "why_exists": "A file (e.g., photo.jpg) is a sequence of logical blocks. But physical disk sectors are fragmented and scattered. The OS must keep a **Map** that says 'Logical block 0 is stored in Physical sector 50000, Logical block 1 is in sector 50100, etc.'. Without this mapping, reading a file would be impossible. Different allocation methods make different trade-offs between speed, simplicity, and space efficiency.",
+        "hardware_limitation": "The **Disk Geometry Problem**. Hard drives are mechanical. Seeking to a distant sector takes ~10ms (millions of CPU cycles). We want to minimize seeks. Contiguous allocation achieves this—all blocks are adjacent on the disk. But as files are deleted and new files are added, the disk fragments, forcing non-contiguous allocation and destroying performance.",
+        "analogy": "A **Library Management System**. Contiguous: You bind all pages of a book into one shelf segment (fast to access but impossible to expand). Linked: Each page has a note saying 'Next page is in aisle 7, shelf 3' (flexible but slow to retrieve page 500). Indexed: A master card at the front lists the location of every page (fast access but requires a separate card catalog).",
+        "execution_flow": "READING FILE WITH DIFFERENT ALLOCATIONS:\n\n**Contiguous:**\n1. Look up file's starting sector: Sector 2000.\n2. Seek to sector 2000 (single seek, ~10ms).\n3. Read all consecutive sectors 2000-2050 in one operation (~50ms).\n4. Done!\n\n**Linked:**\n1. Look up file's starting sector: Sector 5000.\n2. Seek to 5000, read block. Block says 'next is 8000'.\n3. Seek to 8000 (massive jump, ~10ms). Read block. Block says 'next is 1000'.\n4. Seek to 1000. Read block. Block says 'next is EOF'.\n5. Repeat seeks 100s of times. Total time: 10ms * 100 blocks = 1 second!\n\n**Indexed:**\n1. Look up file's inode: Sector 500.\n2. Seek to 500, read inode. It lists all 100 block locations: [2000, 2050, 2100, ...]\n3. Seek to first block 2000 (single seek, ~10ms).\n4. Read all blocks in order (or random order if needed, still ~1 seek per block).\n5. Faster than linked but slower than contiguous.",
+        "kernel_internals": "The **FAT (File Allocation Table)** loaded the entire allocation map into RAM at boot time, making lookups instant. This is why old DOS systems with FAT12/FAT16 were fast despite file fragmentation. Modern filesystems use **B-tree structures** (ext4 uses extents) to balance space efficiency with lookup speed.",
+        "register_story": "N/A",
+        "memory_interaction": "The allocation map is cached in the OS's **Buffer Cache**. When a file is read, the file system first looks up the logical->physical mapping in the buffer cache (fast), not on disk.",
+        "performance_tradeoffs": "**Contiguous:** O(1) seek time but impossible to expand files without relocation. **Linked:** O(N) seek time but perfect flexibility. **Indexed:** O(1) seek time and good flexibility, but requires an index structure.",
+        "security_implications": "**Linked Allocation Weakness:** If a link is corrupted, all subsequent blocks are lost (one bit flip = entire file lost). Indexed allocation is safer because the index is redundant and can be verified.",
+        "definition": "File allocation methods determine how logical blocks of a file are mapped to physical sectors on a disk.",
+        "formulas": "Total Seek Time = (# of seeks) * (average seek latency ≈ 10ms). Average seek time depends on fragmentation.",
+        "worked_example": "A 100MB video file with 4KB block size = 25,000 blocks. With Contiguous allocation on a defragmented disk: 1 seek (~10ms) + read all blocks (~5 seconds) = ~5 seconds. With Linked allocation on fragmented disk: 25,000 seeks (250 seconds) + reads = catastrophic!",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What is 'External Fragmentation' and how does it affect file performance?",
+          "Why would linked file allocation perform poorly in real-world scenarios?",
+          "What advantage does indexed allocation have over both contiguous and linked?"
+        ],
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "Which allocation method suffers from external fragmentation?",
+            "options": ["Indexed", "Linked", "Contiguous", "FAT"],
+            "answer": "Contiguous",
+            "explanation": "Because files must be stored in consecutive blocks, free space becomes chopped into small, unusable chunks over time (external fragmentation)."
+          }
+        ],
+        "misconceptions": "- **'Defragmentation is only needed for old systems'**: Modern SSDs don't need defrag (NAND flash), but mechanical HDDs still benefit. - **'Modern filesystems don't use allocation maps'**: They do, but using more sophisticated structures (B-trees, extents) instead of flat FAT.",
+        "recap": "File allocation methods are the bridge between logical file abstraction and physical disk reality.",
+        "next_topic_why": "Understanding allocation leads to the next question: What **metadata** tracks the file and its allocation? The answer is the **Inode**.",
+        "linux_mapping": "Modern Linux filesystems (ext4, XFS, Btrfs) use Extent-based allocation, which is a hybrid. An extent is a contiguous run of blocks. A file is represented by a tree of extents, blending the speed of contiguous allocation with the flexibility of indexed allocation."
       },
       "placement": {
         "mcqs": [
@@ -39,104 +58,149 @@
     },
     {
       "id": "fs-inodes",
-      "title": "Inodes & Ext4 Architecture",
-      "category": "File Systems",
+      "title": "Module 5.2: Inodes - The File's True Identity",
+      "category": "File System Metadata",
       "difficulty": "Hard",
-      "tags": ["inode", "ext4", "indirect-blocks"],
+      "tags": ["inode", "ext4", "indirect-blocks", "metadata"],
       "content": {
-        "definition": "An inode (Index Node) is a data structure in a UNIX-style file system that describes a filesystem object such as a file or a directory. It stores attributes (permissions, owner, timestamps) and disk block locations, but NOT the file name or data itself.",
-        "hardware_interaction": "To read a file, the OS must first fetch the inode from disk (causing a seek), parse the pointers, and then fetch the actual data blocks (causing more seeks).",
-        "internals": "Traditional inodes use direct and indirect pointers. A typical ext2 inode has 12 Direct pointers, 1 Single Indirect, 1 Double Indirect, and 1 Triple Indirect pointer. This allows small files to be accessed extremely quickly (direct), while permitting massive files to exist (triple indirect).",
-        "algorithm_steps": "Reading block N of a file:\n1. OS reads inode.\n2. If N < 12, use Direct pointer N. Return block.\n3. If N < 12 + (BlockSize/4), go to Single Indirect block.\n4. Read Single Indirect block into RAM.\n5. Look up pointer at index (N - 12). Return block.\n6. For larger N, traverse Double or Triple indirect trees.",
-        "worked_example": "Assume 4KB blocks and 4-byte pointers (1024 pointers per block).\nMax file size via Direct: 12 * 4KB = 48KB.\nMax via Single Indirect: 1024 * 4KB = 4MB.\nMax via Double Indirect: 1024 * 1024 * 4KB = 4GB.\nMax via Triple Indirect: 1024 * 1024 * 1024 * 4KB = 4TB.",
-        "formula_sandbox": {
-          "description": "Calculate Max File Size for Inode Structures",
-          "inputs": [
-            { "label": "Block Size (Bytes)", "default": 4096 },
-            { "label": "Pointer Size (Bytes)", "default": 4 }
-          ]
-        },
-        "interactive_simulator": {
-          "type": "Inode Traversal",
-          "config": {
-            "initialState": { "ptr": "direct", "level": 0 },
-            "timeline": [
-              { "state_updates": {"ptr": "single", "level": 1}, "log": "Allocating Single Indirect block" },
-              { "state_updates": {"ptr": "double", "level": 2}, "log": "Allocating Double Indirect block tree" }
-            ]
+        "why_exists": "A filename like 'photo.jpg' is just a human-readable label. The **true identity** of a file is its Inode Number (e.g., 12345). The Inode is a data structure that stores: (1) **Metadata** (permissions, owner, timestamps), (2) **Block pointers** (where is the file's data on disk), (3) **Type info** (file, directory, symlink). Separating the filename from the inode enables powerful features like hard links (multiple names, same inode) and enables the OS to track files even after renaming.",
+        "hardware_limitation": "The **Storage Hierarchy Problem**. If the inode is too small, you can't store enough block pointers for large files. If it's too big, you waste disk space for small files. Traditional Unix solved this with **Direct and Indirect pointers** (a clever hybrid).",
+        "analogy": "An **Insurance Policy**. The policy number is the Inode. The file name is like a person's nickname (you can have multiple nicknames for one person). The policy contains all the metadata (owner, coverage, premium) and references to documents (blocks) stored in a warehouse.",
+        "execution_flow": "THE INODE JOURNEY:\n1. **User:** 'I want to read /home/alice/photo.jpg'.\n2. **File System:** Parse the path. Look up 'photo.jpg' in the '/home/alice/' directory.\n3. **Directory Entry:** Find the name 'photo.jpg' -> Inode 8675.\n4. **Inode Fetch:** Read Inode 8675 from disk (usually cached in buffer cache).\n5. **Block Pointers:** Inode says 'My data is in blocks [2000, 2050, 2100]'.\n6. **Data Read:** Fetch data from blocks 2000, 2050, 2100.\n7. **Return:** Data returned to userspace.",
+        "kernel_internals": "The **Inode Table** is stored on disk at a fixed location (e.g., blocks 100-500). When a file system is mounted, the OS caches frequently-used inodes in RAM in the **Inode Cache**. This cache is LRU-evicted, meaning recently-used inodes stay in RAM for faster access.",
+        "register_story": "N/A",
+        "memory_interaction": "Inodes are stored both on disk and in the OS's in-memory **inode table**. A process that opens a file keeps a reference to its in-memory inode structure. When the file is closed, the kernel decrements the reference count. When the count reaches 0, the inode can be evicted from RAM.",
+        "performance_tradeoffs": "**Direct Pointers (12):** Can address 12 * 4KB = 48KB directly (fast for small files). **Indirect Pointers:** Add complexity but enable files up to terabytes in size. Modern filesystems use Extents instead (a contiguous run of blocks is one 'extent', reducing overhead).",
+        "security_implications": "**Inode Deletion:** When a file is deleted, the inode is marked 'free' but the data blocks aren't zeroed. A clever attacker with disk access can recover the deleted file from the raw blocks. Secure deletion requires cryptographic erasure or multiple disk passes.",
+        "definition": "An inode (Index Node) is a data structure that stores metadata and block locations for a file, serving as the file's true identity independent of its name.",
+        "formulas": "Max file size = (# Direct pointers * Block Size) + (# Single Indirect pointers * Pointers Per Block * Block Size) + ...",
+        "worked_example": "Assume 4KB blocks, 4-byte pointers (1024 pointers per block), 12 Direct + 1 Single Indirect + 1 Double Indirect + 1 Triple Indirect:\n- Direct: 12 * 4KB = 48KB\n- Single Indirect: 1024 * 4KB = 4MB\n- Double Indirect: 1024 * 1024 * 4KB = 4GB\n- Triple Indirect: 1024^3 * 4KB = 4TB\n- Max file size: ~4TB",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What is an inode, and how does it differ from a filename?",
+          "What are 'Hard Links' and how do they use inodes?",
+          "Why does ext4 use Extent Trees instead of Indirect Blocks?"
+        ],
+        "mcqs": [
+          {
+            "question": "Two hard links (different names) point to the same file. How many inodes exist?",
+            "options": ["0", "1", "2", "Depends on the filesystem"],
+            "answer": "1",
+            "explanation": "Hard links are multiple directory entries pointing to the SAME inode. The inode has a reference count (2 in this case)."
           }
-        },
+        ],
+        "misconceptions": "- **'An inode stores the filename'**: Wrong. The inode number is stored in the directory entry. The inode itself has no name. - **'Deleting a file immediately frees the disk space'**: Wrong. The inode is marked free, but data blocks aren't zeroed.",
+        "recap": "Inodes are the true identity of files, enabling powerful features like hard links and fast file access.",
+        "next_topic_why": "Now that we understand how files are stored, the question becomes: **How fast can the OS read them?** This leads to **Disk Scheduling**.",
+        "hardware_interaction": "To read a file, the OS must first fetch the inode from disk (causing a seek), parse the pointers, and then fetch the actual data blocks (causing more seeks.",
         "linux_mapping": "Ext4 abandoned indirect blocks in favor of Extent Trees for performance, though the fundamental inode structure (metadata separation) remains. You can view a file's inode number using `ls -i` or full metadata using `stat`."
       },
       "commands": [
         { "command": "stat /etc/passwd", "explanation": "Displays the exact inode number, size, blocks allocated, IO Block size, and timestamps." },
-        { "command": "df -i", "explanation": "Displays inode usage per mounted filesystem. Running out of inodes means you cannot create new files, even if space is available." }
+        { "command": "df -i", "explanation": "Displays inode usage per mounted filesystem. Running out of inodes means you cannot create new files, even if space is available." },
+        { "command": "ls -i", "explanation": "Lists files with their inode numbers, useful for tracking hard links." }
       ]
     },
     {
       "id": "disk-scheduling",
-      "title": "Disk Scheduling Algorithms",
-      "category": "Mass Storage",
+      "title": "Module 5.3: Disk Scheduling Algorithms - Optimizing the Mechanical Beast",
+      "category": "Storage Performance",
       "difficulty": "Hard",
       "tags": ["fcfs", "sstf", "scan", "c-scan", "look", "seek-time"],
       "content": {
-        "definition": "Disk scheduling algorithms determine the order in which disk I/O requests are serviced by the disk head to minimize seek time (the mechanical movement of the head arm).",
-        "intuition": "Imagine an elevator. FCFS is going wherever the buttons were pressed in order (erratic, slow). SCAN (Elevator Algorithm) goes all the way up, servicing requests on the way, then goes all the way down.",
-        "formula": "T_{access} = T_{seek} + T_{rotation} + T_{transfer}",
-        "algorithm_steps": "1. SSTF (Shortest Seek Time First): Services request closest to current head position. Risks starvation.\n2. SCAN: Head moves from one end to the other, servicing requests, then reverses.\n3. C-SCAN: Moves from one end to the other, but when it reaches the end, it returns to the beginning WITHOUT servicing requests on the return trip. Provides more uniform wait times.\n4. LOOK / C-LOOK: Like SCAN/C-SCAN but only goes as far as the last request, not the physical edge of the disk.",
-        "worked_example": "Queue: 98, 183, 37, 122, 14, 124, 65, 67. Head start: 53.\nFCFS path: 53 -> 98 -> 183 -> 37 ... Total movement = 640 cylinders.\nSSTF path: 53 -> 65 -> 67 -> 37 -> 14 -> 98 ... Total movement = 236 cylinders.",
-        "common_mistakes": "Assuming these algorithms are heavily used today. Modern SSDs have no moving parts (seek time is 0), so FCFS or simple merging algorithms (NOOP) are often preferred over SCAN.",
-        "interactive_simulator": {
-          "type": "Disk Scheduling",
-          "config": {
-            "initialState": { "head": 50, "requests": [98, 183, 37, 122, 14] },
-            "timeline": [
-              { "state_updates": { "head": 65 }, "log": "Head moves to 65 (SSTF)" },
-              { "state_updates": { "head": 67 }, "log": "Head moves to 67 (SSTF)" }
-            ]
+        "why_exists": "Hard disks have a **physical read-head** that must physically move to the correct cylinder (seek), wait for the disk to rotate (rotational latency), and then read the data (transfer time). Seek time dominates (~10ms), dwarfing rotational latency (~4ms for 15k RPM) and transfer time (~0.1ms for large blocks). If the OS services disk requests in random order, the head will bounce all over the disk like a pinball machine, seeking constantly. Disk scheduling algorithms order the requests to minimize total seek distance.",
+        "hardware_limitation": "The **Seek Time Ceiling**. Even the best algorithm cannot eliminate seek time entirely. An average seek takes ~5-10ms. With 1000 random requests on a 1GB drive, you could wait 10 seconds just for seeks! Defragmentation and smart allocation help, but scheduling is essential.",
+        "analogy": "An **Elevator in a Skyscraper**. Buttons are pushed on multiple floors (disk requests). If the elevator goes to each button in the order pressed (FCFS), it wastes time going up, then down, then up again. A smarter algorithm goes all the way up (SCAN), servicing all requests, then comes all the way down. Even smarter: go only as far as needed (LOOK), not to the physical end.",
+        "execution_flow": "SERVICING REQUESTS: [Cylinder 98, 183, 37, 122, 14, 124, 65, 67]. Current head position: 53.\n\n**FCFS:**\n53 -> 98 (45 units) -> 183 (85 units) -> 37 (-146 units) -> 122 (85 units) -> 14 (-108 units) -> 124 (110 units) -> 65 (-59 units) -> 67 (2 units).\nTotal movement: 45+85+146+85+108+110+59+2 = 640 units.\n\n**SCAN (go all the way to end, then back to start):**\n53 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183 -> back to 37 -> 14.\nTotal movement: (183-53) + (183-14) = 130 + 169 = 299 units.\n\n**LOOK (go only as far as the last request):**\n53 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183 -> back to 37 -> 14.\nTotal movement: ~260 units (slightly better than SCAN).",
+        "kernel_internals": "Linux I/O schedulers (mq-deadline, kyber, bfq) implement sophisticated variations of these algorithms, merged with **request merging** (combining adjacent requests into one larger request to reduce seeks).",
+        "register_story": "N/A",
+        "memory_interaction": "The **I/O Request Queue** in the kernel holds pending disk requests. The scheduler reorders them (instead of FIFO) to optimize seek patterns. Small requests (~4KB) are merged into larger ones (~1MB) before sending to the disk.",
+        "performance_tradeoffs": "**FCFS:** Simple but terrible (O(N) seeks). **SSTF:** Much better but can starve requests on the 'far side'. **SCAN:** Excellent average case but provides less priority to recently-queued requests. **C-SCAN:** Uniform wait times. **LOOK:** Better than SCAN (doesn't go to physical edge).",
+        "security_implications": "**Timing Attacks:** By measuring disk access latency, an attacker can infer which files are being accessed (they have lower latency due to scheduling). Mitigations include **I/O encryption** and **constant-time scheduling**.",
+        "definition": "Disk scheduling algorithms determine the order in which disk I/O requests are serviced to minimize seek time and improve overall throughput.",
+        "formulas": "Average Seek Time = (Total seek distance) / (Number of seeks). Goal: Minimize this by choosing the optimal service order.",
+        "worked_example": "A busy web server with 1000 concurrent users each requesting files. Without smart scheduling (FCFS), the disk head thrashes (20,000 seeks/second). With SCAN, seek time drops 70%. With request merging (combining nearby requests), another 30% improvement.",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "Why is seek time the dominant component of disk latency?",
+          "What is the main disadvantage of SSTF (Shortest Seek Time First)?",
+          "How do modern filesystems mitigate the performance impact of disk scheduling?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which disk scheduling algorithm minimizes starvation and provides the most uniform wait times?",
+            "options": ["FCFS", "SSTF", "C-SCAN", "LOOK"],
+            "answer": "C-SCAN",
+            "explanation": "C-SCAN services all requests in one direction, then returns to the start WITHOUT servicing requests on the return. This ensures no request waits for a full cycle."
           }
-        },
-        "linux_mapping": "Linux uses I/O Schedulers like `mq-deadline`, `kyber`, or `bfq` (Budget Fair Queueing). You can check the active scheduler for a block device via `/sys/block/sda/queue/scheduler`."
+        ],
+        "misconceptions": "- **'Disk scheduling is mostly irrelevant today'**: Actually, it's MORE important than ever because SSDs have random access but HDDs are still common. - **'More sophisticated scheduling is always faster'**: No. For SSDs (no seek time), simple NOOP or merged requests are better than complex scheduling.",
+        "recap": "Disk scheduling transforms an N-seek linear scan into a logarithmic pattern, saving millions of milliseconds.",
+        "next_topic_why": "Single disks have limits. To achieve reliability AND performance, systems use **RAID**: multiple disks working together.",
+        "common_mistakes": "Assuming these algorithms are heavily used today. Modern SSDs have no moving parts (seek time is 0), so FCFS or simple merging algorithms (NOOP) are often preferred over SCAN."
+      },
+      "interactive_simulator": {
+        "type": "Disk Scheduling Visualizer",
+        "config": {
+          "initialState": { "head": 50, "requests": [98, 183, 37, 122, 14], "maxCylinder": 200 },
+          "algorithms": ["FCFS", "SCAN", "C-SCAN", "LOOK"]
+        }
       },
       "commands": [
-        { "command": "cat /sys/block/sda/queue/scheduler", "explanation": "Shows the currently loaded block I/O scheduler for disk sda." }
+        { "command": "cat /sys/block/sda/queue/scheduler", "explanation": "Shows the currently loaded block I/O scheduler for disk sda." },
+        { "command": "echo kyber > /sys/block/sda/queue/scheduler", "explanation": "Change the scheduler to 'kyber' (requires root). Other options: mq-deadline, bfq, noop." }
       ]
     },
     {
       "id": "raid",
-      "title": "RAID Architectures",
-      "category": "Mass Storage",
+      "title": "Module 5.4: RAID Architectures - Combining Disks for Power",
+      "category": "Storage Reliability & Performance",
       "difficulty": "Medium",
       "tags": ["raid0", "raid1", "raid5", "raid10", "parity", "striping"],
       "content": {
-        "definition": "RAID (Redundant Array of Independent Disks) uses multiple disk drives to improve performance, reliability, or both. It uses techniques like striping, mirroring, and parity.",
-        "intuition": "RAID 0 is splitting a heavy load across two trucks (fast, but if one crashes, the cargo is lost). RAID 1 is putting identical cargo in two trucks (safe, but no speed gain). RAID 5 is 3 trucks where the 3rd carries math formulas to rebuild the cargo if truck 1 or 2 crashes.",
-        "internals": "Parity in RAID 5 is calculated using the XOR logical operation. If Block A = 0100 and Block B = 1010, Parity Block P = A XOR B = 1110. If Drive A dies, Block A can be rebuilt by computing B XOR P (1010 XOR 1110 = 0100).",
-        "comparison_table": {
-          "headers": ["Level", "Technique", "Fault Tolerance", "Performance", "Capacity"],
-          "rows": [
-            ["RAID 0", "Striping", "None (1 drive failure kills all)", "Excellent", "Sum of all drives"],
-            ["RAID 1", "Mirroring", "Excellent (1 drive can fail)", "Good Read, Normal Write", "Half of total drives"],
-            ["RAID 5", "Striping + Distributed Parity", "Good (1 drive can fail)", "Excellent Read, Slow Write", "Total - 1 drive"],
-            ["RAID 10", "Striping + Mirroring", "Excellent (1 drive per mirror)", "Excellent", "Half of total drives"]
-          ]
-        },
-        "worked_example": "If you have four 1TB drives:\nRAID 0: 4TB usable, 0 failures tolerated.\nRAID 1: 2TB usable, up to 2 failures tolerated (if in different mirrors).\nRAID 5: 3TB usable, 1 failure tolerated.",
-        "interactive_simulator": {
-          "type": "RAID Striping",
-          "config": {
-            "initialState": { "raidLevel": 5, "drives": 3 },
-            "timeline": [
-              { "state_updates": { "action": "write A1" }, "log": "Block A1 written to Drive 1" },
-              { "state_updates": { "action": "write A2" }, "log": "Block A2 written to Drive 2" },
-              { "state_updates": { "action": "write Ap" }, "log": "Parity A calculated (XOR) and written to Drive 3" }
-            ]
+        "why_exists": "A single hard drive fails ~every 5-10 years. With 100 servers, you expect one failure every month. When failure happens, you lose everything (unless backups exist, which are slow). RAID (Redundant Array of Independent Disks) is the answer: use **multiple drives** working together. (1) **Reliability:** Mirror data across drives so a single failure doesn't lose data. (2) **Performance:** Stripe data across drives so multiple drives read simultaneously (parallel reads).",
+        "hardware_limitation": "The **Parity Problem**. To add redundancy, you need 'spare' drives (RAID 1: 100% overhead, 2 drives for 1 drive of usable space) or parity calculations (RAID 5: 20% overhead, 1 drive of parity per 4 drives of data). Both reduce usable capacity and add computational cost.",
+        "analogy": "**Insurance and Diversification**. RAID 0 is like putting all money in one stock (fast growth, catastrophic loss). RAID 1 is like keeping money in two bank accounts (safe but no growth). RAID 5 is like buying into a diversified fund with a reserve (good balance of safety and returns).",
+        "execution_flow": "RAID WRITE OPERATIONS:\n\n**RAID 0 (Striping):**\nData: [AAAA][BBBB][CCCC][DDDD]\n1. Split into chunks: A -> Drive 1, B -> Drive 2, C -> Drive 3, D -> Drive 4.\n2. All drives write in parallel. Total time: 1 write (instead of 4).\n\n**RAID 1 (Mirroring):**\nData: [AAAA]\n1. Write AAAA to Drive 1.\n2. Write AAAA to Drive 2 (mirror).\n3. Both finish at ~same time. Speed = speed of one drive, but redundancy = 1 drive can fail.\n\n**RAID 5 (Striping + Parity):**\nData: [AAAA][BBBB][CCCC] and Parity P = A XOR B XOR C\n1. Write AAAA to Drive 1.\n2. Write BBBB to Drive 2.\n3. Write CCCC to Drive 3.\n4. Calculate P and write to Drive 4.\n5. If any drive fails, data can be reconstructed: A = B XOR C XOR P, etc.",
+        "kernel_internals": "Linux **mdadm** (Multiple Device Administrator) implements software RAID entirely in the kernel (no special hardware needed). The RAID logic intercepts I/O requests and distributes them across physical drives. Performance penalty: slight CPU overhead for parity calculation (RAID 5/6).",
+        "register_story": "N/A",
+        "memory_interaction": "RAID 5 read-modify-write cycle: (1) Read old data + old parity (from buffer cache if available). (2) Calculate new parity. (3) Write new data + new parity. All three happen in RAM if drives are slow or if cache is hot.",
+        "performance_tradeoffs": "**RAID 0:** Read/Write speed = N * (single drive speed). But 100% failure risk (one failure = total loss). **RAID 1:** Read = fast (can hit either drive), Write = slow (must write to both). Space efficiency = 50%. **RAID 5:** Read = fast, Write = slow (parity calculation penalty). Space efficiency = (N-1)/N (e.g., 4 drives -> 3 usable).",
+        "security_implications": "**Parity as Integrity Check:** If corruption occurs (bit flip), RAID detects it (checksums in file system). Recovery requires reading parity + other blocks. But if multiple blocks fail simultaneously, data is lost (RAID 6 with dual parity solves this).",
+        "definition": "RAID is a storage architecture that uses multiple drives to improve reliability, performance, or both through techniques like striping (parallel access), mirroring (duplication), and parity (mathematical recovery).",
+        "formulas": "RAID 5 Read Time ≈ single drive. RAID 5 Write Time ≈ 4 * single drive (read old data, read old parity, calculate new parity, write new data + parity). Usable capacity = (N-1) * drive_size (for N drives).",
+        "worked_example": "4-drive RAID 5 with 1TB drives each: 3TB usable capacity. Drive 1 fails. Data reconstructed from remaining 3 drives using XOR parity. Total recovery time: ~6 hours (limited by drive I/O speed). During recovery, system is vulnerable (another failure = total loss).",
+        "gantt_chart": "N/A",
+        "interview_questions": [
+          "What is the difference between RAID 0 and RAID 1 in terms of performance and reliability?",
+          "Explain the 'Write Penalty' in RAID 5.",
+          "If you have 8 drives and want both high speed (reading many files) and high reliability (can survive 2 drive failures), what RAID level do you choose?"
+        ],
+        "mcqs": [
+          {
+            "difficulty": "medium",
+            "question": "What is the primary disadvantage of RAID 5?",
+            "options": ["High storage overhead", "Write Penalty due to parity calculation", "No fault tolerance", "Extremely slow read speeds"],
+            "answer": "Write Penalty due to parity calculation",
+            "explanation": "Every write operation in RAID 5 requires reading the old data, reading the old parity, calculating the new parity, and then writing the new data and new parity (the RAID 5 write penalty). This makes RAID 5 slow for write-intensive workloads."
+          },
+          {
+            "difficulty": "hard",
+            "question": "If a RAID 5 array of 8 drives experiences a drive failure, the other drives work together to recover. What is this recovery called?",
+            "options": ["Reconstruction", "Synchronization", "Resync", "Recovery"],
+            "answer": "Reconstruction",
+            "explanation": "The process is called 'Reconstruction' because the OS must read from all remaining drives, calculate the missing parity, and write it to a new drive."
           }
-        },
+        ],
+        "misconceptions": "- **'RAID is a backup'**: RAID protects against hardware failure, not against accidental deletion or corruption. You still need backups. - **'RAID 5 is obsolete'**: Still common for general purpose storage, but RAID 6 (dual parity) is preferred for large arrays (>8 drives) to reduce recovery risk.",
+        "recap": "RAID transforms multiple cheap drives into a reliable, fast storage system that survives individual drive failures.",
+        "next_topic_why": "With reliable storage, the focus shifts to **Access Control**: Who can read/write files? This is **File Permissions and Security**.",
         "linux_mapping": "Linux provides Software RAID via `mdadm` (Multiple Device Administrator). This allows treating standard block devices as RAID arrays without hardware RAID controllers."
       },
       "commands": [
-        { "command": "cat /proc/mdstat", "explanation": "Displays the status of all active software RAID arrays managed by mdadm." }
+        { "command": "cat /proc/mdstat", "explanation": "Displays the status of all active software RAID arrays managed by mdadm." },
+        { "command": "mdadm --create /dev/md0 --level 5 --raid-devices 3 /dev/sda1 /dev/sdb1 /dev/sdc1", "explanation": "Create a RAID 5 array with 3 devices." },
+        { "command": "mdadm --manage /dev/md0 --add /dev/sdd1", "explanation": "Add a new drive to an existing RAID array (for recovery or expansion)." }
       ],
       "placement": {
         "mcqs": [
