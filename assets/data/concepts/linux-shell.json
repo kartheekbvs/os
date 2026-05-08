@@ -127,6 +127,8 @@
       "tags": ["if", "then", "else", "conditional"],
       "content": {
         "why_exists": "Execute different code based on conditions.",
+        "real_world_problem": "A deployment script must install a package only if it is missing, and perform a rollback if the update fails. Without conditionals, the script would blindly rerun commands and could overwrite working systems or leave the environment in an inconsistent state.",
+        "daily_life_analogy": "Conditionals are like **road signs at a fork**. If the sign says 'Left for city, right for highway', you choose the correct route depending on your destination. You don't take the same road every time.",
         "problem": "Script needs to behave differently based on circumstances.",
         "beginner_explanation": "If condition is true, execute then block. Optionally execute else block.",
         "syntax": "if [ condition ]; then commands; fi",
