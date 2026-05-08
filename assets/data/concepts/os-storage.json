@@ -10,7 +10,13 @@
       "title": "Module 5.1: File Allocation Methods - The Physical Reality of Storage",
       "category": "File Systems Fundamentals",
       "difficulty": "Medium",
-      "tags": ["contiguous", "linked", "indexed", "fat", "extents"],
+      "tags": [
+        "contiguous",
+        "linked",
+        "indexed",
+        "fat",
+        "extents"
+      ],
       "content": {
         "why_exists": "A file (e.g., photo.jpg) is a sequence of logical blocks. But physical disk sectors are fragmented and scattered. The OS must keep a **Map** that says 'Logical block 0 is stored in Physical sector 50000, Logical block 1 is in sector 50100, etc.'. Without this mapping, reading a file would be impossible. Different allocation methods make different trade-offs between speed, simplicity, and space efficiency.",
         "real_world_problem": "A video editing workstation has been in use for 2 years. Files are constantly created, edited, and deleted. Once-fast disk access now takes 10x longer because files are heavily fragmented across the disk. The editor spends most of its time waiting for disk seeks instead of processing video. Production deadlines are missed because the workstation is too slow. Worse, if the disk is 95% full, the system can't allocate space even though technically there's room because no contiguous block is large enough.",
@@ -36,7 +42,12 @@
           {
             "difficulty": "medium",
             "question": "Which allocation method suffers from external fragmentation?",
-            "options": ["Indexed", "Linked", "Contiguous", "FAT"],
+            "options": [
+              "Indexed",
+              "Linked",
+              "Contiguous",
+              "FAT"
+            ],
             "answer": "Contiguous",
             "explanation": "Because files must be stored in consecutive blocks, free space becomes chopped into small, unusable chunks over time (external fragmentation)."
           }
@@ -51,7 +62,12 @@
           {
             "difficulty": "medium",
             "question": "Which allocation method suffers from external fragmentation?",
-            "options": ["Indexed", "Linked", "Contiguous", "FAT"],
+            "options": [
+              "Indexed",
+              "Linked",
+              "Contiguous",
+              "FAT"
+            ],
             "answer": "Contiguous",
             "explanation": "Because files must be stored in consecutive blocks, free space becomes chopped into small, unusable chunks over time (external fragmentation)."
           }
@@ -63,7 +79,12 @@
       "title": "Module 5.2: Inodes - The File's True Identity",
       "category": "File System Metadata",
       "difficulty": "Hard",
-      "tags": ["inode", "ext4", "indirect-blocks", "metadata"],
+      "tags": [
+        "inode",
+        "ext4",
+        "indirect-blocks",
+        "metadata"
+      ],
       "content": {
         "why_exists": "A filename like 'photo.jpg' is just a human-readable label. The **true identity** of a file is its Inode Number (e.g., 12345). The Inode is a data structure that stores: (1) **Metadata** (permissions, owner, timestamps), (2) **Block pointers** (where is the file's data on disk), (3) **Type info** (file, directory, symlink). Separating the filename from the inode enables powerful features like hard links (multiple names, same inode) and enables the OS to track files even after renaming.",
         "real_world_problem": "A DevOps engineer accidentally runs 'ln /important/file /backup/file' creating a hard link. Later, thinking the original is safely backed up, they delete /important/file. To their horror, both the original and the 'backup' are gone because they pointed to the same inode. If the link count hits zero, the data is freed. Understanding inodes prevents catastrophic data loss.",
@@ -88,7 +109,12 @@
         "mcqs": [
           {
             "question": "Two hard links (different names) point to the same file. How many inodes exist?",
-            "options": ["0", "1", "2", "Depends on the filesystem"],
+            "options": [
+              "0",
+              "1",
+              "2",
+              "Depends on the filesystem"
+            ],
             "answer": "1",
             "explanation": "Hard links are multiple directory entries pointing to the SAME inode. The inode has a reference count (2 in this case)."
           }
@@ -100,9 +126,18 @@
         "linux_mapping": "Ext4 abandoned indirect blocks in favor of Extent Trees for performance, though the fundamental inode structure (metadata separation) remains. You can view a file's inode number using `ls -i` or full metadata using `stat`."
       },
       "commands": [
-        { "command": "stat /etc/passwd", "explanation": "Displays the exact inode number, size, blocks allocated, IO Block size, and timestamps." },
-        { "command": "df -i", "explanation": "Displays inode usage per mounted filesystem. Running out of inodes means you cannot create new files, even if space is available." },
-        { "command": "ls -i", "explanation": "Lists files with their inode numbers, useful for tracking hard links." }
+        {
+          "command": "stat /etc/passwd",
+          "explanation": "Displays the exact inode number, size, blocks allocated, IO Block size, and timestamps."
+        },
+        {
+          "command": "df -i",
+          "explanation": "Displays inode usage per mounted filesystem. Running out of inodes means you cannot create new files, even if space is available."
+        },
+        {
+          "command": "ls -i",
+          "explanation": "Lists files with their inode numbers, useful for tracking hard links."
+        }
       ]
     },
     {
@@ -110,7 +145,14 @@
       "title": "Module 5.3: Disk Scheduling Algorithms - Optimizing the Mechanical Beast",
       "category": "Storage Performance",
       "difficulty": "Hard",
-      "tags": ["fcfs", "sstf", "scan", "c-scan", "look", "seek-time"],
+      "tags": [
+        "fcfs",
+        "sstf",
+        "scan",
+        "c-scan",
+        "look",
+        "seek-time"
+      ],
       "content": {
         "why_exists": "Hard disks have a **physical read-head** that must physically move to the correct cylinder (seek), wait for the disk to rotate (rotational latency), and then read the data (transfer time). Seek time dominates (~10ms), dwarfing rotational latency (~4ms for 15k RPM) and transfer time (~0.1ms for large blocks). If the OS services disk requests in random order, the head will bounce all over the disk like a pinball machine, seeking constantly. Disk scheduling algorithms order the requests to minimize total seek distance.",
         "real_world_problem": "A database server with 10,000 queries per second issues disk requests that are queued randomly. The disk head jumps chaotically from cylinder 0 to 5000 to 100 to 4999, spending 99% of its time seeking. Query latency balloons from 10ms to 100ms+, causing timeouts. After implementing intelligent disk scheduling (SCAN algorithm), latency drops to 15ms and throughput increases by 5x without upgrading hardware.",
@@ -135,7 +177,12 @@
         "mcqs": [
           {
             "question": "Which disk scheduling algorithm minimizes starvation and provides the most uniform wait times?",
-            "options": ["FCFS", "SSTF", "C-SCAN", "LOOK"],
+            "options": [
+              "FCFS",
+              "SSTF",
+              "C-SCAN",
+              "LOOK"
+            ],
             "answer": "C-SCAN",
             "explanation": "C-SCAN services all requests in one direction, then returns to the start WITHOUT servicing requests on the return. This ensures no request waits for a full cycle."
           }
@@ -148,13 +195,34 @@
       "interactive_simulator": {
         "type": "Disk Scheduling Visualizer",
         "config": {
-          "initialState": { "head": 50, "requests": [98, 183, 37, 122, 14], "maxCylinder": 200 },
-          "algorithms": ["FCFS", "SCAN", "C-SCAN", "LOOK"]
+          "initialState": {
+            "head": 50,
+            "requests": [
+              98,
+              183,
+              37,
+              122,
+              14
+            ],
+            "maxCylinder": 200
+          },
+          "algorithms": [
+            "FCFS",
+            "SCAN",
+            "C-SCAN",
+            "LOOK"
+          ]
         }
       },
       "commands": [
-        { "command": "cat /sys/block/sda/queue/scheduler", "explanation": "Shows the currently loaded block I/O scheduler for disk sda." },
-        { "command": "echo kyber > /sys/block/sda/queue/scheduler", "explanation": "Change the scheduler to 'kyber' (requires root). Other options: mq-deadline, bfq, noop." }
+        {
+          "command": "cat /sys/block/sda/queue/scheduler",
+          "explanation": "Shows the currently loaded block I/O scheduler for disk sda."
+        },
+        {
+          "command": "echo kyber > /sys/block/sda/queue/scheduler",
+          "explanation": "Change the scheduler to 'kyber' (requires root). Other options: mq-deadline, bfq, noop."
+        }
       ]
     },
     {
@@ -162,7 +230,14 @@
       "title": "Module 5.4: RAID Architectures - Combining Disks for Power",
       "category": "Storage Reliability & Performance",
       "difficulty": "Medium",
-      "tags": ["raid0", "raid1", "raid5", "raid10", "parity", "striping"],
+      "tags": [
+        "raid0",
+        "raid1",
+        "raid5",
+        "raid10",
+        "parity",
+        "striping"
+      ],
       "content": {
         "why_exists": "A single hard drive fails ~every 5-10 years. With 100 servers, you expect one failure every month. When failure happens, you lose everything (unless backups exist, which are slow). RAID (Redundant Array of Independent Disks) is the answer: use **multiple drives** working together. (1) **Reliability:** Mirror data across drives so a single failure doesn't lose data. (2) **Performance:** Stripe data across drives so multiple drives read simultaneously (parallel reads).",
         "hardware_limitation": "The **Parity Problem**. To add redundancy, you need 'spare' drives (RAID 1: 100% overhead, 2 drives for 1 drive of usable space) or parity calculations (RAID 5: 20% overhead, 1 drive of parity per 4 drives of data). Both reduce usable capacity and add computational cost.",
@@ -186,14 +261,24 @@
           {
             "difficulty": "medium",
             "question": "What is the primary disadvantage of RAID 5?",
-            "options": ["High storage overhead", "Write Penalty due to parity calculation", "No fault tolerance", "Extremely slow read speeds"],
+            "options": [
+              "High storage overhead",
+              "Write Penalty due to parity calculation",
+              "No fault tolerance",
+              "Extremely slow read speeds"
+            ],
             "answer": "Write Penalty due to parity calculation",
             "explanation": "Every write operation in RAID 5 requires reading the old data, reading the old parity, calculating the new parity, and then writing the new data and new parity (the RAID 5 write penalty). This makes RAID 5 slow for write-intensive workloads."
           },
           {
             "difficulty": "hard",
             "question": "If a RAID 5 array of 8 drives experiences a drive failure, the other drives work together to recover. What is this recovery called?",
-            "options": ["Reconstruction", "Synchronization", "Resync", "Recovery"],
+            "options": [
+              "Reconstruction",
+              "Synchronization",
+              "Resync",
+              "Recovery"
+            ],
             "answer": "Reconstruction",
             "explanation": "The process is called 'Reconstruction' because the OS must read from all remaining drives, calculate the missing parity, and write it to a new drive."
           }
@@ -201,19 +286,35 @@
         "misconceptions": "- **'RAID is a backup'**: RAID protects against hardware failure, not against accidental deletion or corruption. You still need backups. - **'RAID 5 is obsolete'**: Still common for general purpose storage, but RAID 6 (dual parity) is preferred for large arrays (>8 drives) to reduce recovery risk.",
         "recap": "RAID transforms multiple cheap drives into a reliable, fast storage system that survives individual drive failures.",
         "next_topic_why": "With reliable storage, the focus shifts to **Access Control**: Who can read/write files? This is **File Permissions and Security**.",
-        "linux_mapping": "Linux provides Software RAID via `mdadm` (Multiple Device Administrator). This allows treating standard block devices as RAID arrays without hardware RAID controllers."
+        "linux_mapping": "Linux provides Software RAID via `mdadm` (Multiple Device Administrator). This allows treating standard block devices as RAID arrays without hardware RAID controllers.",
+        "real_world_problem": "A data center stores critical customer information that cannot be lost. RAID systems provide redundancy so that if one hard drive fails, the data remains accessible and the system continues operating without downtime.",
+        "daily_life_analogy": "RAID is like **having multiple backup generators for a hospital**. If one generator fails during a power outage, others automatically take over, ensuring life-support systems never lose power."
       },
       "commands": [
-        { "command": "cat /proc/mdstat", "explanation": "Displays the status of all active software RAID arrays managed by mdadm." },
-        { "command": "mdadm --create /dev/md0 --level 5 --raid-devices 3 /dev/sda1 /dev/sdb1 /dev/sdc1", "explanation": "Create a RAID 5 array with 3 devices." },
-        { "command": "mdadm --manage /dev/md0 --add /dev/sdd1", "explanation": "Add a new drive to an existing RAID array (for recovery or expansion)." }
+        {
+          "command": "cat /proc/mdstat",
+          "explanation": "Displays the status of all active software RAID arrays managed by mdadm."
+        },
+        {
+          "command": "mdadm --create /dev/md0 --level 5 --raid-devices 3 /dev/sda1 /dev/sdb1 /dev/sdc1",
+          "explanation": "Create a RAID 5 array with 3 devices."
+        },
+        {
+          "command": "mdadm --manage /dev/md0 --add /dev/sdd1",
+          "explanation": "Add a new drive to an existing RAID array (for recovery or expansion)."
+        }
       ],
       "placement": {
         "mcqs": [
           {
             "difficulty": "medium",
             "question": "What is the primary disadvantage of RAID 5?",
-            "options": ["High storage overhead", "Write Penalty due to parity calculation", "No fault tolerance", "Extremely slow read speeds"],
+            "options": [
+              "High storage overhead",
+              "Write Penalty due to parity calculation",
+              "No fault tolerance",
+              "Extremely slow read speeds"
+            ],
             "answer": "Write Penalty due to parity calculation",
             "explanation": "Every write operation in RAID 5 requires reading the old data, reading the old parity, calculating the new parity, and then writing the new data and new parity (the RAID 5 write penalty)."
           }

@@ -10,7 +10,13 @@
       "title": "Module 6.1: Linux File Permissions & ACLs - The Foundation of Access Control",
       "category": "Discretionary Access Control (DAC)",
       "difficulty": "Easy",
-      "tags": ["chmod", "rwx", "chown", "acl", "umask"],
+      "tags": [
+        "chmod",
+        "rwx",
+        "chown",
+        "acl",
+        "umask"
+      ],
       "content": {
         "why_exists": "The **Sharing Problem**. A multi-user system has multiple people using the same machine. Alice's budget spreadsheet should not be readable by Bob, and Bob's SSH keys should not be accessible to Charlie. The OS needs a mechanism to attach 'Permissions' to every file and directory, specifying who can read, write, and execute what.",
         "real_world_problem": "A cloud hosting company has 1000 users on a shared server. A customer's configuration file contains database credentials. Without proper permissions, any other user on the server could read the file and steal access to their database. Incorrect permissions have caused billions in data breaches and compromise.",
@@ -35,7 +41,12 @@
         "mcqs": [
           {
             "question": "What does chmod 755 mean?",
-            "options": ["Owner can do anything, others can't touch it", "Owner: rwx, Group: rx, Others: rx", "Everyone can do anything", "No permissions for anyone"],
+            "options": [
+              "Owner can do anything, others can't touch it",
+              "Owner: rwx, Group: rx, Others: rx",
+              "Everyone can do anything",
+              "No permissions for anyone"
+            ],
             "answer": "Owner: rwx, Group: rx, Others: rx",
             "explanation": "7 = read (4) + write (2) + execute (1). 5 = read + execute. So owner has full access, group and others can read and execute but not write."
           }
@@ -46,10 +57,22 @@
         "linux_mapping": "POSIX Access Control Lists (setfacl, getfacl) extend this basic model to allow assigning permissions to specific users outside the owner/group paradigm."
       },
       "commands": [
-        { "command": "chmod 755 script.sh", "explanation": "Sets permissions to rwxr-xr-x (Owner: full, others: read and execute only)." },
-        { "command": "chown user:group file.txt", "explanation": "Changes the owner and group of a file." },
-        { "command": "umask 0077", "explanation": "Sets the default permission mask for new files (new files will be rw------- by default)." },
-        { "command": "getfacl file.txt", "explanation": "Displays the extended Access Control List for a file." }
+        {
+          "command": "chmod 755 script.sh",
+          "explanation": "Sets permissions to rwxr-xr-x (Owner: full, others: read and execute only)."
+        },
+        {
+          "command": "chown user:group file.txt",
+          "explanation": "Changes the owner and group of a file."
+        },
+        {
+          "command": "umask 0077",
+          "explanation": "Sets the default permission mask for new files (new files will be rw------- by default)."
+        },
+        {
+          "command": "getfacl file.txt",
+          "explanation": "Displays the extended Access Control List for a file."
+        }
       ]
     },
     {
@@ -57,7 +80,12 @@
       "title": "Module 6.2: Buffer Overflows & Memory Corruption - The Classic Attack",
       "category": "Memory Safety Vulnerability",
       "difficulty": "Hard",
-      "tags": ["stack-smashing", "return-address", "strcpy", "shellcode"],
+      "tags": [
+        "stack-smashing",
+        "return-address",
+        "strcpy",
+        "shellcode"
+      ],
       "content": {
         "why_exists": "Languages like C/C++ give programmers **complete control** over memory but no automatic bounds checking. A programmer can write past the end of a buffer, corrupting adjacent memory. This is not a bug in the OS; it's a bug in the program. But the OS must deal with the consequences when exploited.",
         "real_world_problem": "A popular web server software has a 1-line bug in a network handler. User input is copied into a 256-byte buffer without bounds checking. An attacker crafts a specially designed network packet with 1000 bytes of malicious data. The overflow writes shellcode over the return address, redirecting execution to attacker code that spawns a shell. The web server, running as root, now gives the attacker complete system access.",
@@ -82,7 +110,12 @@
         "mcqs": [
           {
             "question": "Which function is MOST dangerous for buffer overflows?",
-            "options": ["strncpy()", "sprintf()", "gets()", "All of the above"],
+            "options": [
+              "strncpy()",
+              "sprintf()",
+              "gets()",
+              "All of the above"
+            ],
             "answer": "gets()",
             "explanation": "gets() reads input with NO limit, making it impossible to safely use. sprintf() and strcpy() are dangerous if not careful, but strncpy() requires a size limit (safer)."
           }
@@ -97,8 +130,14 @@
         }
       },
       "commands": [
-        { "command": "gcc -fstack-protector-all program.c", "explanation": "Enable stack canaries (most programs use this by default now)." },
-        { "command": "checksec --file=./program", "explanation": "Check which security mitigations are enabled (canary, NX, ASLR, etc.)." }
+        {
+          "command": "gcc -fstack-protector-all program.c",
+          "explanation": "Enable stack canaries (most programs use this by default now)."
+        },
+        {
+          "command": "checksec --file=./program",
+          "explanation": "Check which security mitigations are enabled (canary, NX, ASLR, etc.)."
+        }
       ]
     },
     {
@@ -106,7 +145,13 @@
       "title": "Module 6.3: OS Memory Protections - ASLR & NX Bits",
       "category": "Defense Mechanisms",
       "difficulty": "Hard",
-      "tags": ["aslr", "nx-bit", "dep", "stack-canary", "rop"],
+      "tags": [
+        "aslr",
+        "nx-bit",
+        "dep",
+        "stack-canary",
+        "rop"
+      ],
       "content": {
         "why_exists": "Buffer overflows are inevitable (programmers will make mistakes). Rather than trying to prevent them entirely, modern OSes provide **probabilistic defenses** that make exploitation exponentially harder. The two main pillars are: (1) **NX Bit (No Execute):** The OS marks memory pages as 'Code Only' or 'Data Only', preventing execution of data. Even if an attacker injects shellcode into a buffer, the CPU refuses to execute it. (2) **ASLR (Address Space Layout Randomization):** Every time a program starts, its stack, heap, and libraries load at **different addresses**. This makes hardcoding jump addresses impossible—a shellcode designed for one run won't work for the next.",
         "hardware_limitation": "The **NX-Bit Availability:** Only modern CPUs support the NX bit (Intel XD, AMD NX). Older systems lacked this hardware feature, making DEP impossible. ASLR is software-based, so it works on any CPU, but adds memory fragmentation overhead.",
@@ -129,7 +174,12 @@
         "mcqs": [
           {
             "question": "Can an attacker execute shellcode from the stack if NX is enabled?",
-            "options": ["Yes, always", "No, the NX bit prevents execution", "Only if ASLR is disabled", "Only in kernel mode"],
+            "options": [
+              "Yes, always",
+              "No, the NX bit prevents execution",
+              "Only if ASLR is disabled",
+              "Only in kernel mode"
+            ],
             "answer": "No, the NX bit prevents execution",
             "explanation": "The NX bit marks data pages as non-executable. The CPU's MMU enforces this, preventing instruction fetch from data pages."
           }
@@ -137,12 +187,23 @@
         "misconceptions": "- **'NX + ASLR makes the system unbreakable'**: No. These are defenses that raise the bar. Skilled attackers use info leaks, side channels, and logic bugs to bypass them. - **'ASLR randomizes all addresses equally'**: False. Some regions (libraries) have predictable patterns if you know the OS version.",
         "recap": "NX and ASLR transform buffer overflow exploits from trivial to nearly-impossible, saving millions of systems from compromise.",
         "next_topic_why": "Even with these defenses, a compromised user process can still read all the files that user owns. For stronger isolation between different security domains, the OS needs **Mandatory Access Control (MAC)**.",
-        "linux_mapping": "Linux ASLR is controlled globally via `/proc/sys/kernel/randomize_va_space`. Value 0 = disabled, 1 = stack/vdso, 2 = heap as well."
+        "linux_mapping": "Linux ASLR is controlled globally via `/proc/sys/kernel/randomize_va_space`. Value 0 = disabled, 1 = stack/vdso, 2 = heap as well.",
+        "real_world_problem": "A web browser vulnerability allows malicious websites to read sensitive data from other tabs. Memory protection prevents one process from accessing another process's memory, containing the damage from security breaches.",
+        "daily_life_analogy": "Memory protections are like **apartment walls in a building**. Each tenant (process) can only access their own apartment (memory space). Even if someone breaks into one apartment, they can't automatically enter others."
       },
       "commands": [
-        { "command": "cat /proc/sys/kernel/randomize_va_space", "explanation": "Check if ASLR is enabled (0 = disabled, 1 = stack, 2 = full)." },
-        { "command": "echo 2 | sudo tee /proc/sys/kernel/randomize_va_space", "explanation": "Enable full ASLR system-wide." },
-        { "command": "checksec --file=./program", "explanation": "Check if NX is enabled (shows 'NX enabled' or 'NX disabled')." }
+        {
+          "command": "cat /proc/sys/kernel/randomize_va_space",
+          "explanation": "Check if ASLR is enabled (0 = disabled, 1 = stack, 2 = full)."
+        },
+        {
+          "command": "echo 2 | sudo tee /proc/sys/kernel/randomize_va_space",
+          "explanation": "Enable full ASLR system-wide."
+        },
+        {
+          "command": "checksec --file=./program",
+          "explanation": "Check if NX is enabled (shows 'NX enabled' or 'NX disabled')."
+        }
       ]
     },
     {
@@ -150,7 +211,14 @@
       "title": "Module 6.4: Mandatory Access Control - SELinux & AppArmor",
       "category": "Mandatory Access Control (MAC)",
       "difficulty": "Hard",
-      "tags": ["selinux", "apparmor", "mac", "dac", "labels", "contexts"],
+      "tags": [
+        "selinux",
+        "apparmor",
+        "mac",
+        "dac",
+        "labels",
+        "contexts"
+      ],
       "content": {
         "why_exists": "**DAC has a Fatal Flaw:** If a user's process gets compromised (e.g., a PDF reader with a buffer overflow), the attacker inherits all of that user's privileges. They can read that user's SSH keys, steal their emails, and use their credentials to access company servers. Mandatory Access Control (MAC) removes discretion from the user: the OS, not the user, decides which processes can access what. Even if a web server gets hacked, the OS prevents it from reading SSH keys (because the policy forbids it, period).",
         "hardware_limitation": "The **SELinux Performance Cost:** Checking SELinux labels on every file access incurs ~5-10% overhead on policy-checking-heavy workloads. This deterred adoption initially. Modern Linux has reduced this to 1-2%.",
@@ -173,7 +241,12 @@
         "mcqs": [
           {
             "question": "What happens if traditional Linux permissions (DAC) allow access but SELinux policy forbids it?",
-            "options": ["Access is allowed (DAC takes precedence)", "Access is denied (MAC is checked second)", "The system logs a warning and grants access", "SELinux is ignored if DAC allows it"],
+            "options": [
+              "Access is allowed (DAC takes precedence)",
+              "Access is denied (MAC is checked second)",
+              "The system logs a warning and grants access",
+              "SELinux is ignored if DAC allows it"
+            ],
             "answer": "Access is denied (MAC is checked second)",
             "explanation": "DAC is checked first. If it fails, access is denied. If DAC passes, MAC is checked. Both must pass for access to be granted."
           }
@@ -181,13 +254,27 @@
         "misconceptions": "- **'SELinux is only for paranoid security experts'**: It's increasingly standard (enabled by default on Red Hat, Fedora, CentOS). Most users don't notice it. - **'Disabling SELinux improves performance'**: Modern SELinux has negligible overhead. Disabling it for 'speed' is a myth.",
         "recap": "MAC is the 'belt and suspenders' of security: even if DAC is bypassed, MAC can still prevent exploitation.",
         "next_topic_why": "With file permissions and mandatory access control in place, the system has strong foundational security. But security is never 'done'—continuous monitoring and updates are essential.",
-        "linux_mapping": "You can view SELinux contexts using the '-Z' flag: `ls -Z`, `ps -Z`. SELinux status is checked via `sestatus`. Enforcing mode = blocks violations, Permissive mode = logs but allows."
+        "linux_mapping": "You can view SELinux contexts using the '-Z' flag: `ls -Z`, `ps -Z`. SELinux status is checked via `sestatus`. Enforcing mode = blocks violations, Permissive mode = logs but allows.",
+        "real_world_problem": "In a corporate network, different users need different levels of access to sensitive files. Mandatory Access Control ensures that even privileged users cannot bypass security policies set by administrators.",
+        "daily_life_analogy": "MAC is like **government security clearances**. A top-secret clearance holder cannot access classified documents, and a confidential clearance holder cannot access top-secret ones, regardless of their position or authority."
       },
       "commands": [
-        { "command": "ls -Z /var/www/html", "explanation": "Displays the SELinux security context of files." },
-        { "command": "ps -Z | grep apache", "explanation": "Shows the security context of running Apache processes." },
-        { "command": "sestatus", "explanation": "Displays SELinux status (Enforcing, Permissive, or Disabled)." },
-        { "command": "semanage fcontext -a -t httpd_sys_content_t '/var/www/html(/.*)?'", "explanation": "Permanently change the SELinux context for web content directories." }
+        {
+          "command": "ls -Z /var/www/html",
+          "explanation": "Displays the SELinux security context of files."
+        },
+        {
+          "command": "ps -Z | grep apache",
+          "explanation": "Shows the security context of running Apache processes."
+        },
+        {
+          "command": "sestatus",
+          "explanation": "Displays SELinux status (Enforcing, Permissive, or Disabled)."
+        },
+        {
+          "command": "semanage fcontext -a -t httpd_sys_content_t '/var/www/html(/.*)?'",
+          "explanation": "Permanently change the SELinux context for web content directories."
+        }
       ]
     }
   ]

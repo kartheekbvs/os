@@ -11,7 +11,12 @@
       "title": "Module 1.1: What is an Operating System?",
       "category": "Foundations",
       "difficulty": "Easy",
-      "tags": ["resource-manager", "extended-machine", "abstraction", "hardware-mediation"],
+      "tags": [
+        "resource-manager",
+        "extended-machine",
+        "abstraction",
+        "hardware-mediation"
+      ],
       "content": {
         "why_exists": "An Operating System is the 'Great Coordinator' of the digital universe. Without it, computer hardware is just a collection of inert silicon, metal, and plastic. The OS exists to solve the **'Bare Metal Complexity'** problem: imagine if every software developer had to write code to calculate the exact magnetic sector geometry of a hard drive or the electrical voltage timing of a DDR5 RAM stick just to save a 'Hello World' file. The OS provides a stable, uniform, and simplified environment (an 'Extended Machine') where software can flourish regardless of the underlying physical components. It abstracts away the 'messy' reality of hardware into clean concepts like 'files', 'windows', and 'processes'.",
         "real_world_problem": "Consider the **'Tragedy of the Commons'** in computing. Imagine a shared office with one printer, one internet line, and one coffee machine, but 100 workers. If everyone rushes for the printer at once without a manager, the device jams or prints garbled pages. In a computer, 'workers' are programs like Chrome, Zoom, and Photoshop. If they both try to send data to the network card or write to the same spot in RAM simultaneously, the system would instantly crash or corrupt your data. The OS is the **Resource Manager** that ensures every program gets its fair slice of the CPU, its protected block of RAM, and its turn on the network without interfering with others.",
@@ -54,7 +59,12 @@
       "title": "Module 1.2: The Core Functions of an OS",
       "category": "Foundations",
       "difficulty": "Easy",
-      "tags": ["cpu-management", "memory-management", "file-system", "protection"],
+      "tags": [
+        "cpu-management",
+        "memory-management",
+        "file-system",
+        "protection"
+      ],
       "content": {
         "why_exists": "If the OS is the 'Manager', then its functions are its 'Departments'. Without clear departmentalization, the OS would be a disorganized mess. By splitting responsibilities into five core areas, the OS ensures that even if one area (like the File System) is busy, the others (like CPU Scheduling) can keep the machine responsive.",
         "real_world_problem": "Imagine your CPU has **4 Cores**, but you have **120 Processes** running (Chrome, Spotify, Windows Updates, Drivers, etc.). Without **Processor Management**, the first app to start would hog the CPU forever, and your mouse would never move again. Without **Memory Management**, Spotify might accidentally 'read' your bank password from Chrome's RAM space. These functions are the 'Laws and Physics' of the digital world.",
@@ -97,7 +107,11 @@
       "title": "Evolution: Batch Operating Systems",
       "category": "Foundations",
       "difficulty": "Medium",
-      "tags": ["historical", "jcl", "throughput"],
+      "tags": [
+        "historical",
+        "jcl",
+        "throughput"
+      ],
       "content": {
         "why_exists": "In the early days of computing, CPUs were incredibly expensive while humans were relatively cheap. It was considered a 'sin' to let a CPU sit idle while a human slowly typed commands or loaded paper tapes. Batch systems were created to automate the transition between jobs, ensuring the CPU spent every possible millisecond calculating.",
         "real_world_problem": "Without a batch system, a programmer would physically carry their punch cards to the machine, set it up, run the code, see the error, and leave. The machine would sit idle for 20 minutes while the next person walked into the room. This was a 90% waste of expensive hardware.",
@@ -119,7 +133,10 @@
       },
       "diagram": {
         "type": "layer-stack",
-        "nodes": ["Resident Monitor", "User Job"]
+        "nodes": [
+          "Resident Monitor",
+          "User Job"
+        ]
       }
     },
     {
@@ -127,7 +144,11 @@
       "title": "Evolution: Multiprogramming Systems",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["utilization", "context-switch", "io-bound"],
+      "tags": [
+        "utilization",
+        "context-switch",
+        "io-bound"
+      ],
       "content": {
         "why_exists": "CPUs are millions of times faster than disk drives. In a Batch system, if a job needed to read a file, the CPU would stop and wait for the slow disk (stalling). Multiprogramming was invented to keep the CPU busy by having *multiple* jobs in memory at once. If Job A waits for I/O, the OS immediately switches the CPU to Job B.",
         "real_world_problem": "A high-speed chef (CPU) is cooking a 5-course meal. If they wait 10 minutes for the water to boil before starting the next step, the meal takes hours. Multiprogramming is the chef starting the soup, and while the water boils, they start chopping vegetables for the main course.",
@@ -150,8 +171,40 @@
       "diagram": {
         "type": "timeline",
         "jobs": [
-          { "id": "Job A", "segments": [{ "len": 100, "type": "cpu" }, { "len": 150, "type": "io" }, { "len": 50, "type": "cpu" }] },
-          { "id": "Job B", "segments": [{ "len": 0, "type": "io" }, { "len": 100, "type": "cpu" }, { "len": 50, "type": "io" }] }
+          {
+            "id": "Job A",
+            "segments": [
+              {
+                "len": 100,
+                "type": "cpu"
+              },
+              {
+                "len": 150,
+                "type": "io"
+              },
+              {
+                "len": 50,
+                "type": "cpu"
+              }
+            ]
+          },
+          {
+            "id": "Job B",
+            "segments": [
+              {
+                "len": 0,
+                "type": "io"
+              },
+              {
+                "len": 100,
+                "type": "cpu"
+              },
+              {
+                "len": 50,
+                "type": "io"
+              }
+            ]
+          }
         ]
       }
     },
@@ -160,7 +213,11 @@
       "title": "Evolution: Time Sharing Systems",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["responsiveness", "timeslice", "interactive"],
+      "tags": [
+        "responsiveness",
+        "timeslice",
+        "interactive"
+      ],
       "content": {
         "why_exists": "While Multiprogramming made the CPU efficient, it was 'selfish'. If a 10-hour job started, no one else could use the computer for 10 hours. Time Sharing (Multitasking) was invented to prioritize **User Responsiveness**. The goal shifted from 'Keeping the CPU busy' to 'Keeping the User happy'.",
         "real_world_problem": "A professor is grading 50 exams. If they grade the first student's entire exam (Batch) before looking at the second, the 50th student waits all day for a simple 'Pass/Fail' check. In Time Sharing, the professor gets one page per student in a circle, so every student sees progress every few minutes.",
@@ -183,8 +240,40 @@
       "diagram": {
         "type": "timeline",
         "jobs": [
-          { "id": "User 1", "segments": [{ "len": 30, "type": "cpu" }, { "len": 10, "type": "switch" }, { "len": 30, "type": "cpu" }] },
-          { "id": "User 2", "segments": [{ "len": 0, "type": "cpu" }, { "len": 30, "type": "cpu" }, { "len": 10, "type": "switch" }] }
+          {
+            "id": "User 1",
+            "segments": [
+              {
+                "len": 30,
+                "type": "cpu"
+              },
+              {
+                "len": 10,
+                "type": "switch"
+              },
+              {
+                "len": 30,
+                "type": "cpu"
+              }
+            ]
+          },
+          {
+            "id": "User 2",
+            "segments": [
+              {
+                "len": 0,
+                "type": "cpu"
+              },
+              {
+                "len": 30,
+                "type": "cpu"
+              },
+              {
+                "len": 10,
+                "type": "switch"
+              }
+            ]
+          }
         ]
       },
       "interactive_simulator": {
@@ -199,7 +288,12 @@
       "title": "Evolution: Real-Time Operating Systems",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["rtos", "hard-real-time", "soft-real-time", "embedded"],
+      "tags": [
+        "rtos",
+        "hard-real-time",
+        "soft-real-time",
+        "embedded"
+      ],
       "content": {
         "why_exists": "Certain applications (e.g., aircraft control, medical devices) require guarantees that critical code finishes before a strict deadline. A Real‑Time OS exists to provide deterministic scheduling and bounded latency, turning a general‑purpose computer into a reliable time‑keeper.",
         "hardware_limitation": "Standard OS schedulers are probabilistic; they cannot guarantee that an interrupt will be serviced within a known microsecond window because CPU speed varies and I/O latency is unpredictable. Dedicated timer hardware and priority‑based interrupt handling were needed.",
@@ -217,12 +311,31 @@
           "How does a watchdog timer improve system reliability?"
         ],
         "mcqs": [
-          {"question": "A hard‑real‑time system must guarantee that a deadline is met:", "options": ["Never missed", "Usually met", "May be missed occasionally", "Only under low load"], "answer": "Never missed"},
-          {"question": "Which hardware component is essential for deterministic interrupt handling?", "options": ["DMA controller", "APIC/Interrupt Controller", "GPU", "Network card"], "answer": "APIC/Interrupt Controller"}
+          {
+            "question": "A hard‑real‑time system must guarantee that a deadline is met:",
+            "options": [
+              "Never missed",
+              "Usually met",
+              "May be missed occasionally",
+              "Only under low load"
+            ],
+            "answer": "Never missed"
+          },
+          {
+            "question": "Which hardware component is essential for deterministic interrupt handling?",
+            "options": [
+              "DMA controller",
+              "APIC/Interrupt Controller",
+              "GPU",
+              "Network card"
+            ],
+            "answer": "APIC/Interrupt Controller"
+          }
         ],
         "common_misconceptions": "- **'Real‑Time = Fast'**: Not always; a system can be fast but not meet strict deadlines. - **'RTOS only for embedded'**: Modern servers also use real‑time kernels for high‑frequency trading.",
         "mini_recap": "Real‑Time OSes trade raw throughput for provable timing guarantees, enabling safety‑critical applications.",
-        "next_topic_why": "After mastering deterministic scheduling, the next frontier is coordinating multiple machines across a network – Distributed Operating Systems."
+        "next_topic_why": "After mastering deterministic scheduling, the next frontier is coordinating multiple machines across a network – Distributed Operating Systems.",
+        "real_world_problem": "An industrial control system must respond to sensor inputs within milliseconds to prevent machinery damage or safety hazards. Real-time operating systems ensure predictable response times for critical timing requirements."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -238,7 +351,12 @@
       "title": "Evolution: Distributed Operating Systems",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["distributed", "transparency", "network", "cluster"],
+      "tags": [
+        "distributed",
+        "transparency",
+        "network",
+        "cluster"
+      ],
       "content": {
         "why_exists": "A single machine cannot scale indefinitely; workloads grew beyond one CPU, memory, and storage node. Distributed OSes provide a unified abstraction over many networked machines, making a cluster appear as a single logical system.",
         "hardware_limitation": "Physical limits of memory, I/O bandwidth, and fault tolerance of a single box; network latency and unreliable links require coordination across nodes.",
@@ -256,12 +374,31 @@
           "How does the CAP theorem relate to distributed OS design?"
         ],
         "mcqs": [
-          {"question": "Which protocol is commonly used for remote procedure calls in distributed OSes?", "options": ["HTTP", "RPC over TCP", "SMTP", "FTP"], "answer": "RPC over TCP"},
-          {"question": "In a distributed system, which property ensures that all nodes see the same order of operations?", "options": ["Consistency", "Availability", "Partition tolerance", "Scalability"], "answer": "Consistency"}
+          {
+            "question": "Which protocol is commonly used for remote procedure calls in distributed OSes?",
+            "options": [
+              "HTTP",
+              "RPC over TCP",
+              "SMTP",
+              "FTP"
+            ],
+            "answer": "RPC over TCP"
+          },
+          {
+            "question": "In a distributed system, which property ensures that all nodes see the same order of operations?",
+            "options": [
+              "Consistency",
+              "Availability",
+              "Partition tolerance",
+              "Scalability"
+            ],
+            "answer": "Consistency"
+          }
         ],
         "common_misconceptions": "- **'Distributed = Always Faster'**: Network overhead can make simple tasks slower than on a single machine. - **'Failure does not matter'**: Without proper replication, a single node crash can lose data.",
         "mini_recap": "Distributed OSes turn many machines into a cohesive, fault‑tolerant system, trading latency for scalability and resilience.",
-        "next_topic_why": "Having unified many nodes, the next challenge is how the OS protects processes and resources – the privilege boundary we already covered."
+        "next_topic_why": "Having unified many nodes, the next challenge is how the OS protects processes and resources – the privilege boundary we already covered.",
+        "real_world_problem": "A global e-commerce platform needs to coordinate inventory across multiple warehouses worldwide. Distributed operating systems manage resources across geographically separated computers as if they were a single system."
       },
       "interactive_simulator": {
         "type": "Race Condition Simulator",
@@ -276,7 +413,13 @@
       "title": "The Privilege Boundary: User Mode vs Kernel Mode",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["protection", "dual-mode", "ring-0", "ring-3", "privilege"],
+      "tags": [
+        "protection",
+        "dual-mode",
+        "ring-0",
+        "ring-3",
+        "privilege"
+      ],
       "content": {
         "why_exists": "Without a boundary, any application could accidentally or maliciously execute a 'Halt' instruction, wipe the hard drive, or read another user's passwords. The Kernel is the only 'Trusted' entity that can perform dangerous operations. User Mode creates a sandbox where applications can play safely without ruining the machine for everyone else.",
         "what_hardware_problem_caused_it": "Early CPUs (like the Intel 8086) had no 'privilege levels'. Every program had total control over every wire and memory address. If one program crashed, the whole computer died. To fix this, hardware architects added 'Mode Bits' to the CPU's internal state to restrict what instructions could be run based on the current mode.",
@@ -297,18 +440,29 @@
         "mcqs": [
           {
             "question": "Which instruction is likely to be privileged?",
-            "options": ["ADD EAX, EBX", "MOV [Memory], 10", "IN AL, 0x60 (Read Hardware Port)", "JMP Label"],
+            "options": [
+              "ADD EAX, EBX",
+              "MOV [Memory], 10",
+              "IN AL, 0x60 (Read Hardware Port)",
+              "JMP Label"
+            ],
             "answer": "IN AL, 0x60 (Read Hardware Port)"
           },
           {
             "question": "Which Ring usually hosts the Operating System Kernel?",
-            "options": ["Ring 3", "Ring 0", "Ring 1", "Ring 4"],
+            "options": [
+              "Ring 3",
+              "Ring 0",
+              "Ring 1",
+              "Ring 4"
+            ],
             "answer": "Ring 0"
           }
         ],
         "common_misconceptions": "- **'User Mode is just a software setting'**: No, it is a physical hardware state enforced by the CPU circuitry.\n- **'Kernel mode is faster'**: Not inherently. It just has more power. In fact, some kernel code is slower because it has to be extremely cautious.",
         "mini_recap": "The Privilege Boundary uses hardware Mode Bits to separate low-power User apps from the high-power Kernel, ensuring that one bad app cannot take down the entire system.",
-        "next_topic_why": "If the Kernel is 'locked' behind a wall, how does it regain control when an app is running? The answer is the 'Hardware Alarm Clock' and other signals: **Interrupts**."
+        "next_topic_why": "If the Kernel is 'locked' behind a wall, how does it regain control when an app is running? The answer is the 'Hardware Alarm Clock' and other signals: **Interrupts**.",
+        "real_world_problem": "A user application needs to access hardware directly for performance, but allowing unrestricted hardware access would compromise system security. The kernel-user mode separation provides controlled access to privileged operations."
       },
       "interactive_simulator": {
         "type": "CPU Privilege Ring Visualizer",
@@ -323,7 +477,12 @@
       "title": "Interrupts: The OS Heartbeat",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["interrupts", "isr", "hardware-events", "async"],
+      "tags": [
+        "interrupts",
+        "isr",
+        "hardware-events",
+        "async"
+      ],
       "content": {
         "why_exists": "CPUs are millions of times faster than humans or hard drives. If the CPU had to 'poll' (constantly check) the keyboard to see if you pressed a key, it would waste 99.9% of its energy. Interrupts allow the CPU to work on other things and only 'stop' when a device actually needs attention.",
         "what_hardware_problem_caused_it": "The 'Polling' problem. In early systems, the CPU would sit in a loop: `Is key pressed? No. Is key pressed? No.` This made it impossible to run two things at once because the CPU was always busy checking status bits.",
@@ -344,18 +503,29 @@
         "mcqs": [
           {
             "question": "Which table stores the addresses of interrupt handlers?",
-            "options": ["Process Table", "Interrupt Descriptor Table (IDT)", "GDT", "File Table"],
+            "options": [
+              "Process Table",
+              "Interrupt Descriptor Table (IDT)",
+              "GDT",
+              "File Table"
+            ],
             "answer": "Interrupt Descriptor Table (IDT)"
           },
           {
             "question": "A Non-maskable interrupt (NMI) is usually used for:",
-            "options": ["Keyboard input", "Critical hardware failures", "Timer updates", "Mouse movement"],
+            "options": [
+              "Keyboard input",
+              "Critical hardware failures",
+              "Timer updates",
+              "Mouse movement"
+            ],
             "answer": "Critical hardware failures"
           }
         ],
         "common_misconceptions": "- **'Interrupts happen between instructions'**: Mostly true. The CPU usually finishes the current instruction before checking for interrupts. However, long instructions (like string copies) can be interrupted mid-way.\n- **'Software Interrupts are the same as Hardware Interrupts'**: No. Hardware interrupts come from wires; Software interrupts (Traps) are triggered by code instructions (like `INT 3`).",
         "mini_recap": "Interrupts are the mechanism that allows hardware to get the CPU's attention immediately without the CPU wasting time checking for it.",
-        "next_topic_why": "Interrupts let Hardware talk to the Kernel. But how does an Application talk to the Kernel? They use 'Voluntary Interrupts' called **System Calls**."
+        "next_topic_why": "Interrupts let Hardware talk to the Kernel. But how does an Application talk to the Kernel? They use 'Voluntary Interrupts' called **System Calls**.",
+        "real_world_problem": "A hard drive completes a data transfer, but the CPU is busy running other tasks. Interrupts allow the hardware to immediately notify the CPU of important events without wasting time on constant polling."
       },
       "interactive_simulator": {
         "type": "Keyboard Interrupt Execution",
@@ -370,7 +540,12 @@
       "title": "System Calls: The API of the Machine",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["syscall", "api", "trap", "0x80"],
+      "tags": [
+        "syscall",
+        "api",
+        "trap",
+        "0x80"
+      ],
       "content": {
         "why_exists": "Applications are 'weak' by design (User Mode). If an app wants to write to a file, send a network packet, or start a new process, it has no physical power to do so. A System Call is the 'Request Form' an app submits to the Kernel to ask for help with hardware tasks.",
         "what_hardware_problem_caused_it": "The 'Privilege Barrier' problem. We locked the hardware to protect the machine, but now apps are too weak. We needed a controlled 'Tunnel' through the wall that only allows safe, pre-defined operations.",
@@ -391,18 +566,29 @@
         "mcqs": [
           {
             "question": "Which register usually holds the System Call ID in Linux x86?",
-            "options": ["EBX", "EAX", "EIP", "ESP"],
+            "options": [
+              "EBX",
+              "EAX",
+              "EIP",
+              "ESP"
+            ],
             "answer": "EAX"
           },
           {
             "question": "What happens if a syscall argument is a pointer to an invalid memory address?",
-            "options": ["Kernel crashes", "Kernel fixes the address", "Kernel returns an EFAULT error", "The computer restarts"],
+            "options": [
+              "Kernel crashes",
+              "Kernel fixes the address",
+              "Kernel returns an EFAULT error",
+              "The computer restarts"
+            ],
             "answer": "Kernel returns an EFAULT error"
           }
         ],
         "common_misconceptions": "- **'The Syscall is part of my program'**: No. Your program stops, and the OS starts. It's like calling a different company to do work for you.\n- **'Everything is a syscall'**: No. Math (add, mult) and local logic happen entirely in User Mode. Only I/O, memory allocation, and process control require syscalls.",
         "mini_recap": "System Calls are the secure gateways that allow limited apps to request powerful hardware services from the Kernel.",
-        "next_topic_why": "We know how the OS works once it's running. But how does it get there in the first place? How do we wake up the 'Dead' hardware? We need the **Boot Process**."
+        "next_topic_why": "We know how the OS works once it's running. But how does it get there in the first place? How do we wake up the 'Dead' hardware? We need the **Boot Process**.",
+        "real_world_problem": "An application needs to read a file from disk, but direct hardware access would be insecure and complex. System calls provide a safe, standardized interface for applications to request kernel services."
       },
       "interactive_simulator": {
         "type": "System Call Pipeline",
@@ -417,7 +603,13 @@
       "title": "The Boot Process: Awakening the Machine",
       "category": "Foundations",
       "difficulty": "Hard",
-      "tags": ["boot", "bios", "uefi", "grub", "kernel-init"],
+      "tags": [
+        "boot",
+        "bios",
+        "uefi",
+        "grub",
+        "kernel-init"
+      ],
       "content": {
         "why_exists": "When you flip the power switch, RAM is empty and the CPU has no instructions. A computer needs a 'Bootstrap' (pulling itself up by its own bootstraps) process to find the Operating System on a disk, load it into memory, and start it.",
         "what_hardware_problem_caused_it": "The 'Chicken and Egg' problem. To read the disk, you need a Disk Driver (part of the OS). But to load the OS, you need to read the disk. Hardware designers solved this by embedding a tiny, simple program (BIOS/UEFI) directly into a read-only chip (ROM) on the motherboard.",
@@ -438,18 +630,29 @@
         "mcqs": [
           {
             "question": "Which process is the 'Parent of all processes' started at the end of booting?",
-            "options": ["GRUB", "Kernel", "init (or systemd)", "BIOS"],
+            "options": [
+              "GRUB",
+              "Kernel",
+              "init (or systemd)",
+              "BIOS"
+            ],
             "answer": "init (or systemd)"
           },
           {
             "question": "Where does the CPU first look for instructions when the power is turned on?",
-            "options": ["Hard Drive", "RAM", "ROM (BIOS/UEFI)", "Cache"],
+            "options": [
+              "Hard Drive",
+              "RAM",
+              "ROM (BIOS/UEFI)",
+              "Cache"
+            ],
             "answer": "ROM (BIOS/UEFI)"
           }
         ],
         "common_misconceptions": "- **'The BIOS is part of the OS'**: No. The BIOS is part of the motherboard's hardware/firmware. It exists even if there is no OS.\n- **'Booting is just loading a file'**: It's more complex; it involves transitioning the CPU through several modes (16-bit to 64-bit) and initializing complex bus architectures.",
         "mini_recap": "Booting is a carefully orchestrated hand-off from simple hardware firmware to a complex software Kernel.",
-        "next_topic_why": "Now that the OS is booted and protected, it's time to manage the work itself. We move from the 'Foundations' to the 'Execution' phase: **Process Management**."
+        "next_topic_why": "Now that the OS is booted and protected, it's time to manage the work itself. We move from the 'Foundations' to the 'Execution' phase: **Process Management**.",
+        "real_world_problem": "A server loses power during a storm and needs to automatically recover when electricity returns. The boot process ensures the system can reliably start up and restore services without manual intervention."
       },
       "interactive_simulator": {
         "type": "Boot Sequence Timeline",

@@ -11,7 +11,12 @@
       "title": "Module 2.1: The Process Concept - The Machine's Ghost",
       "category": "Process Fundamentals",
       "difficulty": "Easy",
-      "tags": ["process", "program-vs-process", "address-space", "mmu"],
+      "tags": [
+        "process",
+        "program-vs-process",
+        "address-space",
+        "mmu"
+      ],
       "content": {
         "why_exists": "A Program is just bits on a disk—it has no power. A Process is that program 'incarnated' with memory, a CPU state, and permissions. It is the active agent of computation.",
         "real_world_problem": "A web server needs to handle multiple user requests simultaneously. Without processes, the server could only handle one request at a time, making it unusable for any real application. Processes allow the server to spawn separate workers for each request, maintaining responsiveness even under heavy load.",
@@ -35,7 +40,12 @@
         "mcqs": [
           {
             "question": "Where is the current execution address of a process stored?",
-            "options": ["Stack", "Heap", "Program Counter", "Data Section"],
+            "options": [
+              "Stack",
+              "Heap",
+              "Program Counter",
+              "Data Section"
+            ],
             "answer": "Program Counter"
           }
         ],
@@ -49,7 +59,12 @@
       "title": "Module 2.2: Process Control Block (PCB) - The Kernel's Notebook",
       "category": "Process Fundamentals",
       "difficulty": "Medium",
-      "tags": ["pcb", "metadata", "task-struct", "registers"],
+      "tags": [
+        "pcb",
+        "metadata",
+        "task-struct",
+        "registers"
+      ],
       "content": {
         "why_exists": "Multitasking is 'Magic' done with bookmarks. The OS needs a place to write down exactly where a process was so it can put it back later. The PCB is that bookmark.",
         "real_world_problem": "A system administrator needs to debug a hanging application. Without the PCB, they would have no way to know what the process was doing when it got stuck - which function it was executing, what files it had open, or what memory it was using. The PCB provides the complete snapshot needed for debugging.",
@@ -73,7 +88,12 @@
         "mcqs": [
           {
             "question": "Which of the following is NOT typically stored in a PCB?",
-            "options": ["Process State", "Program Counter", "The Program's Source Code", "List of Open Files"],
+            "options": [
+              "Process State",
+              "Program Counter",
+              "The Program's Source Code",
+              "List of Open Files"
+            ],
             "answer": "The Program's Source Code"
           }
         ],
@@ -86,7 +106,13 @@
         "config": {
           "title": "Anatomy of a task_struct",
           "description": "Click on different sections of the PCB to see how they change as the process moves from 'Ready' to 'Running'.",
-          "fields": ["PID", "State", "Registers", "Memory Map", "File Descriptors"]
+          "fields": [
+            "PID",
+            "State",
+            "Registers",
+            "Memory Map",
+            "File Descriptors"
+          ]
         }
       }
     },
@@ -95,7 +121,12 @@
       "title": "Module 2.3: Process States - The Circle of Life",
       "category": "Process Fundamentals",
       "difficulty": "Easy",
-      "tags": ["ready", "running", "waiting", "zombie"],
+      "tags": [
+        "ready",
+        "running",
+        "waiting",
+        "zombie"
+      ],
       "content": {
         "why_exists": "CPUs are expensive; waiting for a human to type is slow. We need 'States' to distinguish between processes that are 'Ready to Work' and those that are 'Waiting for the slow world' to catch up.",
         "hardware_limitation": "The **Speed Gap**. A CPU executes billions of instructions per second. A hard drive takes 10 million cycles to fetch one byte. Without states, the CPU would be idle 99.9% of the time.",
@@ -118,13 +149,20 @@
         "mcqs": [
           {
             "question": "A process that is in RAM but waiting for the CPU is in which state?",
-            "options": ["Running", "Waiting", "Ready", "New"],
+            "options": [
+              "Running",
+              "Waiting",
+              "Ready",
+              "New"
+            ],
             "answer": "Ready"
           }
         ],
         "misconceptions": "- **'A Waiting process is using CPU'**: No, it is totally inactive as far as the CPU is concerned.",
         "recap": "Process states are the OS's way of balancing a fast CPU against a slow world.",
-        "next_topic_why": "How does a process move between these squares on the board? The **State Transition Diagram**."
+        "next_topic_why": "How does a process move between these squares on the board? The **State Transition Diagram**.",
+        "real_world_problem": "In a multitasking server, the OS must know which programs are ready to run and which are waiting for I/O. Without clear states, it would either waste CPU on blocked work or stall ready work indefinitely.",
+        "daily_life_analogy": "It is like a restaurant kitchen: some orders are ready to be cooked, some are waiting for ingredients, and some are already being prepared. The kitchen staff needs this status to keep plates moving efficiently."
       }
     },
     {
@@ -132,7 +170,12 @@
       "title": "Module 2.4: Process State Transition Diagram - The Rules of the Game",
       "category": "Process Fundamentals",
       "difficulty": "Medium",
-      "tags": ["transitions", "events", "preemption", "wakeup"],
+      "tags": [
+        "transitions",
+        "events",
+        "preemption",
+        "wakeup"
+      ],
       "content": {
         "why_exists": "Without rules, there is chaos. We need a formal logic that dictates which events (like a mouse click or a timer beep) trigger which state changes.",
         "hardware_limitation": "The **Timer Interrupt**. This is the only way a process can move from 'Running' to 'Ready' against its will. Without this hardware 'clock', a single infinite loop would crash the entire computer.",
@@ -155,21 +198,37 @@
         "mcqs": [
           {
             "question": "Which of these transitions is NOT possible in a standard 5-state model?",
-            "options": ["Running to Ready", "Waiting to Running", "Ready to Running", "Running to Waiting"],
+            "options": [
+              "Running to Ready",
+              "Waiting to Running",
+              "Ready to Running",
+              "Running to Waiting"
+            ],
             "answer": "Waiting to Running"
           }
         ],
         "misconceptions": "- **'Wait goes to Run'**: No, it always goes to Ready first so the scheduler can decide if it's the *best* thing to run.",
         "recap": "Transitions are the logical flow that keeps the multitasking machine moving.",
-        "next_topic_why": "Who is the 'Referee' making these decisions? The **Schedulers**."
+        "next_topic_why": "Who is the 'Referee' making these decisions? The **Schedulers**.",
+        "real_world_problem": "A scheduler without a transition model cannot correctly decide what should happen after an interrupt, I/O completion, or process exit. This leads to wrong state changes and unstable multitasking.",
+        "daily_life_analogy": "Think of it as a traffic signal at a busy intersection. Only with a clear set of rules can cars move safely from one lane to another without crashing into each other."
       },
       "interactive_simulator": {
         "type": "State Machine Animator",
         "config": {
           "title": "Triggering the Machine",
           "description": "Click 'I/O Request' or 'Timer Beep' to see the process change color and move through the diagram in real-time.",
-          "states": ["NEW", "READY", "RUNNING", "WAITING", "EXIT"]
+          "states": [
+            "NEW",
+            "READY",
+            "RUNNING",
+            "WAITING",
+            "EXIT"
+          ]
         }
+      },
+      "diagram": {
+        "type": "process_state_machine"
       }
     },
     {
@@ -177,7 +236,12 @@
       "title": "Module 2.5: The Three Schedulers - The Management Hierarchy",
       "category": "Process Fundamentals",
       "difficulty": "Medium",
-      "tags": ["lts", "mts", "sts", "degree-of-multiprogramming"],
+      "tags": [
+        "lts",
+        "mts",
+        "sts",
+        "degree-of-multiprogramming"
+      ],
       "content": {
         "why_exists": "Efficiency at different timescales. You need a Bouncer for the door (LTS), a Manager for the floor (MTS), and a DJ for the music (STS).",
         "hardware_limitation": "The **RAM-Disk Gap**. You can have 10,000 programs on your disk but only 100 in your RAM. Schedulers manage this hierarchy.",
@@ -200,22 +264,33 @@
         "mcqs": [
           {
             "question": "Which scheduler handles the 'Degree of Multiprogramming'?",
-            "options": ["Short-term", "Medium-term", "Long-term", "Dispatcher"],
+            "options": [
+              "Short-term",
+              "Medium-term",
+              "Long-term",
+              "Dispatcher"
+            ],
             "answer": "Long-term"
           }
         ],
         "misconceptions": "- **'The STS is the only one that matters'**: No, if the MTS is bad, your whole computer will 'freeze' as it tries to swap memory.",
         "recap": "The three schedulers work together to keep the CPU, RAM, and Disk in balance.",
-        "next_topic_why": "When the STS picks a new process, the physical act of 'Swapping Souls' is the **Context Switch**."
+        "next_topic_why": "When the STS picks a new process, the physical act of 'Swapping Souls' is the **Context Switch**.",
+        "real_world_problem": "A system with too many programs cannot simply admit them all into RAM at once; it will thrash and slow down. Schedulers decide which processes belong in memory and which must wait.",
+        "daily_life_analogy": "It is like a nightclub with a bouncer, a manager, and a DJ: the first decides who can enter, the second manages people already inside, and the third decides who gets the spotlight next."
       }
-    }
-,
+    },
     {
       "id": "context-switch-deep",
       "title": "Module 2.6: Context Switching - The Machine's Silent Tax",
       "category": "Process Fundamentals",
       "difficulty": "Hard",
-      "tags": ["overhead", "tlb-flush", "registers", "kernel-stack"],
+      "tags": [
+        "overhead",
+        "tlb-flush",
+        "registers",
+        "kernel-stack"
+      ],
       "content": {
         "why_exists": "Concurrency is an illusion. The CPU can only hold one 'train of thought' at a time. To pretend we are running 100 apps, we must swap the CPU's entire mental state so fast that the human eye misses the gap.",
         "hardware_limitation": "The **Processor State** (Registers, PC, Flags) is the only thing that actually 'runs'. When we switch, we must physically copy every bit from the CPU's high-speed circuits to slow RAM. This 'administrative' time is pure waste—no user code runs during the switch.",
@@ -238,13 +313,20 @@
         "mcqs": [
           {
             "question": "Which hardware component is invalidated during a process context switch?",
-            "options": ["L1 Cache", "TLB", "ALU", "Register File"],
+            "options": [
+              "L1 Cache",
+              "TLB",
+              "ALU",
+              "Register File"
+            ],
             "answer": "TLB"
           }
         ],
         "misconceptions": "- **'The CPU runs two things at once'**: No, it just switches between them very fast.\n- **'Switching is free'**: It is the most expensive common operation in an OS.",
         "recap": "Context switching is the physical act of 'swapping souls' between processes, governed by hardware stacks and MMU flushes.",
-        "next_topic_why": "Having mastered how we swap processes, we must now learn how they are born: **fork()**."
+        "next_topic_why": "Having mastered how we swap processes, we must now learn how they are born: **fork()**.",
+        "real_world_problem": "On a heavily loaded machine, frequent context switches can consume significant CPU time, reducing the amount of work the system actually does.",
+        "daily_life_analogy": "Imagine a chef who must swap dishes every few minutes; if they keep changing pans and ingredients, they spend more time switching than cooking."
       },
       "interactive_simulator": {
         "type": "Context Switch Forensic",
@@ -262,14 +344,18 @@
           ]
         }
       }
-    }
-,
+    },
     {
       "id": "fork-deep",
       "title": "Module 2.7: Process Creation - The Biology of fork()",
       "category": "Process Operations",
       "difficulty": "Medium",
-      "tags": ["cow", "parent-child", "pid", "page-fault"],
+      "tags": [
+        "cow",
+        "parent-child",
+        "pid",
+        "page-fault"
+      ],
       "content": {
         "why_exists": "Building a process from scratch is hard. Unix simplifies this by using 'Biological Fission'. You don't create a process; you clone an existing one and then mutate it.",
         "hardware_limitation": "The **RAM Copy Penalty**. Copying a 1GB process takes ~50ms of CPU time. If you fork 100 times, the system freezes. We need a way to clone without copying.",
@@ -292,20 +378,33 @@
         "mcqs": [
           {
             "question": "What triggers the actual memory copy in a COW system?",
-            "options": ["The fork() call", "A Read operation", "A Write operation", "The exec() call"],
+            "options": [
+              "The fork() call",
+              "A Read operation",
+              "A Write operation",
+              "The exec() call"
+            ],
             "answer": "A Write operation"
           }
         ],
         "misconceptions": "- **'The child starts from the top of the file'**: No, it starts from the exact instruction AFTER the fork() call.\n- **'Fork copies all RAM'**: No, only the page tables are copied.",
         "recap": "fork() is an efficient clone operation that uses hardware exceptions to defer memory copying.",
-        "next_topic_why": "Once we have a clone, we usually want it to stop being a twin and start being a different program: **exec()**."
+        "next_topic_why": "Once we have a clone, we usually want it to stop being a twin and start being a different program: **exec()**.",
+        "real_world_problem": "Servers that create new processes for each connection need fast process creation. Without Copy-On-Write, spawning many processes would waste too much memory and time.",
+        "daily_life_analogy": "It is like copying a Google Doc with shared editing: both people read the same document until one makes a change, then only the changed pages are duplicated."
       },
       "interactive_simulator": {
         "type": "COW Memory Animation",
         "config": {
           "title": "Copy-On-Write Visualized",
           "description": "Watch the Page Tables point to the same RAM until a 'Write' event triggers a hardware page fault and a local copy.",
-          "states": ["Shared (Read-Only)", "Write Attempt", "Hardware Page Fault", "Kernel Copy", "Private (Read-Write)"]
+          "states": [
+            "Shared (Read-Only)",
+            "Write Attempt",
+            "Hardware Page Fault",
+            "Kernel Copy",
+            "Private (Read-Write)"
+          ]
         }
       }
     },
@@ -314,7 +413,12 @@
       "title": "Module 2.8: Process Replacement - The Soul of exec()",
       "category": "Process Operations",
       "difficulty": "Medium",
-      "tags": ["exec", "loader", "elf", "address-space"],
+      "tags": [
+        "exec",
+        "loader",
+        "elf",
+        "address-space"
+      ],
       "content": {
         "why_exists": "Fork gives us a clone, but we want a new personality. `exec()` is the 'Format C:' of the process world—it wipes the current memory and loads a completely different program into the existing shell.",
         "hardware_limitation": "The CPU doesn't understand 'Files'. It only understands 'Memory'. `exec()` is the bridge that reads an **ELF Binary** from the disk and maps it into the CPU's address space.",
@@ -337,30 +441,45 @@
         "mcqs": [
           {
             "question": "Which register is set to the entry point of the new program?",
-            "options": ["EAX", "ESP", "EIP", "EBP"],
+            "options": [
+              "EAX",
+              "ESP",
+              "EIP",
+              "EBP"
+            ],
             "answer": "EIP"
           }
         ],
         "misconceptions": "- **'Exec returns a value'**: A successful exec() NEVER returns, because the code that called it no longer exists!\n- **'It creates a new process'**: No, it just changes the contents of the current one.",
         "recap": "exec() is a destructive replacement that loads a new binary 'soul' into an existing process 'body'.",
-        "next_topic_why": "How does a parent stay in sync with this newly transformed child? They use **wait()**."
+        "next_topic_why": "How does a parent stay in sync with this newly transformed child? They use **wait()**.",
+        "real_world_problem": "A shell needs to run a new program in the same process slot without losing its identity. exec() allows the process to keep its PID while changing its code and memory image.",
+        "daily_life_analogy": "It is like a theater actor changing costumes and role mid-play while staying on the same stage and keeping the same actor ID."
       },
       "interactive_simulator": {
         "type": "ELF Loader Visualizer",
         "config": {
           "title": "The Memory Wipeout",
           "description": "Watch the old Stack and Heap vanish and the new ELF segments (Text, Data, BSS) map from the disk file.",
-          "segments": [".text (Code)", ".data (Initialized Globals)", ".bss (Uninitialized Globals)", "Stack (Args/Env)"]
+          "segments": [
+            ".text (Code)",
+            ".data (Initialized Globals)",
+            ".bss (Uninitialized Globals)",
+            "Stack (Args/Env)"
+          ]
         }
       }
-    }
-,
+    },
     {
       "id": "wait-details",
       "title": "Module 2.9: Process Synchronization - wait()",
       "category": "Process Operations",
       "difficulty": "Medium",
-      "tags": ["wait", "blocking", "synchronization"],
+      "tags": [
+        "wait",
+        "blocking",
+        "synchronization"
+      ],
       "content": {
         "why_exists": "Coordination. A parent needs to wait for a child to finish before continuing or collecting its result.",
         "hardware_limitation": "The CPU is asynchronous. We need software 'Locks' (Wait Queues) to make one process pause for another.",
@@ -375,11 +494,28 @@
         "formulas": "N/A",
         "worked_example": "A Shell script waiting for `gcc` to finish before trying to run the compiled program.",
         "gantt_chart": "N/A",
-        "interview_questions": ["Wait vs Waitpid?", "What if no child exists?", "How to non-block?"],
-        "mcqs": [{"question": "wait() moves parent to which state?", "options": ["Ready", "Running", "Waiting", "Terminated"], "answer": "Waiting"}],
+        "interview_questions": [
+          "Wait vs Waitpid?",
+          "What if no child exists?",
+          "How to non-block?"
+        ],
+        "mcqs": [
+          {
+            "question": "wait() moves parent to which state?",
+            "options": [
+              "Ready",
+              "Running",
+              "Waiting",
+              "Terminated"
+            ],
+            "answer": "Waiting"
+          }
+        ],
         "misconceptions": "Wait doesn't make the child wait; it makes the *parent* wait.",
         "recap": "wait() is the handshake that closes a child's lifecycle.",
-        "next_topic_why": "The child triggers this handshake by calling **exit()**."
+        "next_topic_why": "The child triggers this handshake by calling **exit()**.",
+        "real_world_problem": "A parent process must know when its child is done before it can safely use the child’s result. Without wait(), the parent may continue too early and produce wrong behavior.",
+        "daily_life_analogy": "It is like a manager waiting for a report from an intern: the manager cannot move forward until the intern delivers the completed work."
       }
     },
     {
@@ -387,7 +523,11 @@
       "title": "Module 2.10: Process Termination - exit()",
       "category": "Process Operations",
       "difficulty": "Medium",
-      "tags": ["exit", "cleanup", "zombie"],
+      "tags": [
+        "exit",
+        "cleanup",
+        "zombie"
+      ],
       "content": {
         "why_exists": "To clean up. Processes must return RAM, files, and sockets to the OS before dying.",
         "hardware_limitation": "No hardware garbage collection. If you don't call exit (or the OS doesn't force it), resources are lost.",
@@ -402,11 +542,28 @@
         "formulas": "N/A",
         "worked_example": "Your program ends, the terminal prints a prompt. The Shell 'reaped' your exit code.",
         "gantt_chart": "N/A",
-        "interview_questions": ["exit vs _exit?", "What happens to open files?", "What is a zombie?"],
-        "mcqs": [{"question": "Exit code 0 usually means:", "options": ["Error", "Running", "Success", "Wait"], "answer": "Success"}],
+        "interview_questions": [
+          "exit vs _exit?",
+          "What happens to open files?",
+          "What is a zombie?"
+        ],
+        "mcqs": [
+          {
+            "question": "Exit code 0 usually means:",
+            "options": [
+              "Error",
+              "Running",
+              "Success",
+              "Wait"
+            ],
+            "answer": "Success"
+          }
+        ],
         "misconceptions": "The process is not 'deleted' instantly; it becomes a Zombie first.",
         "recap": "exit() is the formal resignation of a process.",
-        "next_topic_why": "If the exit-wait handshake fails, we get **Zombies and Orphans**."
+        "next_topic_why": "If the exit-wait handshake fails, we get **Zombies and Orphans**.",
+        "real_world_problem": "If processes terminate without cleaning up resources, the system can leak memory, file handles, and sockets, eventually causing failures and instability.",
+        "daily_life_analogy": "It is like checking out of a hotel and leaving the room clean so the next guest can use it without finding someone else’s mess."
       }
     },
     {
@@ -414,7 +571,12 @@
       "title": "Module 2.11: Zombie & Orphan Processes",
       "category": "Process Operations",
       "difficulty": "Medium",
-      "tags": ["zombie", "orphan", "init", "reaping"],
+      "tags": [
+        "zombie",
+        "orphan",
+        "init",
+        "reaping"
+      ],
       "content": {
         "why_exists": "Handling failure. What if a parent crashes or ignores its child? We need 'undead' rules.",
         "hardware_limitation": "The Process Table (in RAM) has finite slots. Zombies take up slots but do nothing. Too many = 'No more processes' error.",
@@ -429,11 +591,28 @@
         "formulas": "Max Zombies = PID_MAX - Active_Procs.",
         "worked_example": "Check for zombies with `ps aux | grep 'Z'`. Usually seen in buggy shell scripts.",
         "gantt_chart": "N/A",
-        "interview_questions": ["How to kill a zombie? (Kill its parent).", "Who is PID 1?", "Why do zombies exist?"],
-        "mcqs": [{"question": "Who adopts orphans?", "options": ["Kernel", "Root", "init", "Shell"], "answer": "init"}],
+        "interview_questions": [
+          "How to kill a zombie? (Kill its parent).",
+          "Who is PID 1?",
+          "Why do zombies exist?"
+        ],
+        "mcqs": [
+          {
+            "question": "Who adopts orphans?",
+            "options": [
+              "Kernel",
+              "Root",
+              "init",
+              "Shell"
+            ],
+            "answer": "init"
+          }
+        ],
         "misconceptions": "You can't 'kill' a zombie; it's already dead. You have to 'reap' it.",
         "recap": "Zombies and Orphans are the 'edge cases' of process lifecycles.",
-        "next_topic_why": "Processes are 'Heavy'. What if we want to run tasks *inside* one process? We use **Threads**."
+        "next_topic_why": "Processes are 'Heavy'. What if we want to run tasks *inside* one process? We use **Threads**.",
+        "real_world_problem": "Zombie processes consume PID slots and can eventually prevent new processes from starting, even though they are not using CPU or memory effectively.",
+        "daily_life_analogy": "They are like unburied ghosts that still occupy a grave plot. The cemetery can run out of space even though the ghosts are no longer alive."
       }
     },
     {
@@ -441,7 +620,12 @@
       "title": "Module 2.12: The Thread Concept",
       "category": "Threads",
       "difficulty": "Easy",
-      "tags": ["threads", "lightweight", "tcb", "concurrency"],
+      "tags": [
+        "threads",
+        "lightweight",
+        "tcb",
+        "concurrency"
+      ],
       "content": {
         "why_exists": "Speed and Sharing. Threads are 'Roommates'. They share the same house (Memory), making communication instant.",
         "hardware_limitation": "Process switches require **TLB Flushes** (slow). Thread switches don't (fast).",
@@ -456,11 +640,28 @@
         "formulas": "Process Context Switch >> Thread Context Switch.",
         "worked_example": "Word Processor: One thread for typing, one for auto-save, one for spell-check. All share the same document memory.",
         "gantt_chart": "N/A",
-        "interview_questions": ["Process vs Thread?", "What is shared?", "Why use threads?"],
-        "mcqs": [{"question": "Threads do NOT share:", "options": ["Heap", "Code", "Stack", "Globals"], "answer": "Stack"}],
+        "interview_questions": [
+          "Process vs Thread?",
+          "What is shared?",
+          "Why use threads?"
+        ],
+        "mcqs": [
+          {
+            "question": "Threads do NOT share:",
+            "options": [
+              "Heap",
+              "Code",
+              "Stack",
+              "Globals"
+            ],
+            "answer": "Stack"
+          }
+        ],
         "misconceptions": "Threads are not 'sub-processes'; they are part of the *same* execution entity.",
         "recap": "Threads provide high-performance, shared-memory concurrency.",
-        "next_topic_why": "Who manages these threads? **User vs Kernel Threads**."
+        "next_topic_why": "Who manages these threads? **User vs Kernel Threads**.",
+        "real_world_problem": "Modern applications need many light-weight tasks that share memory and communicate quickly. Full process creation is too slow and expensive for that.",
+        "daily_life_analogy": "Threads are like employees in the same office: they share the same building and resources but have their own desks and tasks."
       },
       "interactive_simulator": {
         "type": "Thread Sharing Model",
@@ -475,7 +676,12 @@
       "title": "Module 2.12: The Thread Concept - The Lightweight Agent",
       "category": "Threads",
       "difficulty": "Easy",
-      "tags": ["threads", "lightweight", "concurrency", "tcb"],
+      "tags": [
+        "threads",
+        "lightweight",
+        "concurrency",
+        "tcb"
+      ],
       "content": {
         "why_exists": "Processes are 'Heavy'—each one needs its own private kingdom of memory. Threads allow multiple workers to share the *same* kingdom, talking instantly through shared variables without the overhead of context switching between address spaces.",
         "hardware_limitation": "The **Register File**. While threads share memory, they CANNOT share registers. If Thread A is doing a calculation in EAX, Thread B cannot use EAX for something else. Each thread needs its own 'Register Save Area' (TCB).",
@@ -498,13 +704,20 @@
         "mcqs": [
           {
             "question": "Which of the following is NOT shared among threads of the same process?",
-            "options": ["Code Section", "Stack", "Data Section", "Open Files"],
+            "options": [
+              "Code Section",
+              "Stack",
+              "Data Section",
+              "Open Files"
+            ],
             "answer": "Stack"
           }
         ],
         "misconceptions": "- **'Threads run faster'**: No, they just start and switch faster. The actual code runs at the same speed.",
         "recap": "Threads provide high-performance concurrency by sharing memory while maintaining private execution state.",
-        "next_topic_why": "Who manages these threads? The User or the Kernel? **User vs. Kernel Threads**."
+        "next_topic_why": "Who manages these threads? The User or the Kernel? **User vs. Kernel Threads**.",
+        "real_world_problem": "A web server needs many simultaneous lightweight workers. Using threads instead of full processes makes it cheaper to switch between tasks and share data.",
+        "daily_life_analogy": "It is like a kitchen with several chefs working in the same space: they share pots and pans, but each chef has their own cutting board and recipe."
       }
     },
     {
@@ -512,7 +725,12 @@
       "title": "Module 2.13: User vs. Kernel Threads - The Management War",
       "category": "Threads",
       "difficulty": "Medium",
-      "tags": ["user-threads", "kernel-threads", "blocking", "scheduling"],
+      "tags": [
+        "user-threads",
+        "kernel-threads",
+        "blocking",
+        "scheduling"
+      ],
       "content": {
         "why_exists": "Efficiency vs. Awareness. User threads are 'Invisible' to the OS (fast but blind). Kernel threads are 'Visible' (smart but heavy). We need to choose where the 'Brain' of the thread manager lives.",
         "hardware_limitation": "The **Trap Overhead**. Every time you talk to the Kernel, the CPU must perform a 'Mode Switch'. User threads avoid this by staying in User Mode for scheduling.",
@@ -535,13 +753,20 @@
         "mcqs": [
           {
             "question": "Which thread type is invisible to the operating system?",
-            "options": ["Kernel Threads", "User Threads", "Hardware Threads", "System Threads"],
+            "options": [
+              "Kernel Threads",
+              "User Threads",
+              "Hardware Threads",
+              "System Threads"
+            ],
             "answer": "User Threads"
           }
         ],
         "misconceptions": "- **'User threads are always better'**: They are better only if you have thousands of short-lived tasks that never block.",
         "recap": "The location of thread management determines the system's ability to handle I/O and scheduling.",
-        "next_topic_why": "How do we map these User threads to Kernel threads? The **Multithreading Models**."
+        "next_topic_why": "How do we map these User threads to Kernel threads? The **Multithreading Models**.",
+        "real_world_problem": "Blocking I/O in a thread library that the OS cannot see can freeze the entire process, preventing other threads from making progress.",
+        "daily_life_analogy": "It is like a play where only one actor is visible to the director. If that actor stops, the director cannot tell which of the hidden actors should continue."
       }
     },
     {
@@ -549,7 +774,11 @@
       "title": "Module 2.14: Multithreading Models (M:1, 1:1, M:N)",
       "category": "Threads",
       "difficulty": "Hard",
-      "tags": ["many-to-one", "one-to-one", "many-to-many"],
+      "tags": [
+        "many-to-one",
+        "one-to-one",
+        "many-to-many"
+      ],
       "content": {
         "why_exists": "To find the perfect balance between the speed of User Threads and the power of Kernel Threads. Different OSs have tried different 'Ratios' of mapping.",
         "hardware_limitation": "The **Core Count**. If you have 8 CPU cores, a Many-to-One model can only ever use ONE core, because the Kernel only sees one process. We need models that scale with hardware.",
@@ -563,11 +792,28 @@
         "definition": "Multithreading models define the mapping relationship between user-level threads and kernel-level threads.",
         "formulas": "Concurrency = min(Num Threads, Num Cores).",
         "gantt_chart": "N/A",
-        "interview_questions": ["Explain 1-to-1 model.", "What happens in Many-to-One if a thread blocks?", "Many-to-Many benefits?"],
-        "mcqs": [{"question": "Model used by Linux?", "options": ["Many-to-1", "1-to-1", "Many-to-Many", "1-to-Many"], "answer": "1-to-1"}],
+        "interview_questions": [
+          "Explain 1-to-1 model.",
+          "What happens in Many-to-One if a thread blocks?",
+          "Many-to-Many benefits?"
+        ],
+        "mcqs": [
+          {
+            "question": "Model used by Linux?",
+            "options": [
+              "Many-to-1",
+              "1-to-1",
+              "Many-to-Many",
+              "1-to-Many"
+            ],
+            "answer": "1-to-1"
+          }
+        ],
         "misconceptions": "Models are set by the OS and Library, not the programmer.",
         "recap": "1-to-1 is the modern standard for robust concurrency.",
-        "next_topic_why": "Sharing memory leads to the most famous bug in OS history: **Race Conditions**."
+        "next_topic_why": "Sharing memory leads to the most famous bug in OS history: **Race Conditions**.",
+        "real_world_problem": "Different workloads need different thread mappings to use CPU cores effectively. A one-size-fits-all model can either waste resources or block parallelism.",
+        "daily_life_analogy": "It is like choosing between sharing phone lines or giving everyone their own line in a call center."
       }
     },
     {
@@ -575,7 +821,11 @@
       "title": "Module 2.15: Race Conditions Preview",
       "category": "Threads",
       "difficulty": "Hard",
-      "tags": ["race-condition", "atomicity", "synchronization"],
+      "tags": [
+        "race-condition",
+        "atomicity",
+        "synchronization"
+      ],
       "content": {
         "why_exists": "The danger of speed. If two threads update the same number at once, one might 'overwrite' the other.",
         "hardware_limitation": "A single code line like `x++` is 3 hardware steps: READ -> ADD -> WRITE. A context switch can happen in the middle.",
@@ -590,11 +840,28 @@
         "formulas": "N/A",
         "worked_example": "Running two counters to 1,000,000. Final total is 1,452,100 instead of 2,000,000.",
         "gantt_chart": "N/A",
-        "interview_questions": ["What is atomicity?", "Explain a race condition.", "Critical Section?"],
-        "mcqs": [{"question": "Which is NOT atomic?", "options": ["Load reg", "Store reg", "x++", "NOP"], "answer": "x++"}],
+        "interview_questions": [
+          "What is atomicity?",
+          "Explain a race condition.",
+          "Critical Section?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which is NOT atomic?",
+            "options": [
+              "Load reg",
+              "Store reg",
+              "x++",
+              "NOP"
+            ],
+            "answer": "x++"
+          }
+        ],
         "misconceptions": "It happens on single-core too! Interrupts cause switches mid-increment.",
         "recap": "Shared memory is powerful but dangerous without synchronization.",
-        "next_topic_why": "We've built the tasks. Now, who gets the CPU? **Scheduling Criteria**."
+        "next_topic_why": "We've built the tasks. Now, who gets the CPU? **Scheduling Criteria**.",
+        "real_world_problem": "Without synchronization, concurrent threads can corrupt shared data, producing incorrect results or crashes in multi-core programs.",
+        "daily_life_analogy": "It is like two people updating the same bank account balance at the same time; if they both read the old value and write a new one without coordination, the final total is wrong."
       }
     },
     {
@@ -602,7 +869,12 @@
       "title": "Module 2.16: Scheduling Criteria - The Economy of CPU Time",
       "category": "CPU Scheduling",
       "difficulty": "Medium",
-      "tags": ["throughput", "turnaround", "utilization", "latency"],
+      "tags": [
+        "throughput",
+        "turnaround",
+        "utilization",
+        "latency"
+      ],
       "content": {
         "why_exists": "The Kernel is an economist. It has a scarce resource (CPU cycles) and a growing population of processes. Criteria are the 'GDP' and 'Consumer Price Index' of the machine—they tell us if the system is healthy.",
         "hardware_limitation": "The **Speed of Light**. Electrons can only move so fast. Every time the scheduler 'thinks', it's NOT running user code. We need criteria that balance 'Useful Work' vs 'Administrative overhead'.",
@@ -625,13 +897,20 @@
         "mcqs": [
           {
             "question": "Which metric is most important for an interactive desktop OS?",
-            "options": ["Throughput", "Utilization", "Response Time", "Turnaround Time"],
+            "options": [
+              "Throughput",
+              "Utilization",
+              "Response Time",
+              "Turnaround Time"
+            ],
             "answer": "Response Time"
           }
         ],
         "misconceptions": "- **'A 100% utilized CPU is a good thing'**: It often means the system is overloaded and user interaction will lag.",
         "recap": "Metrics allow us to quantify the success of our scheduling strategy.",
-        "next_topic_why": "The simplest way to allocate time is by arrival order: **FCFS**."
+        "next_topic_why": "The simplest way to allocate time is by arrival order: **FCFS**.",
+        "real_world_problem": "A scheduler must balance throughput, fairness, and responsiveness. If it optimizes only one metric, the system can feel sluggish or unfair.",
+        "daily_life_analogy": "It is like a restaurant manager balancing the number of meals served, customer wait times, and the quality of service all at once."
       }
     },
     {
@@ -639,7 +918,12 @@
       "title": "Module 2.17: FCFS Scheduling - The Convoy Effect",
       "category": "CPU Scheduling",
       "difficulty": "Easy",
-      "tags": ["fcfs", "convoy-effect", "fifo", "non-preemptive"],
+      "tags": [
+        "fcfs",
+        "convoy-effect",
+        "fifo",
+        "non-preemptive"
+      ],
       "content": {
         "why_exists": "Fairness in its simplest form: whoever waits the longest in line gets served next. It is the default state of any queue before logic is applied.",
         "hardware_limitation": "The **Non-Preemptive Lock**. In simple FCFS, the hardware timer interrupt is ignored for scheduling purposes. Once a process gets the CPU, it owns it until it yields.",
@@ -662,13 +946,20 @@
         "mcqs": [
           {
             "question": "FCFS is most similar to which data structure?",
-            "options": ["Stack", "Queue", "Heap", "Tree"],
+            "options": [
+              "Stack",
+              "Queue",
+              "Heap",
+              "Tree"
+            ],
             "answer": "Queue"
           }
         ],
         "misconceptions": "- **'FCFS is always fair'**: It's fair in time, but unfair in efficiency to shorter tasks.",
         "recap": "FCFS is simple to implement but suffers from the Convoy Effect.",
-        "next_topic_why": "To solve the Convoy Effect, we must look ahead at the burst times: **SJF**."
+        "next_topic_why": "To solve the Convoy Effect, we must look ahead at the burst times: **SJF**.",
+        "real_world_problem": "A slow job at the front of the queue can hold up many short jobs, making the system appear inefficient and unresponsive.",
+        "daily_life_analogy": "It is like a single-lane bridge where a slow tractor at the front keeps all the fast cars behind it from moving."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -677,15 +968,35 @@
           "description": "Watch the 'Ferraris' (Short P3/P2) get trapped behind the 'Tractor' (Long P1). Feel the system freeze as one job dominates the CPU.",
           "algo": "FCFS"
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "P1",
+            "dur": 24
+          },
+          {
+            "id": "P2",
+            "dur": 3
+          },
+          {
+            "id": "P3",
+            "dur": 3
+          }
+        ]
       }
-    }
-,
+    },
     {
       "id": "sjf-algo-deep",
       "title": "Module 2.18: Shortest Job First (SJF)",
       "category": "CPU Scheduling",
       "difficulty": "Medium",
-      "tags": ["sjf", "optimal", "starvation"],
+      "tags": [
+        "sjf",
+        "optimal",
+        "starvation"
+      ],
       "content": {
         "why_exists": "To minimize waiting. If you do small tasks first, more people finish their work sooner.",
         "hardware_limitation": "The 'Oracle Problem'. We don't know the future burst length. We must guess based on the past.",
@@ -700,11 +1011,28 @@
         "formulas": "Predicted(n+1) = a*Actual(n) + (1-a)*Predicted(n).",
         "worked_example": "P1(6), P2(2), P3(8). SJF order: P2 -> P1 -> P3. Avg Wait= (0+2+8)/3 = 3.3ms.",
         "gantt_chart": "| P2(2) | P1(6) | P3(8) |",
-        "interview_questions": ["Is SJF optimal?", "What is starvation?", "How to predict burst?"],
-        "mcqs": [{"question": "Which minimizes avg wait time?", "options": ["FCFS", "SJF", "RR", "Priority"], "answer": "SJF"}],
+        "interview_questions": [
+          "Is SJF optimal?",
+          "What is starvation?",
+          "How to predict burst?"
+        ],
+        "mcqs": [
+          {
+            "question": "Which minimizes avg wait time?",
+            "options": [
+              "FCFS",
+              "SJF",
+              "RR",
+              "Priority"
+            ],
+            "answer": "SJF"
+          }
+        ],
         "misconceptions": "SJF is only optimal if you have the 'correct' burst estimates.",
         "recap": "SJF is the king of efficiency but can be 'cruel' to long jobs.",
-        "next_topic_why": "What if a shorter job arrives *after* we start? We need **SRTF**."
+        "next_topic_why": "What if a shorter job arrives *after* we start? We need **SRTF**.",
+        "real_world_problem": "Choosing the shortest job first can reduce average wait time, but only if the scheduler can estimate how long jobs will run.",
+        "daily_life_analogy": "It is like letting quick errands go first at the grocery checkout. It makes the line move faster overall, but the large shoppers may wait longer."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -713,6 +1041,23 @@
           "description": "Witness the mathematically optimal waiting time. Notice how the scheduler 'looks ahead' to pick the shortest burst first.",
           "algo": "SJF"
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "P1",
+            "dur": 6
+          },
+          {
+            "id": "P2",
+            "dur": 2
+          },
+          {
+            "id": "P3",
+            "dur": 8
+          }
+        ]
       }
     },
     {
@@ -720,7 +1065,10 @@
       "title": "Module 2.19: Shortest Remaining Time First (SRTF)",
       "category": "CPU Scheduling",
       "difficulty": "Hard",
-      "tags": ["srtf", "preemptive-sjf"],
+      "tags": [
+        "srtf",
+        "preemptive-sjf"
+      ],
       "content": {
         "why_exists": "Maximum aggression. If a 1ms job arrives while we are 10% into a 100ms job, we stop and finish the 1ms job immediately.",
         "hardware_limitation": "Frequent context switches. Every arrival triggers a scheduler re-evaluation.",
@@ -735,11 +1083,28 @@
         "formulas": "Remaining = Original - Elapsed.",
         "worked_example": "P1(8) @0. P2(4) @1. P1 is stopped, P2 runs. P1 resumes later.",
         "gantt_chart": "| P1(1) | P2(4) | P1(7) |",
-        "interview_questions": ["SJF vs SRTF?", "Impact on context switches?", "Is it fair?"],
-        "mcqs": [{"question": "SRTF is:", "options": ["Non-preemptive", "Preemptive", "Batch only", "Static"], "answer": "Preemptive"}],
+        "interview_questions": [
+          "SJF vs SRTF?",
+          "Impact on context switches?",
+          "Is it fair?"
+        ],
+        "mcqs": [
+          {
+            "question": "SRTF is:",
+            "options": [
+              "Non-preemptive",
+              "Preemptive",
+              "Batch only",
+              "Static"
+            ],
+            "answer": "Preemptive"
+          }
+        ],
         "misconceptions": "SRTF doesn't solve starvation; it makes it worse for long jobs.",
         "recap": "SRTF is the ultimate algorithm for minimizing latency for short tasks.",
-        "next_topic_why": "To be fair to everyone, we need **Round Robin**."
+        "next_topic_why": "To be fair to everyone, we need **Round Robin**.",
+        "real_world_problem": "If a short job arrives while a long job is running, the system should switch to the short job to reduce waiting, but this increases overhead from frequent switching.",
+        "daily_life_analogy": "It is like a doctor who stops a routine patient exam to treat an emergency case immediately, then returns to the routine patient later."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -748,6 +1113,19 @@
           "description": "Maximum aggression. Watch how the arrival of a tiny job (P2) instantly kicks a heavy job (P1) off the CPU.",
           "algo": "SJF"
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "P1",
+            "dur": 8
+          },
+          {
+            "id": "P2",
+            "dur": 4
+          }
+        ]
       }
     },
     {
@@ -755,7 +1133,12 @@
       "title": "Module 2.20: Round Robin - The Heartbeat of Time-Sharing",
       "category": "CPU Scheduling",
       "difficulty": "Medium",
-      "tags": ["quantum", "fairness", "timesharing", "preemption"],
+      "tags": [
+        "quantum",
+        "fairness",
+        "timesharing",
+        "preemption"
+      ],
       "content": {
         "why_exists": "In a modern OS, we can't let one process 'hog' the CPU just because it arrived first. We need a fair way to let everyone 'progress' at the same time. Round Robin is the democratic solution.",
         "hardware_limitation": "The **Timer Interrupt**. Without a piece of hardware that can tap the CPU on the shoulder every X milliseconds and say 'Time's up!', Round Robin is impossible. The OS would be at the mercy of the process yielding voluntarily.",
@@ -778,13 +1161,20 @@
         "mcqs": [
           {
             "question": "If the time quantum is extremely large, RR becomes identical to:",
-            "options": ["SJF", "FCFS", "Priority", "MLQ"],
+            "options": [
+              "SJF",
+              "FCFS",
+              "Priority",
+              "MLQ"
+            ],
             "answer": "FCFS"
           }
         ],
         "misconceptions": "- **'RR is faster'**: It's usually slower than SJF for total turnaround time, but much better for 'Response Time'.",
         "recap": "Round Robin uses timer interrupts to ensure fairness and responsiveness in a multi-user system.",
-        "next_topic_why": "Some tasks are objectively more important than others (e.g., Audio processing vs. Printing). We need **Priority**."
+        "next_topic_why": "Some tasks are objectively more important than others (e.g., Audio processing vs. Printing). We need **Priority**.",
+        "real_world_problem": "Interactive systems need every process to make progress regularly; without time slices, one long job could starve the rest.",
+        "daily_life_analogy": "It is like a poker dealer dealing one card to each player in turn so everyone gets a chance to play instead of one player receiving the whole deck."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -794,6 +1184,19 @@
           "algo": "RR",
           "quantum": 2
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "P1",
+            "dur": 20
+          },
+          {
+            "id": "P2",
+            "dur": 3
+          }
+        ]
       }
     },
     {
@@ -801,7 +1204,12 @@
       "title": "Module 2.21: Priority Scheduling - The Hierarchy of Needs",
       "category": "CPU Scheduling",
       "difficulty": "Medium",
-      "tags": ["priority", "starvation", "aging", "preemption"],
+      "tags": [
+        "priority",
+        "starvation",
+        "aging",
+        "preemption"
+      ],
       "content": {
         "why_exists": "Not all processes are created equal. A 'Heart Rate Monitor' service must always run before a 'Background Software Update'. Priority allows the OS to respect the 'Criticality' of different tasks.",
         "hardware_limitation": "N/A",
@@ -824,13 +1232,20 @@
         "mcqs": [
           {
             "question": "What happens if a high-priority process is blocked by a low-priority one?",
-            "options": ["Starvation", "Priority Inversion", "Deadlock", "Context Switch"],
+            "options": [
+              "Starvation",
+              "Priority Inversion",
+              "Deadlock",
+              "Context Switch"
+            ],
             "answer": "Priority Inversion"
           }
         ],
         "misconceptions": "- **'High priority means faster execution'**: It only means you get the CPU *sooner*, not that the CPU runs your code at a higher clock speed.",
         "recap": "Priority scheduling ensures urgent work is done first but requires 'Aging' to stay fair.",
-        "next_topic_why": "What if we have different rules for different classes of jobs? We use **Multilevel Queues**."
+        "next_topic_why": "What if we have different rules for different classes of jobs? We use **Multilevel Queues**.",
+        "real_world_problem": "Critical tasks must be served before background work, but if priorities are fixed, low-priority jobs may never run.",
+        "daily_life_analogy": "It is like an emergency room where patients with more serious conditions jump ahead of routine cases, while less urgent patients wait longer."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -839,6 +1254,23 @@
           "description": "Watch 'Critical Tasks' jump the line. If you don't 'Age' the low-priority tasks, they will starve in the basement forever.",
           "algo": "Priority"
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "High",
+            "dur": 10
+          },
+          {
+            "id": "Medium",
+            "dur": 20
+          },
+          {
+            "id": "Low",
+            "dur": 50
+          }
+        ]
       }
     },
     {
@@ -846,7 +1278,11 @@
       "title": "Module 2.22: Multilevel Queue - Class Segregation",
       "category": "CPU Scheduling",
       "difficulty": "Hard",
-      "tags": ["mlq", "foreground-background", "partitions"],
+      "tags": [
+        "mlq",
+        "foreground-background",
+        "partitions"
+      ],
       "content": {
         "why_exists": "Processes often naturally fall into 'Classes' (System, Interactive, Batch). Instead of one giant line, we give each class its own queue with its own custom rules.",
         "hardware_limitation": "N/A",
@@ -869,13 +1305,33 @@
         "mcqs": [
           {
             "question": "In MLQ, a process is:",
-            "options": ["Permanently assigned to a queue", "Moved based on age", "Moved based on CPU usage", "Assigned randomly"],
+            "options": [
+              "Permanently assigned to a queue",
+              "Moved based on age",
+              "Moved based on CPU usage",
+              "Assigned randomly"
+            ],
             "answer": "Permanently assigned to a queue"
           }
         ],
         "misconceptions": "- **'It is the same as MLFQ'**: No, MLQ is static. Once a 'Batch' job, always a 'Batch' job.",
         "recap": "MLQ provides rigid, efficient separation of different process types.",
-        "next_topic_why": "To make the system truly smart and adaptive, we need processes to 'Feedback' their behavior: **MLFQ**."
+        "next_topic_why": "To make the system truly smart and adaptive, we need processes to 'Feedback' their behavior: **MLFQ**.",
+        "real_world_problem": "Different kinds of jobs need different scheduling rules, and mixing them in one queue can cause poor performance for both.",
+        "daily_life_analogy": "It is like a grocery store with express lanes for small baskets and regular lanes for large carts. Each group is handled differently for better overall flow."
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "Express",
+            "dur": 4
+          },
+          {
+            "id": "Regular",
+            "dur": 20
+          }
+        ]
       }
     },
     {
@@ -883,7 +1339,13 @@
       "title": "Module 2.23: Multilevel Feedback Queue (MLFQ) - The Ultimate Scheduler",
       "category": "CPU Scheduling",
       "difficulty": "Hard",
-      "tags": ["mlfq", "adaptive", "demotion", "promotion", "feedback"],
+      "tags": [
+        "mlfq",
+        "adaptive",
+        "demotion",
+        "promotion",
+        "feedback"
+      ],
       "content": {
         "why_exists": "The scheduler doesn't know which apps are 'Good' (Interactive) and which are 'Hogs' (CPU-bound). MLFQ is an 'Intelligence' algorithm that watches behavior and automatically sorts processes into the right queues.",
         "hardware_limitation": "N/A",
@@ -906,13 +1368,20 @@
         "mcqs": [
           {
             "question": "Which algorithm is used in most modern general-purpose OSs?",
-            "options": ["FCFS", "SJF", "RR", "MLFQ"],
+            "options": [
+              "FCFS",
+              "SJF",
+              "RR",
+              "MLFQ"
+            ],
             "answer": "MLFQ"
           }
         ],
         "misconceptions": "- **'It's just several RR queues'**: No, the bottom queue is often FCFS to handle long background tasks efficiently.",
         "recap": "MLFQ is the 'Smart' scheduler that learns from process behavior.",
-        "next_topic_why": "Let's review the entire 'Race for the CPU' with a **Master Comparison Example**."
+        "next_topic_why": "Let's review the entire 'Race for the CPU' with a **Master Comparison Example**.",
+        "real_world_problem": "A static scheduling rule cannot adapt to changing workload behavior. MLFQ improves responsiveness by moving jobs between queues based on their actual use.",
+        "daily_life_analogy": "It is like a career ladder where fast performers stay in the fast track while slow performers gradually move to a slower track, but long-waiting workers can eventually move back up."
       },
       "interactive_simulator": {
         "type": "Scheduling Simulator",
@@ -921,6 +1390,19 @@
           "description": "Watch processes 'Sink' as they hog the CPU and 'Rise' as they wait. The scheduler 'learns' and rewards I/O tasks.",
           "algo": "MLFQ"
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "Interactive",
+            "dur": 4
+          },
+          {
+            "id": "CPU-bound",
+            "dur": 32
+          }
+        ]
       }
     },
     {
@@ -928,7 +1410,12 @@
       "title": "Module 2.24: The Scheduling Masterclass - A Unified Comparison",
       "category": "CPU Scheduling",
       "difficulty": "Hard",
-      "tags": ["comparison", "worked-example", "gantt-master", "performance"],
+      "tags": [
+        "comparison",
+        "worked-example",
+        "gantt-master",
+        "performance"
+      ],
       "content": {
         "why_exists": "To truly understand scheduling, you must see the 'Winner' and 'Loser' for every metric in a real-world scenario. No single algorithm is perfect; they all have a 'Tax' to pay.",
         "hardware_limitation": "The **Context Switch Tax**. Even the 'Optimal' algorithm (SJF) can be slow if the overhead of switching is high.",
@@ -951,13 +1438,20 @@
         "mcqs": [
           {
             "question": "Which algorithm minimizes average waiting time provably?",
-            "options": ["FCFS", "SJF", "Round Robin", "MLQ"],
+            "options": [
+              "FCFS",
+              "SJF",
+              "Round Robin",
+              "MLQ"
+            ],
             "answer": "SJF"
           }
         ],
         "misconceptions": "- **'SJF is always the best'**: Only if you care about *average* wait. It's terrible for 'fairness' or 'predictability'.",
         "recap": "Scheduling is the art of choosing the right set of trade-offs for your specific machine goal.",
-        "next_topic_why": "We've mastered how processes are managed and scheduled. But how do they talk to each other without crashing? That's the next chapter: **Process Synchronization & IPC**."
+        "next_topic_why": "We've mastered how processes are managed and scheduled. But how do they talk to each other without crashing? That's the next chapter: **Process Synchronization & IPC**.",
+        "real_world_problem": "Real schedulers must compare tradeoffs across multiple goals. One algorithm may be best for throughput while another is best for interactive response.",
+        "daily_life_analogy": "It is like comparing athletes across different sports: the best sprinter is not the best marathoner, and the best choice depends on the goal of the competition."
       },
       "interactive_simulator": {
         "type": "Gantt Master View",
@@ -966,8 +1460,28 @@
           "description": "Run 4 different algorithms on the same process set simultaneously. Compare AWT and Response Time in one view.",
           "algo": "SJF"
         }
+      },
+      "diagram": {
+        "type": "cpu_scheduling",
+        "tasks": [
+          {
+            "id": "P1",
+            "dur": 8
+          },
+          {
+            "id": "P2",
+            "dur": 4
+          },
+          {
+            "id": "P3",
+            "dur": 9
+          },
+          {
+            "id": "P4",
+            "dur": 5
+          }
+        ]
       }
     }
-
   ]
 }
