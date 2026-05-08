@@ -203,9 +203,13 @@ export class ContentRenderer {
       
       const inject = (slotName, value) => {
         const slot = article.querySelector(`[data-slot="${slotName}"]`);
-        if (!slot) return;
+        if (!slot) {
+          console.warn(`[ContentRenderer] Slot not found: ${slotName}`);
+          return;
+        }
         
         if (value) {
+          console.log(`[ContentRenderer] Injecting ${slotName}:`, value.substring(0, 100) + '...');
           slot.innerHTML = value;
           // Show parent section if it was hidden
           const section = slot.closest('section') || slot.parentElement;
