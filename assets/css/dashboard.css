@@ -54,3 +54,28 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
+/* Mobile Dashboard Adjustments */
+@media (max-width: 768px) {
+  .track-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .track-primary {
+    padding: var(--space-6);
+  }
+  
+  .track-header {
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  
+  .hero-title {
+    font-size: clamp(2rem, 8vw, 4rem);
+  }
+  
+  .track-section {
+    margin-bottom: var(--space-12);
+  }
+}

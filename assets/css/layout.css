@@ -70,6 +70,20 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Mobile topbar adjustments */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 var(--space-3);
+    height: calc(var(--topbar-height) - 0.25rem);
+  }
+  
+  /* Mobile menu button styling */
+  #mobile-menu-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 /* Container Width System */
 .container-sm { max-width: 640px; margin: 0 auto; width: 100%; }
 .container-md { max-width: 768px; margin: 0 auto; width: 100%; }
@@ -136,4 +150,17 @@
 @media (max-width: 768px) {
   .simulator-container { min-height: 300px; }
   .topbar { padding: 0 var(--space-4); }
+  .page-container { 
+    padding: var(--space-4) var(--space-3);
+  }
+  
+  /* Improve mobile sidebar overlay */
+  .mobile-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  /* Better mobile spacing */
+  .grid.gap-8 { gap: var(--space-4); }
+  .space-y-8 > * + * { margin-top: var(--space-4); }
 }

@@ -87,6 +87,18 @@
   background: rgba(0, 212, 255, 0.05);
 }
 
+/* Mobile navigation improvements */
+@media (max-width: 1024px) {
+  .nav-link {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+  }
+  
+  .nav-link i {
+    font-size: var(--text-base);
+  }
+}
+
 /* Placement / Concept Blocks */
 .concept-block {
   background: var(--bg-surface);
@@ -96,6 +108,31 @@
   margin-bottom: var(--space-8);
   box-shadow: var(--shadow-md);
   transition: border-color var(--transition-normal);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .concept-block {
+    padding: var(--space-4);
+    margin-bottom: var(--space-6);
+    border-radius: var(--border-radius-md);
+  }
+  
+  .concept-block-header {
+    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  
+  .concept-intro-layer,
+  .concept-hardware-layer,
+  .concept-internals {
+    padding: var(--space-4);
+  }
+  
+  .concept-formula {
+    padding: var(--space-4);
+    margin: var(--space-4) 0;
+  }
 }
 
 .concept-block:hover {
@@ -140,6 +177,27 @@
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--accent-cyan);
+}
+
+/* Mobile telemetry adjustments */
+@media (max-width: 768px) {
+  .telemetry-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--space-3);
+  }
+  
+  .telemetry-card {
+    padding: var(--space-3) var(--space-2);
+    min-height: 60px;
+  }
+  
+  .telemetry-card .label {
+    font-size: 8px;
+  }
+  
+  .telemetry-card .value {
+    font-size: 16px;
+  }
 }
 
 /* Card Hierarchy System */

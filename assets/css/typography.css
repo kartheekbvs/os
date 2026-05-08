@@ -71,3 +71,33 @@ li {
   outline: 2px solid var(--accent-cyan);
   outline-offset: 2px;
 }
+
+/* Mobile Typography Adjustments */
+@media (max-width: 768px) {
+  body {
+    font-size: var(--text-sm);
+    line-height: 1.6;
+  }
+  
+  h1 { font-size: var(--text-2xl); }
+  h2 { font-size: var(--text-xl); }
+  h3 { font-size: var(--text-lg); }
+  h4 { font-size: var(--text-base); }
+  
+  /* Improve readability on small screens */
+  p, li {
+    font-size: var(--text-sm);
+    line-height: 1.6;
+  }
+  
+  /* Code blocks on mobile */
+  pre {
+    font-size: var(--text-xs);
+    padding: var(--space-3);
+  }
+  
+  code:not(pre code) {
+    font-size: var(--text-xs);
+    padding: 0.15em 0.3em;
+  }
+}

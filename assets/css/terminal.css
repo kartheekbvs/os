@@ -113,3 +113,31 @@
 .terminal-input:focus {
   outline: none;
 }
+
+/* Mobile Terminal Adjustments */
+@media (max-width: 768px) {
+  .terminal-container {
+    font-size: var(--text-xs);
+    border-radius: var(--border-radius-md);
+  }
+  
+  .terminal-output {
+    padding: var(--space-3);
+    max-height: 200px;
+  }
+  
+  .terminal-input {
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .terminal-prompt {
+    font-size: var(--text-xs);
+  }
+  
+  /* Touch-friendly terminal controls */
+  .terminal-controls button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+}
