@@ -385,8 +385,9 @@ export class ContentRenderer {
         
         // Schedule SVGEngine initialization
         setTimeout(() => {
-          this.animations.push(new SVGEngine(qs(`#diag-${concept.id}`), concept.diagram));
-        }, 0);
+          console.log(`Initializing SVGEngine for concept ${concept.id} with type ${concept.diagram.type}`);
+          this.animations.push(new SVGEngine(mountTarget, concept.diagram));
+        }, 100); // Increased delay to ensure DOM is ready
       }
 
       // Placement

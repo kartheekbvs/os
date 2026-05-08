@@ -20,14 +20,24 @@ export class SVGEngine {
   }
 
   init() {
+    console.log('SVGEngine init called with config:', this.config);
+    console.log('Container element:', this.container);
+    console.log('Container innerHTML before clearing:', this.container.innerHTML);
+    
+    if (!this.container) {
+      console.error('SVGEngine: No container provided');
+      return;
+    }
+    
     this.container.innerHTML = '';
+    console.log('Container innerHTML after clearing:', this.container.innerHTML);
     
     // Create base SVG
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.svg.setAttribute('width', '100%');
     this.svg.setAttribute('height', '100%');
     this.svg.setAttribute('viewBox', '0 0 800 400');
-    this.svg.classList.add('w-full', 'h-auto', 'max-h-96');
+    this.svg.classList.add('w-full', 'h-auto');
     this.svg.style.fontFamily = 'var(--font-mono)';
     
     // Add Defs for markers
@@ -40,8 +50,10 @@ export class SVGEngine {
     this.svg.appendChild(defs);
     
     // Render specific diagram type
+    console.log('Rendering diagram type:', this.config.type);
     switch(this.config.type) {
       case 'process_state_machine':
+        console.log('Calling renderProcessStateMachine');
         this.renderProcessStateMachine();
         break;
       case 'cpu_scheduling':
@@ -73,6 +85,7 @@ export class SVGEngine {
     }
 
     this.container.appendChild(this.svg);
+    console.log('SVG appended to container, container now has:', this.container.children.length, 'children');
     this.addControls();
 
     if (!this.isPaused) {
@@ -331,11 +344,16 @@ export class SVGEngine {
   }
 
   drawNodesAndEdges(states, transitions) {
+    console.log('Drawing nodes and edges for', states.length, 'states and', transitions.length, 'transitions');
+    
     // Very simplified direct drawing for demonstration
     transitions.forEach(t => {
       const fromNode = states.find(s => s.id === t.from);
       const toNode = states.find(s => s.id === t.to);
-      if(!fromNode || !toNode) return;
+      if(!fromNode || !toNode) {
+        console.warn('Missing node for transition:', t);
+        return;
+      }
 
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', fromNode.x);
@@ -346,6 +364,7 @@ export class SVGEngine {
       line.setAttribute('stroke-width', '2');
       line.setAttribute('marker-end', 'url(#arrow)');
       this.svg.appendChild(line);
+      console.log('Added transition line:', t.from, '->', t.to);
     });
 
     states.forEach(s => {
@@ -371,6 +390,9 @@ export class SVGEngine {
       g.appendChild(text);
 
       this.svg.appendChild(g);
+      console.log('Added state node:', s.id, s.label);
     });
+    
+    console.log('SVG now has', this.svg.children.length, 'children');
   }
 }
