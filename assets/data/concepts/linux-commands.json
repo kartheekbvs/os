@@ -1,0 +1,1319 @@
+{
+  "meta": {
+    "module": "Linux Commands: Text Processing, Permissions, Processes & Networking",
+    "schemaVersion": "1.2",
+    "lastUpdated": "2026-05-08",
+    "sections": [
+      "Text Processing & Editors",
+      "File Permissions & User Management",
+      "Process & System Management",
+      "Networking in Linux"
+    ]
+  },
+  "concepts": [
+    {
+      "id": "piping-redirection",
+      "title": "Section 3.1: The Art of Piping & Redirection",
+      "category": "Text Processing & Editors",
+      "difficulty": "Intermediate",
+      "tags": [
+        "pipe",
+        "stdin",
+        "stdout",
+        "stderr"
+      ],
+      "content": {
+        "why_exists": "Small tools doing one thing well. Piping is how you combine these tools into complex, powerful pipelines.",
+        "real_world_problem": "A system administrator needs to analyze a 10GB server log file to find all failed login attempts from the past week, extract the IP addresses of suspicious activity, and generate a report for the security team. Without piping, they'd need to manually run multiple commands and create temporary files, wasting hours and disk space.",
+        "daily_life_analogy": "Piping is like a **professional kitchen assembly line**. The dishwasher (first command) washes plates and passes them to the chef (second command) who adds food, who passes to the waiter (third command) who serves the customer. Each person focuses on one task, but together they create a complete meal service.",
+        "hardware_story": "When you use '|', the shell creates a **pipe buffer** in kernel memory (typically 64KB). The first process writes to this buffer, and the second reads from it. If the buffer fills up, the writing process blocks until the reader catches up, preventing data loss.",
+        "execution_flow": "COMMAND PIPELINE EXECUTION:\n1. Shell parses: 'ls | grep .txt'\n2. Shell calls pipe() system call to create kernel buffer\n3. Shell forks two processes: Process A (ls) and Process B (grep)\n4. Process A redirects stdout to pipe write-end\n5. Process B redirects stdin to pipe read-end\n6. Both processes execute simultaneously\n7. ls writes filenames to pipe, grep reads and filters in real-time\n8. Results appear on screen as they're processed",
+        "problem": "You have a log file with 1 million lines. You only want to see the lines containing 'ERROR', and you want to save that result to a new file. Do you open it in a text editor? No.",
+        "beginner_explanation": "Redirection ('>') sends output to a file instead of the screen. Piping ('|') sends the output of one command as the input to another.",
+        "visual_story": "Think of commands as LEGO blocks. The '|' is the connector. You can build a bridge (pipeline) of any length.",
+        "step_by_step": [
+          "Run 'ls' - see it on screen.",
+          "Run 'ls > my_files.txt' - nothing on screen, it's in the file.",
+          "Run 'cat my_files.txt | grep .json' - only show the JSON files."
+        ],
+        "common_mistakes": "Using '>' when you meant '>>'. '>' overwrites the file, '>>' appends to it. Be careful, or you'll lose data!",
+        "debugging_thinking": "If your pipeline is empty, check each stage. Run 'cmd1', then 'cmd1 | cmd2', then 'cmd1 | cmd2 | cmd3'. Find where the data stops flowing.",
+        "real_workflow": "Sysadmins use 'tail -f logfile | grep --line-buffered ERROR' to watch a live system for failures in real-time.",
+        "kernel_internals": "The '|' operator tells the shell to call 'pipe()', creating a buffer in kernel memory. The shell then 'fork()'s two processes and uses 'dup2()' to map the first's stdout and the second's stdin to that buffer.",
+        "performance_analysis": "Pipes are efficient because they avoid temporary files. Data flows directly through memory buffers instead of hitting slow disk I/O. For large datasets, pipes can be 10-100x faster than file-based approaches.",
+        "security_analysis": "Pipes maintain the security context of the original process. If a pipeline includes privileged commands, each stage runs with appropriate permissions, preventing privilege escalation through data flow.",
+        "mini_labs": [
+          {
+            "task": "Count how many files are in /etc.",
+            "command": "ls /etc | wc -l"
+          }
+        ]
+      },
+      "commands": [
+        {
+          "command": "grep 'pattern' file",
+          "explanation": "Global Regular Expression Print. Filters lines based on a search string."
+        },
+        {
+          "command": "ls | tee output.txt",
+          "explanation": "The 'T-junction'. Shows output on screen AND saves it to a file simultaneously."
+        },
+        {
+          "command": "cat file1 file2 > combined.txt",
+          "explanation": "Concatenates two files and redirects the combined stream to a third file."
+        }
+      ]
+    },
+    {
+      "id": "vi-vim-editor",
+      "title": "Section 3.2: Vi/Vim - The Universal Text Editor",
+      "category": "Text Processing & Editors",
+      "difficulty": "Intermediate",
+      "tags": [
+        "vi",
+        "vim",
+        "editor",
+        "text-editing"
+      ],
+      "content": {
+        "why_exists": "Vi is installed on every Unix-like system. Vim is its enhanced version. You must know it because it's always available.",
+        "real_world_problem": "You're troubleshooting a production server at 3 AM. The GUI is broken, SSH is your only access, and you need to edit a critical configuration file. Without Vi/Vim knowledge, you're stuck - no other editors are available on minimal server installations.",
+        "daily_life_analogy": "Vi is like a **professional piano**. It has a 'practice mode' (Insert mode) and a 'performance mode' (Command mode). Just like a pianist's fingers must know the keys instinctively, your fingers must know Vi commands by muscle memory. You don't think about the notes - you play the music.",
+        "hardware_story": "Vi runs entirely in the terminal, which means it's just text output to a TTY device. No GUI libraries, no mouse support - just pure keyboard input and character display. This makes it work on any system with a text terminal, from 1970s teletypes to modern SSH sessions.",
+        "execution_flow": "VI EDITING SESSION:\n1. User types 'vi config.txt'\n2. Shell calls fork() + execve() to start vi process\n3. Vi opens file, displays in Command mode\n4. User presses 'i' - Vi enters Insert mode\n5. Each keystroke updates buffer in memory\n6. User presses Esc - returns to Command mode\n7. User types ':wq' - Vi writes buffer to disk\n8. Vi exits, shell prompt returns",
+        "problem": "You're on a remote server with no GUI. You need to edit a config file. What editor do you use?",
+        "beginner_explanation": "Vi has two modes: Command mode (for navigation and commands) and Insert mode (for typing text). Vim is Vi Improved with syntax highlighting and plugins.",
+        "modes": {
+          "command_mode": "Default mode. Press 'i' to enter insert mode. Use keys like 'h/j/k/l' for navigation.",
+          "insert_mode": "Type text. Press 'Esc' to return to command mode.",
+          "visual_mode": "Select text. Press 'v' in command mode."
+        },
+        "essential_commands": {
+          "navigation": {
+            "h": "Move left",
+            "j": "Move down",
+            "k": "Move up",
+            "l": "Move right",
+            "w": "Next word",
+            "b": "Previous word",
+            "0": "Beginning of line",
+            "$": "End of line",
+            "gg": "Beginning of file",
+            "G": "End of file"
+          },
+          "editing": {
+            "i": "Insert before cursor",
+            "a": "Insert after cursor",
+            "o": "Open new line below",
+            "O": "Open new line above",
+            "x": "Delete character",
+            "dd": "Delete line",
+            "yy": "Copy (yank) line",
+            "p": "Paste after cursor",
+            "u": "Undo",
+            "Ctrl+r": "Redo"
+          },
+          "saving": {
+            ":w": "Write (save)",
+            ":q": "Quit",
+            ":wq": "Write and quit",
+            ":q!": "Quit without saving"
+          }
+        },
+        "vim_vs_vi": "Vi is basic. Vim adds: syntax highlighting, multiple undo, visual mode, plugins, better search/replace.",
+        "practical_workflow": "# Edit a config file\n$ vi /etc/nginx/nginx.conf\n# Press 'i' to insert\n# Make changes\n# Press 'Esc' then ':wq' to save and exit",
+        "definition": "Vi is a modal text editor that comes with all Unix systems. Vim (Vi IMproved) is an enhanced version with modern features."
+      },
+      "commands": [
+        {
+          "command": "vi filename",
+          "explanation": "Open file in Vi editor."
+        },
+        {
+          "command": "vim filename",
+          "explanation": "Open file in Vim editor."
+        },
+        {
+          "command": ":wq",
+          "explanation": "Save and quit in Vi/Vim."
+        },
+        {
+          "command": ":q!",
+          "explanation": "Quit without saving."
+        }
+      ]
+    },
+    {
+      "id": "nano-editor",
+      "title": "Section 3.3: Nano - The Beginner-Friendly Editor",
+      "category": "Text Processing & Editors",
+      "difficulty": "Beginner",
+      "tags": [
+        "nano",
+        "editor",
+        "text-editing"
+      ],
+      "content": {
+        "why_exists": "Nano is simpler than Vi/Vim. It's good for beginners and quick edits.",
+        "real_world_problem": "A junior developer needs to quickly edit a configuration file on a server they're not familiar with. They don't have time to learn Vi/Vim commands, but need to make a simple change and get out. Nano provides an intuitive interface with on-screen help.",
+        "daily_life_analogy": "Nano is like a **basic word processor** (like WordPad or TextEdit). You just start typing - no special modes or complex commands to remember. It's the difference between learning to drive a manual transmission versus an automatic car.",
+        "hardware_story": "Nano uses the same terminal interface as other editors but provides a more user-friendly wrapper. It handles all the low-level terminal escape sequences and cursor positioning, presenting a familiar text-editing experience.",
+        "execution_flow": "NANO EDITING SESSION:\n1. User types 'nano config.txt'\n2. Nano initializes terminal in raw mode\n3. Nano displays file content with status bar\n4. User types normally - each key press updates display\n5. User presses Ctrl+O - Nano prompts for filename\n6. Nano writes buffer to disk using system calls\n7. User presses Ctrl+X - Nano restores terminal and exits",
+        "problem": "You need to edit a file but don't want to learn Vi's complex modes.",
+        "beginner_explanation": "Nano is a simple text editor. Type text directly, use Ctrl+O to save, Ctrl+X to exit. Commands are shown at the bottom.",
+        "key_commands": {
+          "Ctrl+O": "Save file",
+          "Ctrl+X": "Exit",
+          "Ctrl+W": "Search",
+          "Ctrl+K": "Cut line",
+          "Ctrl+U": "Paste line",
+          "Ctrl+G": "Help"
+        },
+        "advantages": "Simple, intuitive, shows commands at bottom, no modes to confuse you.",
+        "disadvantages": "Less powerful than Vim, not installed everywhere.",
+        "definition": "Nano is a simple, user-friendly text editor that displays commands at the bottom of the screen."
+      },
+      "commands": [
+        {
+          "command": "nano filename",
+          "explanation": "Open file in Nano editor."
+        },
+        {
+          "command": "Ctrl+O",
+          "explanation": "Save file in Nano."
+        },
+        {
+          "command": "Ctrl+X",
+          "explanation": "Exit Nano."
+        }
+      ]
+    },
+    {
+      "id": "grep-advanced",
+      "title": "Section 3.4: Grep - Advanced Text Searching",
+      "category": "Text Processing & Editors",
+      "difficulty": "Intermediate",
+      "tags": [
+        "grep",
+        "search",
+        "regex"
+      ],
+      "content": {
+        "why_exists": "You need to find specific text in files or output. Grep is the standard tool.",
+        "real_world_problem": "A security analyst needs to investigate a potential breach. They must search through 50GB of log files across hundreds of servers to find all instances of suspicious IP addresses, failed login attempts, and unusual error patterns within a specific time window.",
+        "daily_life_analogy": "Grep is like a **metal detector** at the beach. You set your search pattern (the 'target metal'), walk through the sand (scan the files), and it beeps whenever it finds what you're looking for. Just like a detector can find coins, bottle caps, or lost jewelry, grep can find error messages, usernames, or specific code patterns.",
+        "hardware_story": "Grep leverages the operating system's file I/O capabilities. It uses system calls like open(), read(), and mmap() to efficiently scan files. For large files, it can memory-map the content to avoid excessive copying, making it much faster than loading everything into RAM.",
+        "execution_flow": "GREP SEARCH PROCESS:\n1. Parse command line arguments and regex pattern\n2. For each input file: open() system call\n3. Read file in chunks using buffered I/O\n4. Apply regex matching to each line\n5. Print matching lines to stdout\n6. Close file descriptors\n7. Exit with status code indicating matches found",
+        "problem": "Find all lines containing 'ERROR' in log files across the entire system.",
+        "beginner_explanation": "Grep searches for patterns in text. It can search files or piped input.",
+        "useful_options": {
+          "-i": "Case-insensitive search",
+          "-n": "Show line numbers",
+          "-c": "Count matches",
+          "-v": "Invert match (show non-matching lines)",
+          "-r": "Recursive search in directories",
+          "-l": "Show only filenames with matches",
+          "-A 3": "Show 3 lines After match",
+          "-B 3": "Show 3 lines Before match",
+          "-C 3": "Show 3 lines Context around match"
+        },
+        "examples": [
+          "$ grep 'error' /var/log/syslog",
+          "$ grep -r 'TODO' ~/projects",
+          "$ ps aux | grep apache",
+          "$ grep -n 'function' script.py"
+        ],
+        "definition": "Grep searches text using patterns (regular expressions) and prints matching lines."
+      },
+      "commands": [
+        {
+          "command": "grep 'pattern' file",
+          "explanation": "Search for pattern in file."
+        },
+        {
+          "command": "grep -r 'pattern' directory",
+          "explanation": "Recursive search in directory."
+        },
+        {
+          "command": "grep -i 'pattern' file",
+          "explanation": "Case-insensitive search."
+        }
+      ]
+    },
+    {
+      "id": "awk-text-processing",
+      "title": "Section 3.5: Awk - Text Processing Powerhouse",
+      "category": "Text Processing & Editors",
+      "difficulty": "Advanced",
+      "tags": [
+        "awk",
+        "text-processing",
+        "columns"
+      ],
+      "content": {
+        "why_exists": "You need to process structured text (like CSV files or log entries) and extract specific columns or perform calculations.",
+        "real_world_problem": "A data analyst needs to process a 2GB sales log file to calculate total revenue by product category, find the top 10 customers by purchase amount, and generate a summary report. Using traditional programming would take hours; awk can do it in minutes with a one-liner.",
+        "daily_life_analogy": "Awk is like a **master chef** in a busy kitchen. While grep is good at finding ingredients, awk knows how to chop them (extract columns), mix them (perform calculations), and create gourmet dishes (formatted reports). It's the difference between finding tomatoes and making a sauce.",
+        "hardware_story": "Awk processes text streams efficiently by reading input line-by-line, avoiding the need to load entire files into memory. It uses the standard C library's buffered I/O functions, making it suitable for processing files much larger than available RAM.",
+        "execution_flow": "AWK PROCESSING FLOW:\n1. Initialize variables and compile patterns\n2. Read input line by line from files or stdin\n3. Split line into fields based on FS separator\n4. Execute pattern-action blocks in order\n5. Perform field processing and calculations\n6. Execute END blocks after all input processed\n7. Print results and exit",
+        "problem": "Extract usernames and their home directories from /etc/passwd, or sum up disk usage from 'du' output.",
+        "beginner_explanation": "Awk processes text line by line. Each line is split into fields (columns). You can access fields as $1, $2, etc.",
+        "basic_syntax": "awk 'pattern { action }' file",
+        "examples": [
+          "$ awk '{print $1}' file.txt          # Print first column",
+          "$ awk -F: '{print $1, $6}' /etc/passwd  # Print username and home dir",
+          "$ awk '{sum += $1} END {print sum}' numbers.txt  # Sum first column",
+          "$ awk 'length($0) > 80' file.txt     # Lines longer than 80 chars"
+        ],
+        "built_in_variables": {
+          "NF": "Number of fields in current line",
+          "NR": "Current line number",
+          "FS": "Field separator (default space)",
+          "OFS": "Output field separator"
+        },
+        "definition": "Awk is a programming language designed for text processing and data extraction."
+      },
+      "commands": [
+        {
+          "command": "awk '{print $1}' file",
+          "explanation": "Print first column of each line."
+        },
+        {
+          "command": "awk -F: '{print $1}' /etc/passwd",
+          "explanation": "Print first field using ':' as separator."
+        }
+      ]
+    },
+    {
+      "id": "cut-command",
+      "title": "Section 3.6: Cut - Extract Text Columns",
+      "category": "Text Processing & Editors",
+      "difficulty": "Intermediate",
+      "tags": [
+        "cut",
+        "columns",
+        "text-extraction"
+      ],
+      "content": {
+        "why_exists": "Extract specific columns from structured text files.",
+        "real_world_problem": "A database administrator needs to extract just the usernames from a 1GB SQL dump file containing full table schemas, ignoring all the table structure metadata and other columns. Using cut is much faster than loading the file into a database.",
+        "daily_life_analogy": "Cut is like a **paper cutter** in an office. You have a spreadsheet printed on paper, and you need only the first column (names). You align the cutter and slice precisely, keeping just what you need and discarding the rest.",
+        "hardware_story": "Cut operates at the byte level, making it extremely efficient. It doesn't need to understand the content - it just counts characters or splits on delimiters, making it suitable for processing huge files that wouldn't fit in memory.",
+        "execution_flow": "CUT PROCESSING:\n1. Parse command line options (delimiter, fields/characters)\n2. Read input line by line\n3. For each line: split by delimiter or count characters\n4. Extract specified fields/character ranges\n5. Output extracted text\n6. Continue until EOF",
+        "problem": "Get only the usernames from /etc/passwd, ignoring the other fields.",
+        "beginner_explanation": "Cut extracts sections from each line of text.",
+        "options": {
+          "-c": "Cut by character positions",
+          "-f": "Cut by fields (columns)",
+          "-d": "Field delimiter (default tab)"
+        },
+        "examples": [
+          "$ cut -d: -f1 /etc/passwd          # Extract usernames",
+          "$ cut -c1-10 file.txt              # First 10 characters",
+          "$ ps aux | cut -c1-80              # Truncate wide output"
+        ],
+        "definition": "Cut removes sections from each line of files."
+      },
+      "commands": [
+        {
+          "command": "cut -d: -f1 /etc/passwd",
+          "explanation": "Extract first field using ':' delimiter."
+        },
+        {
+          "command": "cut -c1-10 file.txt",
+          "explanation": "Extract first 10 characters."
+        }
+      ]
+    },
+    {
+      "id": "sed-stream-editor",
+      "title": "Section 3.7: Sed - Stream Editor",
+      "category": "Text Processing & Editors",
+      "difficulty": "Advanced",
+      "tags": [
+        "sed",
+        "text-editing",
+        "stream-processing"
+      ],
+      "content": {
+        "why_exists": "Edit text files automatically without opening them in an editor.",
+        "real_world_problem": "A DevOps engineer needs to update 500 configuration files across 50 servers, changing IP addresses from an old subnet to a new one. Using sed with find, they can make all changes in one command without manually editing each file.",
+        "daily_life_analogy": "Sed is like a **search-and-replace function** in a word processor, but automated and programmable. Instead of clicking 'Replace All' in Word, you write a script that can handle complex patterns and conditions across thousands of files.",
+        "hardware_story": "Sed uses a line-oriented approach, processing one line at a time in memory. This makes it memory-efficient for large files. It leverages the standard I/O streams, making it composable with other Unix tools through pipes.",
+        "execution_flow": "SED PROCESSING CYCLE:\n1. Read one line from input into pattern space\n2. Apply all applicable commands to pattern space\n3. If auto-print enabled, output the result\n4. Repeat for next line until EOF\n5. Execute any END commands",
+        "problem": "Replace all occurrences of 'old_domain.com' with 'new_domain.com' in a config file.",
+        "beginner_explanation": "Sed processes text line by line and applies editing commands.",
+        "common_operations": {
+          "s/old/new/g": "Substitute 'old' with 'new' globally",
+          "d": "Delete lines",
+          "/pattern/d": "Delete lines matching pattern",
+          "p": "Print lines"
+        },
+        "examples": [
+          "$ sed 's/old/new/g' file.txt        # Replace in file",
+          "$ sed -i 's/old/new/g' file.txt     # Edit file in-place",
+          "$ sed '/^#/d' file.txt              # Remove comment lines",
+          "$ sed '1,10d' file.txt              # Delete first 10 lines"
+        ],
+        "definition": "Sed is a stream editor that performs basic text transformations on an input stream."
+      },
+      "commands": [
+        {
+          "command": "sed 's/old/new/g' file",
+          "explanation": "Replace 'old' with 'new' globally."
+        },
+        {
+          "command": "sed -i 's/old/new/g' file",
+          "explanation": "Edit file in-place."
+        }
+      ]
+    },
+    {
+      "id": "tr-translate",
+      "title": "Section 3.8: Tr - Translate Characters",
+      "category": "Text Processing & Editors",
+      "difficulty": "Intermediate",
+      "tags": [
+        "tr",
+        "character-translation",
+        "text-conversion"
+      ],
+      "content": {
+        "why_exists": "Convert characters in text streams (uppercase to lowercase, remove characters, etc.).",
+        "real_world_problem": "A data migration specialist needs to convert a 5GB CSV file from Windows (CRLF line endings) to Unix format (LF only), and also normalize all text to lowercase for database consistency. Tr can do both operations in a single pass.",
+        "daily_life_analogy": "Tr is like a **character substitution cipher** in espionage. You have a message in one alphabet, and you need to translate every character to a different one. A becomes 1, B becomes 2, etc. Tr does this translation instantly on streams of text.",
+        "hardware_story": "Tr operates at the lowest level - individual character translation. It uses efficient lookup tables and processes characters one by one, making it extremely fast for character-level transformations on large data streams.",
+        "execution_flow": "TR CHARACTER PROCESSING:\n1. Build translation table from command arguments\n2. Read input character by character\n3. Look up each character in translation table\n4. Output translated character immediately\n5. Handle special operations (squeeze, delete) as needed",
+        "problem": "Convert all uppercase letters to lowercase in a file.",
+        "beginner_explanation": "Tr translates or deletes characters from standard input.",
+        "examples": [
+          "$ echo 'HELLO' | tr 'A-Z' 'a-z'     # Upper to lower",
+          "$ cat file.txt | tr -d '\n'         # Remove newlines",
+          "$ cat file.txt | tr -s ' '          # Squeeze multiple spaces",
+          "$ echo 'hello world' | tr 'a-z' 'A-Z'  # Lower to upper"
+        ],
+        "definition": "Tr translates, squeezes, or deletes characters from standard input."
+      },
+      "commands": [
+        {
+          "command": "echo 'HELLO' | tr 'A-Z' 'a-z'",
+          "explanation": "Convert uppercase to lowercase."
+        },
+        {
+          "command": "cat file | tr -d '\n'",
+          "explanation": "Remove all newlines."
+        }
+      ]
+    },
+    {
+      "id": "regex-basics",
+      "title": "Section 3.9: Regular Expressions - Pattern Matching",
+      "category": "Text Processing & Editors",
+      "difficulty": "Advanced",
+      "tags": [
+        "regex",
+        "patterns",
+        "grep",
+        "sed"
+      ],
+      "content": {
+        "why_exists": "Match complex text patterns, not just literal strings.",
+        "real_world_problem": "A cybersecurity researcher needs to identify all potential credit card numbers in a 20GB database leak. The pattern is complex: 13-16 digits, with optional spaces/dashes, starting with specific prefixes. Regex can find all matches instantly.",
+        "daily_life_analogy": "Regex is like a **jigsaw puzzle template**. Instead of looking for a specific piece, you describe the shape: 'a piece with a straight edge on top and a blue section'. Regex finds all pieces that match your description pattern.",
+        "hardware_story": "Regex engines use finite automata - mathematical models that process characters one by one through state machines. Modern engines like PCRE use optimized algorithms that can process millions of characters per second.",
+        "execution_flow": "REGEX MATCHING PROCESS:\n1. Compile regex pattern into state machine\n2. Read input text character by character\n3. Transition through states based on current character\n4. If reach accepting state, pattern matches\n5. Backtrack if needed for complex patterns\n6. Report match positions and captured groups",
+        "problem": "Find all email addresses in a file, or validate phone numbers.",
+        "beginner_explanation": "Regex uses special characters to match patterns in text.",
+        "basic_patterns": {
+          ".": "Any single character",
+          "*": "Zero or more of previous",
+          "+": "One or more of previous",
+          "?": "Zero or one of previous",
+          "^": "Beginning of line",
+          "$": "End of line",
+          "[abc]": "Any of a, b, or c",
+          "[0-9]": "Any digit",
+          "\\w": "Word character",
+          "\\d": "Digit"
+        },
+        "examples": [
+          "$ grep '^[0-9]\\+$' file.txt       # Lines with only digits",
+          "$ grep '\\bword\\b' file.txt       # Whole word 'word'",
+          "$ sed 's/[0-9]\\+/NUMBER/g' file.txt  # Replace numbers with 'NUMBER'"
+        ],
+        "definition": "Regular expressions are patterns used to match character combinations in strings."
+      },
+      "commands": [
+        {
+          "command": "grep 'pattern' file",
+          "explanation": "Use regex pattern in grep."
+        },
+        {
+          "command": "sed 's/regex/replacement/g' file",
+          "explanation": "Use regex in sed substitution."
+        }
+      ]
+    },
+    {
+      "id": "chmod-permissions",
+      "title": "Section 4.1: Chmod - Change File Permissions",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "chmod",
+        "permissions",
+        "rwx"
+      ],
+      "content": {
+        "why_exists": "Control who can read, write, or execute files. Security foundation.",
+        "real_world_problem": "A web server administrator discovers that log files are world-writable, allowing any user to modify them. They need to restrict permissions so only the web server can write logs, and only administrators can read them.",
+        "daily_life_analogy": "Chmod is like a **house key system**. You give keys to family members (read), some can open doors (write), and trusted people can enter the master bedroom (execute). Different people get different access levels to different rooms.",
+        "hardware_story": "Permissions are stored in the inode data structure on disk. Each file has a permission bitmap (9 bits for rwx) that the kernel checks before allowing any file operation. This happens at the VFS layer before the actual disk I/O.",
+        "execution_flow": "PERMISSION CHANGE PROCESS:\n1. Parse chmod command and target permissions\n2. Check if user has permission to change file ownership\n3. Read current file inode from disk\n4. Update permission bits in inode\n5. Write modified inode back to disk\n6. Update filesystem metadata",
+        "problem": "Make a script executable, or prevent others from reading your private files.",
+        "beginner_explanation": "Permissions are Read (r), Write (w), Execute (x) for Owner, Group, Others.",
+        "numeric_mode": {
+          "r": "4",
+          "w": "2",
+          "x": "1",
+          "rw-": "6",
+          "rwx": "7"
+        },
+        "examples": [
+          "$ chmod 755 script.sh              # rwxr-xr-x",
+          "$ chmod +x script.sh               # Add execute for all",
+          "$ chmod u+x script.sh              # Add execute for owner",
+          "$ chmod go-rwx private.txt         # Remove all permissions for group and others"
+        ],
+        "definition": "Chmod changes the permissions of a file or directory."
+      },
+      "commands": [
+        {
+          "command": "chmod 755 file",
+          "explanation": "Set permissions to rwxr-xr-x."
+        },
+        {
+          "command": "chmod +x script.sh",
+          "explanation": "Make script executable."
+        },
+        {
+          "command": "ls -l",
+          "explanation": "View current permissions."
+        }
+      ]
+    },
+    {
+      "id": "chown-ownership",
+      "title": "Section 4.2: Chown - Change File Ownership",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "chown",
+        "ownership",
+        "user",
+        "group"
+      ],
+      "content": {
+        "why_exists": "Change which user or group owns a file.",
+        "real_world_problem": "After migrating a website to a new server, all files are owned by root. The web server process runs as 'www-data' user and cannot read the files. The administrator needs to change ownership so the web server can serve the content.",
+        "daily_life_analogy": "Chown is like **transferring property deeds**. When you sell a house, the ownership transfers from you to the new owner. The house is the same, but now different people have the rights to use and modify it.",
+        "hardware_story": "File ownership is stored in the inode alongside permissions. The kernel maintains user/group ID mappings and validates ownership changes against the current user's privileges. Only root can change ownership arbitrarily.",
+        "execution_flow": "OWNERSHIP CHANGE PROCESS:\n1. Validate user has permission to change ownership\n2. Resolve username/groupname to numeric IDs\n3. Read file inode from disk\n4. Update UID/GID fields in inode\n5. Write modified inode back to disk\n6. Update filesystem access control lists if needed",
+        "problem": "A file was created by root but needs to be owned by a regular user.",
+        "beginner_explanation": "Chown changes the owner and/or group of a file.",
+        "examples": [
+          "$ chown alice file.txt             # Change owner to alice",
+          "$ chown alice:developers file.txt # Change owner and group",
+          "$ chown :developers file.txt      # Change only group",
+          "$ chown -R alice /home/alice      # Recursive ownership change"
+        ],
+        "definition": "Chown changes the user and/or group ownership of files and directories."
+      },
+      "commands": [
+        {
+          "command": "chown user file",
+          "explanation": "Change file owner."
+        },
+        {
+          "command": "chown user:group file",
+          "explanation": "Change owner and group."
+        },
+        {
+          "command": "chown -R user directory",
+          "explanation": "Recursive ownership change."
+        }
+      ]
+    },
+    {
+      "id": "suid-sgid-bits",
+      "title": "Section 4.3: SUID/SGID - Special Permission Bits",
+      "category": "File Permissions & User Management",
+      "difficulty": "Advanced",
+      "tags": [
+        "suid",
+        "sgid",
+        "special-permissions"
+      ],
+      "content": {
+        "why_exists": "Allow programs to run with elevated privileges when needed.",
+        "real_world_problem": "Users need to change their passwords, which requires writing to /etc/shadow (a root-only file). The passwd program needs to run as root temporarily, but users shouldn't have full root access. SUID allows this controlled privilege escalation.",
+        "daily_life_analogy": "SUID/SGID is like a **power of attorney**. You give someone temporary authority to act on your behalf for specific tasks (like signing checks), but they don't get permanent control of your entire life/accounts.",
+        "hardware_story": "SUID/SGID bits are stored in the file's inode permission field. When executing a SUID program, the kernel sets the effective UID to the file owner's UID during execution, while keeping the real UID as the caller's. This creates a temporary privilege context.",
+        "execution_flow": "SUID EXECUTION PROCESS:\n1. User executes SUID program\n2. Kernel checks SUID bit in inode\n3. Process created with caller's UID as real UID\n4. File owner's UID set as effective UID\n5. Program runs with elevated privileges\n6. Process terminates, privileges revoked\n7. No permanent privilege escalation",
+        "problem": "Users need to change their passwords (requires writing to /etc/shadow), but shouldn't have direct access.",
+        "beginner_explanation": "SUID: Program runs with owner's permissions. SGID: Program runs with group's permissions.",
+        "examples": [
+          "$ chmod u+s program               # Set SUID bit",
+          "$ chmod g+s program               # Set SGID bit",
+          "$ ls -l /usr/bin/passwd           # Shows 's' instead of 'x'"
+        ],
+        "security_risks": "SUID programs are security risks if not carefully designed.",
+        "definition": "SUID and SGID are special permission bits that allow programs to run with different privileges."
+      },
+      "commands": [
+        {
+          "command": "chmod u+s file",
+          "explanation": "Set SUID bit."
+        },
+        {
+          "command": "chmod g+s file",
+          "explanation": "Set SGID bit."
+        },
+        {
+          "command": "ls -l",
+          "explanation": "Check for 's' in permissions."
+        }
+      ]
+    },
+    {
+      "id": "umask-default-permissions",
+      "title": "Section 4.4: Umask - Default File Permissions",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "umask",
+        "default-permissions"
+      ],
+      "content": {
+        "why_exists": "Control default permissions for newly created files.",
+        "real_world_problem": "In a shared development server, newly created files are world-writable by default, allowing other developers to accidentally modify each other's code. The team needs to set restrictive defaults so files are only writable by their owners.",
+        "daily_life_analogy": "Umask is like a **factory default setting** on a photocopier. Instead of manually changing settings every time, you set the default so all copies come out with the right brightness/contrast automatically.",
+        "hardware_story": "Umask is a process attribute stored in the kernel's process table. When creating files, the kernel applies the umask to the default permissions (666 for files, 777 for directories) using bitwise AND with the inverted mask.",
+        "execution_flow": "FILE CREATION WITH UMASK:\n1. Process calls open() or creat() system call\n2. Kernel gets default permissions (666 for files)\n3. Kernel applies umask: final_perms = default & ~umask\n4. Kernel creates file with final permissions\n5. Process continues with file handle",
+        "problem": "New files are created with permissions that are too permissive.",
+        "beginner_explanation": "Umask subtracts permissions from the default (666 for files, 777 for directories).",
+        "examples": [
+          "$ umask 022                       # Files: 644, Directories: 755",
+          "$ umask                           # Show current umask",
+          "$ umask 077                       # Very restrictive"
+        ],
+        "definition": "Umask sets the default permissions mask for newly created files and directories."
+      },
+      "commands": [
+        {
+          "command": "umask",
+          "explanation": "Show current umask value."
+        },
+        {
+          "command": "umask 022",
+          "explanation": "Set umask to 022."
+        }
+      ]
+    },
+    {
+      "id": "useradd-create-users",
+      "title": "Section 4.5: Useradd - Create User Accounts",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "useradd",
+        "users",
+        "accounts"
+      ],
+      "content": {
+        "why_exists": "Add new users to the system.",
+        "problem": "Need to create accounts for new employees.",
+        "beginner_explanation": "Useradd creates new user accounts with home directories and default settings.",
+        "examples": [
+          "$ useradd alice                   # Create user alice",
+          "$ useradd -m -s /bin/bash alice  # Create with home and shell",
+          "$ useradd -G developers alice    # Add to developers group"
+        ],
+        "definition": "Useradd creates a new user account.",
+        "real_world_problem": "A company hires 50 new employees and needs to create user accounts for all of them with appropriate permissions and home directories. Manual creation would take hours; useradd automates this process.",
+        "daily_life_analogy": "useradd is like **issuing employee ID cards at a large corporation**. Each card contains personal information, access levels, and automatically creates an employee record in the system."
+      },
+      "commands": [
+        {
+          "command": "useradd username",
+          "explanation": "Create a new user."
+        },
+        {
+          "command": "useradd -m username",
+          "explanation": "Create user with home directory."
+        }
+      ]
+    },
+    {
+      "id": "groupadd-manage-groups",
+      "title": "Section 4.6: Groupadd - Manage Groups",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "groupadd",
+        "groups"
+      ],
+      "content": {
+        "why_exists": "Create groups for organizing users and permissions.",
+        "problem": "Need to create a 'developers' group for team collaboration.",
+        "beginner_explanation": "Groupadd creates new groups.",
+        "examples": [
+          "$ groupadd developers             # Create developers group",
+          "$ groupadd -g 1001 admins        # Create with specific GID"
+        ],
+        "definition": "Groupadd creates a new group.",
+        "real_world_problem": "A development team needs to share files among team members but restrict access from other departments. Groups allow administrators to manage permissions for multiple users simultaneously.",
+        "daily_life_analogy": "Groups are like **departmental teams in a company**. All marketing team members automatically get access to marketing files, while engineering team members get access to technical documents."
+      },
+      "commands": [
+        {
+          "command": "groupadd groupname",
+          "explanation": "Create a new group."
+        },
+        {
+          "command": "groupadd -g GID groupname",
+          "explanation": "Create group with specific ID."
+        }
+      ]
+    },
+    {
+      "id": "sudo-su-privilege-escalation",
+      "title": "Section 4.7: Sudo/Su - Privilege Escalation",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "sudo",
+        "su",
+        "root",
+        "privileges"
+      ],
+      "content": {
+        "why_exists": "Run commands as root or other users when needed.",
+        "problem": "Need to install software or edit system files as administrator.",
+        "beginner_explanation": "Sudo runs a single command as root. Su switches to root user.",
+        "examples": [
+          "$ sudo apt update                 # Run command as root",
+          "$ su -                           # Switch to root",
+          "$ sudo -u alice command          # Run as specific user"
+        ],
+        "difference": "Sudo: temporary elevation. Su: full login as different user.",
+        "definition": "Sudo and su allow running commands with elevated privileges.",
+        "real_world_problem": "A system administrator needs to install software that requires root access, but running as root all the time is dangerous. sudo allows temporary privilege escalation for specific commands.",
+        "daily_life_analogy": "sudo is like **using a master key for a hotel**. Housekeeping can temporarily access any room to clean it, but they don't carry the master key all the time."
+      },
+      "commands": [
+        {
+          "command": "sudo command",
+          "explanation": "Run command as root."
+        },
+        {
+          "command": "su -",
+          "explanation": "Switch to root user."
+        },
+        {
+          "command": "sudo -u username command",
+          "explanation": "Run command as specific user."
+        }
+      ]
+    },
+    {
+      "id": "system-files-passwd-shadow",
+      "title": "Section 4.8: System Files - /etc/passwd, /etc/shadow, /etc/group",
+      "category": "File Permissions & User Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "passwd",
+        "shadow",
+        "group",
+        "system-files"
+      ],
+      "content": {
+        "why_exists": "Store user account information, passwords, and group memberships.",
+        "problem": "Need to understand user database structure.",
+        "beginner_explanation": "/etc/passwd: User info. /etc/shadow: Passwords. /etc/group: Groups.",
+        "passwd_format": "username:password:x:uid:gid:gecos:home:shell",
+        "shadow_format": "username:encrypted_password:last_change:etc",
+        "group_format": "groupname:password:x:gid:user_list",
+        "examples": [
+          "$ cat /etc/passwd | head -5      # View user accounts",
+          "$ cat /etc/group | grep alice   # See alice's groups",
+          "$ id alice                      # Show alice's UID/GID"
+        ],
+        "definition": "System files that store user, password, and group information.",
+        "real_world_problem": "User passwords must be stored securely so attackers cannot easily read them. The shadow file stores encrypted passwords separately from user information, with restricted access.",
+        "daily_life_analogy": "The shadow file is like **a bank's vault for storing valuables**. Customer account information is in the lobby (passwd), but the actual money is locked in a secure vault (shadow)."
+      },
+      "commands": [
+        {
+          "command": "cat /etc/passwd",
+          "explanation": "View user account information."
+        },
+        {
+          "command": "cat /etc/group",
+          "explanation": "View group information."
+        },
+        {
+          "command": "id username",
+          "explanation": "Show user ID and group memberships."
+        }
+      ]
+    },
+    {
+      "id": "passwd-change-passwords",
+      "title": "Section 4.9: Passwd - Change Passwords",
+      "category": "File Permissions & User Management",
+      "difficulty": "Beginner",
+      "tags": [
+        "passwd",
+        "passwords"
+      ],
+      "content": {
+        "why_exists": "Change user passwords securely.",
+        "problem": "Need to change password or reset user password.",
+        "beginner_explanation": "Passwd changes passwords for users.",
+        "examples": [
+          "$ passwd                         # Change your password",
+          "$ sudo passwd alice              # Change alice's password",
+          "$ passwd -l alice                # Lock alice's account",
+          "$ passwd -u alice                # Unlock alice's account"
+        ],
+        "definition": "Passwd changes user passwords and manages account locking.",
+        "real_world_problem": "After a security breach, all users must change their passwords immediately. The passwd command allows users to update their credentials securely.",
+        "daily_life_analogy": "passwd is like **changing the locks on your house after losing your keys**. It ensures that even if someone had your old password, they can't access your account anymore."
+      },
+      "commands": [
+        {
+          "command": "passwd",
+          "explanation": "Change your password."
+        },
+        {
+          "command": "sudo passwd username",
+          "explanation": "Change another user's password."
+        }
+      ]
+    },
+    {
+      "id": "process-control",
+      "title": "Section 5.1: Mastering Process Control & Signals",
+      "category": "Process & System Management",
+      "difficulty": "Advanced",
+      "tags": [
+        "ps",
+        "kill",
+        "signals",
+        "jobs"
+      ],
+      "content": {
+        "why_exists": "A Linux system is alive with hundreds of processes. You must be the conductor of this orchestra.",
+        "problem": "An application is frozen and consuming 100% CPU. You can't close it normally. How do you force it to stop without rebooting the whole machine?",
+        "beginner_explanation": "Every program you run is a 'Process' with a unique ID (PID). You can see them with 'ps' and stop them with 'kill'.",
+        "visual_story": "A process is like a worker in a factory. Sometimes a worker gets stuck and blocks the conveyor belt. The 'kill' command is like the manager telling the worker: 'Stop everything and leave.'",
+        "step_by_step": [
+          "Run a long task: 'sleep 1000 &'. The '&' puts it in the background.",
+          "Find its PID: 'ps'.",
+          "Stop it: 'kill PID'.",
+          "Check again: it's gone."
+        ],
+        "common_mistakes": "Thinking 'kill' always means 'delete'. Kill sends a *signal*. SIGTERM (15) asks nicely to stop; SIGKILL (9) forces it immediately.",
+        "debugging_thinking": "Process not dying with 'kill'? It might be a 'Zombie' or stuck in an 'Uninterruptible Sleep' waiting for disk I/O.",
+        "real_workflow": "DevOps engineers use 'pkill -u user' to quickly clear out all processes belonging to a user who is causing system lag.",
+        "kernel_internals": "The 'kill()' syscall doesn't kill; it sends a signal. The kernel pauses the target process, pushes a signal onto its stack, and forces it to execute a signal handler.",
+        "performance_note": "Too many background processes can cause 'context switching' overhead, slowing down the CPU as it tries to keep everyone happy.",
+        "mini_tasks": [
+          "Run 'sleep 500' in the background.",
+          "Use 'jobs' to see it.",
+          "Bring it to the foreground with 'fg'."
+        ],
+        "real_world_problem": "A web server becomes unresponsive due to a misbehaving process consuming all CPU. Process control commands allow administrators to identify and terminate problematic processes.",
+        "daily_life_analogy": "Process control is like **traffic control at a busy intersection**. When a car breaks down and blocks traffic, the officer can redirect vehicles or tow the broken car away."
+      },
+      "commands": [
+        {
+          "command": "ps aux",
+          "explanation": "Shows EVERY process on the system with detailed CPU and Memory usage."
+        },
+        {
+          "command": "top",
+          "explanation": "Real-time process monitor. Shows who is currently 'eating' the most resources."
+        },
+        {
+          "command": "kill -9 PID",
+          "explanation": "Sends SIGKILL. The kernel terminates the process immediately. No cleanup allowed."
+        }
+      ]
+    },
+    {
+      "id": "nice-renice-priority",
+      "title": "Section 5.2: Nice/Renice - Process Priority",
+      "category": "Process & System Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "nice",
+        "renice",
+        "priority",
+        "scheduling"
+      ],
+      "content": {
+        "why_exists": "Control which processes get more CPU time.",
+        "problem": "A backup process is slowing down the system. Make it run with lower priority.",
+        "beginner_explanation": "Nice values range from -20 (highest priority) to 19 (lowest). Lower nice = higher priority.",
+        "examples": [
+          "$ nice -n 10 backup.sh            # Run with lower priority",
+          "$ renice 10 -p PID                # Change running process priority",
+          "$ renice 10 -u alice              # Change all of alice's processes"
+        ],
+        "definition": "Nice and renice adjust process scheduling priority.",
+        "real_world_problem": "A backup process runs during business hours, slowing down user applications. nice allows administrators to lower the priority of background tasks so critical work gets CPU time first.",
+        "daily_life_analogy": "nice is like **priority boarding on an airplane**. First-class passengers board first, then business class, then economy. Background processes are like economy passengers - they get service but don't delay important passengers."
+      },
+      "commands": [
+        {
+          "command": "nice -n 10 command",
+          "explanation": "Run command with lower priority."
+        },
+        {
+          "command": "renice 10 PID",
+          "explanation": "Change priority of running process."
+        }
+      ]
+    },
+    {
+      "id": "systemctl-services",
+      "title": "Section 5.3: Systemctl - Service Management",
+      "category": "Process & System Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "systemctl",
+        "systemd",
+        "services"
+      ],
+      "content": {
+        "why_exists": "Manage system services (daemons) that run in the background.",
+        "problem": "Start, stop, or check status of system services like web server or database.",
+        "beginner_explanation": "Systemctl controls systemd services.",
+        "examples": [
+          "$ systemctl start nginx           # Start service",
+          "$ systemctl stop nginx            # Stop service",
+          "$ systemctl status nginx          # Check status",
+          "$ systemctl enable nginx          # Start on boot",
+          "$ systemctl restart nginx         # Restart service"
+        ],
+        "definition": "Systemctl manages systemd services and units.",
+        "real_world_problem": "A database server crashes and needs to be restarted. systemctl provides a standardized way to manage system services, ensuring they start automatically and can be controlled reliably.",
+        "daily_life_analogy": "systemctl is like **a building superintendent managing elevators and HVAC**. They ensure essential services are running, can fix problems, and schedule maintenance automatically."
+      },
+      "commands": [
+        {
+          "command": "systemctl start service",
+          "explanation": "Start a service."
+        },
+        {
+          "command": "systemctl stop service",
+          "explanation": "Stop a service."
+        },
+        {
+          "command": "systemctl status service",
+          "explanation": "Check service status."
+        }
+      ]
+    },
+    {
+      "id": "resource-monitoring",
+      "title": "Section 5.4: Resource Monitoring - free, df, du",
+      "category": "Process & System Management",
+      "difficulty": "Beginner",
+      "tags": [
+        "free",
+        "df",
+        "du",
+        "monitoring"
+      ],
+      "content": {
+        "why_exists": "Monitor system resources: memory, disk space, disk usage.",
+        "problem": "Check if system is running out of memory or disk space.",
+        "beginner_explanation": "Free: memory. Df: disk space. Du: directory sizes.",
+        "examples": [
+          "$ free -h                         # Human-readable memory",
+          "$ df -h                           # Human-readable disk space",
+          "$ du -sh /var/log                 # Size of /var/log directory",
+          "$ du -h --max-depth=1 /home       # Sizes of home subdirs"
+        ],
+        "definition": "Commands to monitor system memory and disk usage.",
+        "real_world_problem": "A server is running slowly, but administrators don't know why. Resource monitoring tools show CPU, memory, and disk usage to identify bottlenecks and plan capacity upgrades.",
+        "daily_life_analogy": "Resource monitoring is like **checking your car's dashboard gauges**. When the temperature gauge is high, you know the engine is overheating and needs attention."
+      },
+      "commands": [
+        {
+          "command": "free -h",
+          "explanation": "Show memory usage."
+        },
+        {
+          "command": "df -h",
+          "explanation": "Show disk space usage."
+        },
+        {
+          "command": "du -sh directory",
+          "explanation": "Show directory size."
+        }
+      ]
+    },
+    {
+      "id": "package-managers",
+      "title": "Section 5.5: Package Managers - apt, yum, dnf",
+      "category": "Process & System Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "apt",
+        "yum",
+        "dnf",
+        "packages"
+      ],
+      "content": {
+        "why_exists": "Install, update, and manage software packages.",
+        "problem": "Install new software or update existing packages.",
+        "beginner_explanation": "Apt (Debian/Ubuntu), Yum/Dnf (RedHat/CentOS).",
+        "examples": [
+          "$ apt update && apt upgrade       # Update packages (Ubuntu)",
+          "$ yum install package             # Install package (older RedHat)",
+          "$ dnf install package             # Install package (newer RedHat)",
+          "$ apt search keyword              # Search for packages"
+        ],
+        "definition": "Package managers handle software installation and updates.",
+        "real_world_problem": "A security vulnerability is discovered in a widely-used library. Package managers allow administrators to update software across hundreds of servers quickly and reliably.",
+        "daily_life_analogy": "Package managers are like **grocery store inventory systems**. They track what's in stock, automatically reorder items, and ensure you get the freshest products available."
+      },
+      "commands": [
+        {
+          "command": "apt update",
+          "explanation": "Update package list (Ubuntu)."
+        },
+        {
+          "command": "apt install package",
+          "explanation": "Install package (Ubuntu)."
+        },
+        {
+          "command": "yum install package",
+          "explanation": "Install package (RedHat)."
+        }
+      ]
+    },
+    {
+      "id": "environment-variables",
+      "title": "Section 5.6: Environment Variables",
+      "category": "Process & System Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "environment",
+        "variables",
+        "PATH"
+      ],
+      "content": {
+        "why_exists": "Configure shell and program behavior.",
+        "problem": "Programs can't find executables, or need custom settings.",
+        "beginner_explanation": "Variables that affect program behavior.",
+        "examples": [
+          "$ echo $PATH                       # Show PATH variable",
+          "$ export EDITOR=vim               # Set default editor",
+          "$ env                             # Show all environment variables"
+        ],
+        "definition": "Environment variables store configuration data for programs.",
+        "real_world_problem": "Different applications need different configuration settings (database connections, API keys, file paths). Environment variables provide a way to configure applications without hardcoding values.",
+        "daily_life_analogy": "Environment variables are like **household preferences stored in a family settings book**. Everyone in the house knows that the WiFi password is on page 5, and the emergency contact is on page 1."
+      },
+      "commands": [
+        {
+          "command": "echo $PATH",
+          "explanation": "Show PATH variable."
+        },
+        {
+          "command": "export VAR=value",
+          "explanation": "Set environment variable."
+        },
+        {
+          "command": "env",
+          "explanation": "Show all environment variables."
+        }
+      ]
+    },
+    {
+      "id": "cron-jobs",
+      "title": "Section 5.7: Cron Jobs - Scheduled Tasks",
+      "category": "Process & System Management",
+      "difficulty": "Intermediate",
+      "tags": [
+        "cron",
+        "crontab",
+        "scheduling"
+      ],
+      "content": {
+        "why_exists": "Run commands automatically at scheduled times.",
+        "problem": "Need to run backups every night or system checks hourly.",
+        "beginner_explanation": "Cron runs commands at specified times.",
+        "examples": [
+          "$ crontab -e                       # Edit your crontab",
+          "$ crontab -l                       # List your cron jobs",
+          "# Example: 0 2 * * * /path/to/backup.sh  # Daily at 2 AM"
+        ],
+        "definition": "Cron is a time-based job scheduler.",
+        "real_world_problem": "Database backups must run every night at 2 AM, log rotation every hour, and security scans weekly. Cron jobs automate these repetitive tasks without human intervention.",
+        "daily_life_analogy": "Cron jobs are like **programmable coffee makers**. You set it the night before to brew coffee at 7 AM, so fresh coffee is ready when you wake up."
+      },
+      "commands": [
+        {
+          "command": "crontab -e",
+          "explanation": "Edit cron jobs."
+        },
+        {
+          "command": "crontab -l",
+          "explanation": "List cron jobs."
+        }
+      ]
+    },
+    {
+      "id": "network-ifconfig",
+      "title": "Section 6.1: Ifconfig - Network Interface Configuration",
+      "category": "Networking in Linux",
+      "difficulty": "Intermediate",
+      "tags": [
+        "ifconfig",
+        "network",
+        "interfaces"
+      ],
+      "content": {
+        "why_exists": "Configure and view network interfaces.",
+        "problem": "Check IP address, configure network settings.",
+        "beginner_explanation": "Ifconfig shows and configures network interfaces.",
+        "examples": [
+          "$ ifconfig                        # Show all interfaces",
+          "$ ifconfig eth0                   # Show specific interface",
+          "$ sudo ifconfig eth0 192.168.1.100  # Set IP address"
+        ],
+        "definition": "Ifconfig configures network interfaces (deprecated, use 'ip').",
+        "real_world_problem": "A server loses network connectivity after a configuration change. ifconfig allows administrators to check network interface status and diagnose connectivity issues.",
+        "daily_life_analogy": "ifconfig is like **checking the connections on your home router**. You verify that the Ethernet cables are plugged in, the WiFi is enabled, and the IP address is correct."
+      },
+      "commands": [
+        {
+          "command": "ifconfig",
+          "explanation": "Show network interfaces."
+        },
+        {
+          "command": "ifconfig eth0",
+          "explanation": "Show specific interface details."
+        }
+      ]
+    },
+    {
+      "id": "network-ip-command",
+      "title": "Section 6.2: Ip Command - Modern Network Management",
+      "category": "Networking in Linux",
+      "difficulty": "Intermediate",
+      "tags": [
+        "ip",
+        "network",
+        "routing"
+      ],
+      "content": {
+        "why_exists": "Modern replacement for ifconfig, more powerful.",
+        "problem": "Configure IP addresses, routes, and network interfaces.",
+        "beginner_explanation": "Ip command manages network configuration.",
+        "examples": [
+          "$ ip addr show                    # Show IP addresses",
+          "$ ip route show                   # Show routing table",
+          "$ sudo ip addr add 192.168.1.100/24 dev eth0  # Add IP"
+        ],
+        "definition": "Ip is a modern networking command that replaces ifconfig and route.",
+        "real_world_problem": "Network troubleshooting requires checking routing tables, interface configurations, and neighbor discovery. The ip command provides comprehensive network configuration and monitoring.",
+        "daily_life_analogy": "The ip command is like **a network diagnostic toolkit**. It's the Swiss Army knife that can check connections, configure settings, and troubleshoot network problems."
+      },
+      "commands": [
+        {
+          "command": "ip addr show",
+          "explanation": "Show IP addresses."
+        },
+        {
+          "command": "ip route show",
+          "explanation": "Show routing table."
+        }
+      ]
+    },
+    {
+      "id": "ssh-secure-shell",
+      "title": "Section 6.3: SSH - Secure Shell",
+      "category": "Networking in Linux",
+      "difficulty": "Intermediate",
+      "tags": [
+        "ssh",
+        "remote",
+        "security"
+      ],
+      "content": {
+        "why_exists": "Securely connect to remote systems.",
+        "problem": "Access remote servers securely.",
+        "beginner_explanation": "SSH provides encrypted remote access.",
+        "examples": [
+          "$ ssh user@hostname               # Connect to remote host",
+          "$ ssh -i key.pem user@host        # Use specific key",
+          "$ scp file.txt user@host:/path    # Copy files securely"
+        ],
+        "definition": "SSH is a protocol for secure remote login and file transfer.",
+        "real_world_problem": "System administrators need to manage remote servers securely over the internet. SSH provides encrypted connections and authentication to prevent eavesdropping and unauthorized access.",
+        "daily_life_analogy": "SSH is like **a secure phone line for international calls**. Your conversation is encrypted so no one can listen in, and you verify the other person's identity before discussing sensitive information."
+      },
+      "commands": [
+        {
+          "command": "ssh user@host",
+          "explanation": "Connect to remote host."
+        },
+        {
+          "command": "scp file user@host:path",
+          "explanation": "Copy files securely."
+        }
+      ]
+    },
+    {
+      "id": "dns-dig-nslookup",
+      "title": "Section 6.4: DNS - Dig & Nslookup",
+      "category": "Networking in Linux",
+      "difficulty": "Intermediate",
+      "tags": [
+        "dns",
+        "dig",
+        "nslookup"
+      ],
+      "content": {
+        "why_exists": "Query DNS servers to resolve domain names.",
+        "problem": "Check if DNS is working or debug name resolution.",
+        "beginner_explanation": "Dig and nslookup query DNS servers.",
+        "examples": [
+          "$ dig google.com                  # DNS lookup",
+          "$ nslookup google.com             # Alternative DNS lookup",
+          "$ dig @8.8.8.8 google.com         # Use specific DNS server"
+        ],
+        "definition": "Dig and nslookup are DNS lookup utilities.",
+        "real_world_problem": "A website becomes unreachable, and administrators need to check if DNS resolution is working. DNS tools help diagnose name resolution problems and verify DNS configurations.",
+        "daily_life_analogy": "DNS tools are like **looking up a phone number in a directory**. When you need to call someone, you look up their name to find their number, and these tools help you verify the directory is working correctly."
+      },
+      "commands": [
+        {
+          "command": "dig domain.com",
+          "explanation": "DNS lookup."
+        },
+        {
+          "command": "nslookup domain.com",
+          "explanation": "DNS lookup (older tool)."
+        }
+      ]
+    },
+    {
+      "id": "routing-ip-route",
+      "title": "Section 6.5: Routing - Ip Route",
+      "category": "Networking in Linux",
+      "difficulty": "Advanced",
+      "tags": [
+        "routing",
+        "ip",
+        "network"
+      ],
+      "content": {
+        "why_exists": "Manage routing table for network traffic.",
+        "problem": "Configure how traffic reaches different networks.",
+        "beginner_explanation": "Ip route manages the routing table.",
+        "examples": [
+          "$ ip route show                   # Show routing table",
+          "$ sudo ip route add default via 192.168.1.1  # Add default route"
+        ],
+        "definition": "Ip route manages the kernel routing table.",
+        "real_world_problem": "After connecting to a new network, a laptop cannot reach the internet. Route commands show the routing table and allow administrators to add routes for proper network connectivity.",
+        "daily_life_analogy": "Routing is like **GPS navigation for network traffic**. Just as GPS tells you which roads to take to reach your destination, routing tells network packets which path to follow through the network."
+      },
+      "commands": [
+        {
+          "command": "ip route show",
+          "explanation": "Show routing table."
+        },
+        {
+          "command": "ip route add",
+          "explanation": "Add route."
+        }
+      ]
+    },
+    {
+      "id": "firewall-ufw-iptables",
+      "title": "Section 6.6: Firewall - Ufw & Iptables",
+      "category": "Networking in Linux",
+      "difficulty": "Intermediate",
+      "tags": [
+        "firewall",
+        "ufw",
+        "iptables"
+      ],
+      "content": {
+        "why_exists": "Control network traffic to/from the system.",
+        "problem": "Block unwanted network connections.",
+        "beginner_explanation": "Ufw (simple), Iptables (advanced) manage firewall rules.",
+        "examples": [
+          "$ sudo ufw enable                 # Enable UFW firewall",
+          "$ sudo ufw allow 22               # Allow SSH",
+          "$ sudo iptables -L                # List iptables rules"
+        ],
+        "definition": "Ufw and iptables are firewall management tools.",
+        "real_world_problem": "A server is being attacked by hackers trying to exploit vulnerabilities. Firewalls block unauthorized access attempts while allowing legitimate traffic to pass through.",
+        "daily_life_analogy": "Firewalls are like **security guards at a building entrance**. They check identification, allow authorized people in, and keep out intruders and suspicious characters."
+      },
+      "commands": [
+        {
+          "command": "sudo ufw status",
+          "explanation": "Check firewall status."
+        },
+        {
+          "command": "sudo ufw allow port",
+          "explanation": "Allow traffic on port."
+        }
+      ]
+    },
+    {
+      "id": "ftp-sftp",
+      "title": "Section 6.7: FTP & SFTP - File Transfer",
+      "category": "Networking in Linux",
+      "difficulty": "Intermediate",
+      "tags": [
+        "ftp",
+        "sftp",
+        "file-transfer"
+      ],
+      "content": {
+        "why_exists": "Transfer files between systems.",
+        "problem": "Upload/download files to/from remote servers.",
+        "beginner_explanation": "FTP (insecure), SFTP (secure) for file transfer.",
+        "examples": [
+          "$ sftp user@host                  # Secure file transfer",
+          "$ ftp ftp.example.com             # Insecure FTP (avoid)"
+        ],
+        "definition": "FTP and SFTP are protocols for file transfer over networks.",
+        "real_world_problem": "A web developer needs to upload website files to a remote server. FTP/SFTP provides secure file transfer capabilities over the network.",
+        "daily_life_analogy": "FTP/SFTP is like **shipping packages via registered mail**. Your files are securely packaged and tracked as they travel from your computer to the destination server."
+      },
+      "commands": [
+        {
+          "command": "sftp user@host",
+          "explanation": "Secure file transfer."
+        },
+        {
+          "command": "scp file user@host:path",
+          "explanation": "Secure copy."
+        }
+      ]
+    }
+  ]
+}
